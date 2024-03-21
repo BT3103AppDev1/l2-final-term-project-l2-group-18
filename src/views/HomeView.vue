@@ -24,6 +24,7 @@
   .home-page {
     text-align: center;
     margin-top: 50px;
+    
   }
   
   .button {
@@ -36,5 +37,6 @@
     font-size: 16px;
     margin: 20px;
   }
+  
 </style>
   
