@@ -8,28 +8,43 @@
           class="fa-regular share-icon"
           :size="iconSize"
         />
-        <button class="new-day-button">Add New Day</button>
+        <button class="new-day-button" @click="addNewDay">Add New Day</button>
       </div>
     </div>
 
-    <div class="days-container">
-      <font-awesome-icon
-        icon="calendar"
-        class="fa-regular calendar-icon"
-        :size="iconSize"
-      />
-      <h2>Day 1</h2>
+    <div class="days-container" v-for="(day, index) in days" :key="index">
+      <div class="days-title-container">
+        <font-awesome-icon
+          icon="calendar"
+          class="fa-regular calendar-icon"
+          :size="iconSize"
+        />
+        <h2>Day {{ index + 1 }}</h2>
+        <button
+          v-if="index === days.length - 1 && days.length !== 1"
+          class="delete-day-button"
+          @click="deleteDay(index)"
+        >
+          Delete Day
+        </button>
+      </div>
+
+      <div class="location-container">
+        <button class="plus-button" @click="showAddLocationForm = index + 1">
+          +
+        </button>
+        <span class="add-location">Add Location</span>
+      </div>
     </div>
 
-    <div class="location-container">
-      <button class="plus-button" @click="showAddLocationForm = true">+</button>
-      <span class="add-location">Add Location</span>
-    </div>
-
-    <div class="add-location-form" :class="{ open: showAddLocationForm }">
+    <div
+      class="add-location-form"
+      :class="{ open: showAddLocationForm !== null }"
+    >
       <AddLocationForm
-        @closeForm="showAddLocationForm = false"
-        v-if="showAddLocationForm"
+        @closeForm="showAddLocationForm = null"
+        v-if="showAddLocationForm !== null"
+        :dayNumber="showAddLocationForm"
       />
     </div>
   </div>
@@ -42,16 +57,29 @@ export default {
   mounted() {
     document.body.style.backgroundColor = "#e7dcdc";
   },
+
   beforeDestroy() {
     // Reset the background color when the component is destroyed
     document.body.style.backgroundColor = "";
   },
+
   data() {
     return {
-      showAddLocationForm: false,
-      iconSize: "2x",
+      showAddLocationForm: null,
+      iconSize: "xl",
+      days: [1],
     };
   },
+
+  methods: {
+    addNewDay() {
+      this.days.push(this.days.length + 1);
+    },
+    deleteDay(index) {
+      this.days.splice(index, 1);
+    },
+  },
+
   components: {
     AddLocationForm,
   },
@@ -96,6 +124,10 @@ h1 {
 }
 
 .days-container {
+  margin-bottom: 1rem;
+}
+
+.days-title-container {
   padding-left: 1rem;
   display: flex;
   align-items: center;
@@ -109,6 +141,17 @@ h2 {
 
 .calendar-icon {
   margin-right: 1rem;
+}
+
+.delete-day-button {
+  width: 100px;
+  padding: 0.5rem;
+  margin-left: 2rem;
+  background-color: #ff5b5b;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .location-container {
