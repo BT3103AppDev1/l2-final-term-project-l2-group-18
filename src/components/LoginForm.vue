@@ -42,7 +42,7 @@ export default {
                 console.log("Logged in successfully");
                 this.$router.push('/itineraries')
             } catch (error) {
-                this.loginError = error;
+                this.loginError = error.message;
                 console.error("Login Error:", error );
             }
         },
@@ -51,7 +51,7 @@ export default {
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
-                const token = result.credential.accessToken;
+                const token = result.credential?.accessToken;
                 const user = result.user;
                 console.log("Google sign in successful", user);
                 this.$router.push('/itineraries')

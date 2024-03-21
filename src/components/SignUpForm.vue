@@ -59,7 +59,7 @@ export default {
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
-                const token = result.credential.accessToken;
+                const token = result.credential?.accessToken;
                 const user = result.user;
                 console.log("Google sign in successful", user);
                 this.$router.push('/itineraries')
