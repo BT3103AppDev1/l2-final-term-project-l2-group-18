@@ -24,6 +24,8 @@
 <script>
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import { Loader } from "@googlemaps/js-api-loader";
+import { onMounted } from "vue";
 import { ref } from 'vue';
 
   export default {
@@ -43,9 +45,34 @@ import { ref } from 'vue';
       submitForm() {
         console.log('Trip details:', this.trip);
             //TODO: Backend logic to handle location search
+      },
+      initializeAutocomplete() {
+        const loader = new Loader({
+          apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+          libraries: ["places"]
+        });
+
+        loader.load().then(() => {
+          if(!google.maps.places) {
+            console.log("error");
+          } else {
+            console.log(google.maps.places);
+            const autoComplete = new google.maps.places.Autocomplete(
+            document.getElementById('destination'),
+            { types: ['(regions)']}
+          );
+          autoComplete.addListener('place_changed' , () => {
+            const place = autoComplete.getPlace();
+            this.trip.destination = place.name;
+          });
+        }
+        });
       }
+    },
+    mounted() {
+      this.initializeAutocomplete();
     }
-  }
+}
   </script>
   
 
