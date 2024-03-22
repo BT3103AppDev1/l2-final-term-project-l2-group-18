@@ -44,6 +44,7 @@ import { Loader } from "@googlemaps/js-api-loader";
       submitForm() {
         console.log('Trip details:', this.trip);
             //TODO: Backend logic to handle itinerary creation`
+        this.$router.push('/itineraries')
       },
       initializeAutocomplete() {
         const loader = new Loader({
