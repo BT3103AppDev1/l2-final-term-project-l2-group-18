@@ -48,6 +48,7 @@ export default {
             try {
                 const userCredentials = await createUserWithEmailAndPassword(auth, this.email, this.password);
                 console.log("Account created successfully", userCredentials.user);
+                this.$router.push('/itineraries')
             } catch (error) {
                 this.createAccountError = error;
                 console.error("Login Error:", error );
@@ -58,9 +59,10 @@ export default {
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
-                const token = result.credential.accessToken;
+                const token = result.credential?.accessToken;
                 const user = result.user;
                 console.log("Google sign in successful", user);
+                this.$router.push('/itineraries')
             } catch (error) {
                 this.loginError = error;
                 console.error("Google Sign In Error", error);

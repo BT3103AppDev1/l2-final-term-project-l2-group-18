@@ -33,6 +33,7 @@ import ItineraryList from '@/components/ItineraryList.vue'
   .home-page {
     text-align: center;
     margin-top: 50px;
+    
   }
   
   .button {
@@ -45,5 +46,6 @@ import ItineraryList from '@/components/ItineraryList.vue'
     font-size: 16px;
     margin: 20px;
   }
+  
 </style>
   
