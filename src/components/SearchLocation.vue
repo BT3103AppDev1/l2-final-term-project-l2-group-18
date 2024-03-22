@@ -25,8 +25,7 @@
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { Loader } from "@googlemaps/js-api-loader";
-import { onMounted } from "vue";
-import { ref } from 'vue';
+
 
   export default {
     name: 'PlanTrip',
@@ -44,7 +43,7 @@ import { ref } from 'vue';
     methods: {
       submitForm() {
         console.log('Trip details:', this.trip);
-            //TODO: Backend logic to handle location search
+            //TODO: Backend logic to handle itinerary creation`
       },
       initializeAutocomplete() {
         const loader = new Loader({
