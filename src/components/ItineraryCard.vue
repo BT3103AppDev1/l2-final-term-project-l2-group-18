@@ -25,7 +25,10 @@
             }
         },
         methods: {
-            formatDate
+            formatDate(date) {
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
         }
     }
 </script>
@@ -34,7 +37,7 @@
 .itinerary-card {
   display: flex;
   flex-direction: column;
-  width: 250px; /* or your preferred width */
+  width: 250px; 
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -43,8 +46,8 @@
 
 .itinerary-image {
   width: 100%;
-  height: 150px; /* or your preferred height */
-  object-fit: cover; /* this will ensure that images cover the area nicely */
+  height: 150px; 
+  object-fit: cover;
 }
 
 .itinerary-details {

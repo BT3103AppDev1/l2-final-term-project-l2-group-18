@@ -3,6 +3,7 @@
       <h1>Welcome to HTLV!</h1>
       <button @click="goToSignup" class="button">SignUp</button>
       <button @click="goToLogin" class="button">Login</button>
+      <ItineraryList />
       <SearchLocation />
 
     </div>
@@ -10,6 +11,7 @@
   
 <script>
 import SearchLocation from '@/components/SearchLocation.vue';
+import ItineraryList from '@/components/ItineraryList.vue'
   export default {
     name: 'HomeView',
     methods: {
@@ -21,7 +23,8 @@ import SearchLocation from '@/components/SearchLocation.vue';
       },
     },
     components: {
-      SearchLocation
+      SearchLocation,
+      ItineraryList,
     }
   };
 </script>
