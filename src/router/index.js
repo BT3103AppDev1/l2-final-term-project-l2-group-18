@@ -4,6 +4,7 @@ import HomeView from "../views/HomeView.vue";
 import SignUpView from "../views/SignUpView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ItinerariesView from "../views/ItinerariesView.vue";
+import CommunityView from "../views/CommunityView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -33,6 +34,11 @@ const router = createRouter({
       name: "Itineraries",
       component: ItinerariesView,
     },
+    {
+      path: "/community",
+      name: "Community",
+      component: CommunityView,
+    }
   ],
 });
 
