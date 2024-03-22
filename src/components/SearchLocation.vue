@@ -2,17 +2,18 @@
     <div class="plan-trip">
       <h1>Plan a new trip</h1>
       <form @submit.prevent="submitForm" class="trip-form">
-        <div class="input-group">
+        <div class="input-group with-border">
           <span class = "label">Where?</span>
           <input type="text" id="destination" v-model="trip.destination" placeholder="Search destinations" class="input-destination" />
-        </div> |
-        <div class="date-group">
+        </div> 
+        <div class="date-group with-border">
+          <span class = "label">Dates</span>
           <Datepicker 
             v-model="trip.dateRange" 
             format="dd/MM/yyyy" 
             placeholder="Pick a Date"
             range/>
-        </div> |
+        </div>
         <button type="submit" class="submit-btn">
           <img src="/src/assets/HTLVlogo.png" alt="Plan" class="submit-icon" />
         </button>
@@ -54,6 +55,18 @@ import { ref } from 'vue';
   flex-direction: column;
   align-items: center;
   font-family: 'Arial', sans-serif;
+  border: 1px solid black;
+  background-color: #e7dcdc54;
+}
+
+.input-group.with-border::after, .date-group.with-border::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 0;
+  bottom: 0;
+  width: 1px; 
+  background-color: black;
 }
 
 .trip-form {
@@ -66,6 +79,8 @@ import { ref } from 'vue';
   padding: 8px;
   max-width: 800px;
   box-sizing: border-box;
+  background-color: white;
+  margin-bottom: 30px;
 }
 
 .input-group, .date-group {
@@ -73,6 +88,7 @@ import { ref } from 'vue';
   flex-direction: column;
   align-items: center;
   margin: 0 10px;
+  position: relative;
 }
 
 .input-destination {
@@ -81,21 +97,24 @@ import { ref } from 'vue';
   padding: 10px;
   font-size: 16px;
   border-radius: 15px;
-  margin-top: 5px;
+  /* margin-top: 5px; */
+  text-align: center;
 }
 
+.label {
+  margin-bottom: 10px;
+}
 .submit-btn {
-  background-color: #FF647C;
   border: none;
   border-radius: 50%;
   padding: 10px;
   cursor: pointer;
   outline: none;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-left: 10px; /* Add some margin to the left of the button */
+  margin-left: 10px;
 }
 
 .submit-icon {
-  height: 24px; /* Adjust the height as needed */
+  height: 24px;
 }
 </style>
