@@ -14,28 +14,28 @@
 
       <div v-if="selectedLocation === 'Singapore'">
         <ItinerariesBox
-          profilePic="../assets/community_singapore2.jpeg"
+          profilePic="src/assets/community_singapore2.jpeg"
           name="Darrell"
           title="City life"
-          itineraryPic="../assets/community_singapore1.jpeg"
+          itineraryPic="src/assets/community_singapore1.jpeg"
         />
       </div>
 
       <div v-if="selectedLocation === 'Malaysia'">
         <ItinerariesBox
-          profilePic="../assets/community_malaysia2.jpeg"
+          profilePic="src/assets/community_malaysia1.jpeg"
           name="Marcel"
           title="Nature adventures"
-          itineraryPic="../assets/community_malaysia1.jpeg"
+          itineraryPic="src/assets/community_malaysia2.jpeg"
         />
       </div>
 
       <div v-if="selectedLocation === 'Japan'">
         <ItinerariesBox
-          profilePic="../assets/community_japan2.jpeg"
+          profilePic="src/assets/community_japan2.jpeg"
           name="Vivian"
           title="Cultural experience"
-          itineraryPic="../assets/community_japan1.jpeg"
+          itineraryPic="src/assets/community_japan1.jpeg"
         />
       </div>
 
@@ -60,24 +60,24 @@ export default {
       itineraries: [
         {
           location: "Singapore",
-          profilePic: "../assets/community_singapore2.jpeg",
+          profilePic: "src/assets/community_singapore2.jpeg",
           name: "Darrell",
           title: "City life",
-          itineraryPic: "../assets/community_singapore1.jpeg"
+          itineraryPic: "src/assets/community_singapore1.jpeg"
         },
         {
           location: "Malaysia",
-          profilePic: "../assets/community_malaysia2.jpeg",
+          profilePic: "src/assets/community_malaysia2.jpeg",
           name: "Marcel",
           title: "Nature adventures",
-          itineraryPic: "../assets/community_malaysia1.jpeg"
+          itineraryPic: "src/assets/community_malaysia1.jpeg"
         },
         {
           location: "Japan",
-          profilePic: "../assets/community_japan2.jpeg",
+          profilePic: "src/assets/community_japan2.jpeg",
           name: "Vivian",
           title: "Matcha Overload",
-          itineraryPic: "../assets/community_japan1.jpeg"
+          itineraryPic: "src/assets/community_japan1.jpeg"
         }
       ]
     };
