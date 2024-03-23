@@ -7,7 +7,7 @@
         </div>
     
         <div class = "nav_links">
-            <router-link to = "/" id= "home_tab" class = "tab">Home</router-link> 
+            <router-link to = "/home" id= "home_tab" class = "tab">Home</router-link> 
             <router-link to = "/itineraries" id= "itineraries_tab" class = "tab">My Itineraries</router-link> 
             <router-link to = "/itineraries" id= "community_tab" class = "tab">Community</router-link> 
             <router-link to = "/itineraries" id= "about_tab" class = "tab">About</router-link> 
