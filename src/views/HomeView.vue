@@ -1,4 +1,5 @@
 <template>
+  <NavBar />
     <div class="home-page">
       <h1>Welcome to HTLV!</h1>
       <ItineraryList />
@@ -9,12 +10,14 @@
   
 <script>
 import SearchLocation from '@/components/SearchLocation.vue';
-import ItineraryList from '@/components/ItineraryList.vue'
+import ItineraryList from '@/components/ItineraryList.vue';
+import NavBar from '@/components/NavBar.vue'
   export default {
     name: 'HomeView',
     components: {
       SearchLocation,
       ItineraryList,
+      NavBar,
     }
   };
 </script>
