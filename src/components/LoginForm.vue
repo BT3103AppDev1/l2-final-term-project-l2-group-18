@@ -40,7 +40,7 @@ export default {
             try {
                 await signInWithEmailAndPassword(auth, this.email, this.password);
                 console.log("Logged in successfully");
-                this.$router.push('/itineraries')
+                this.$router.push('/home')
             } catch (error) {
                 this.loginError = error.message;
                 console.error("Login Error:", error );
