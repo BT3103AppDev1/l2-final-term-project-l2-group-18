@@ -27,6 +27,7 @@
       <option value="food">Food</option>
       <option value="bar">Bar</option>
       <option value="adventure">Adventure</option>
+      <option value="hotel">Hotel</option>
       <option value="nature">Nature</option>
       <option value="sightseeing">Sightseeing</option>
       <option value="shopping">Shopping</option>
