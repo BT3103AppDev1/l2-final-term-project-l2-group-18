@@ -9,6 +9,7 @@
       </header>
       <main>
         <section class="call-to-action">
+          <img id="logo1" src="../assets/HTLVlogo.png" alt="Logo" class = "animated-logo">
           <div id = "CTA">
           <h1>Unlock the Ultimate Travel Experience with Our Trip Planner!</h1>
           <p>Revolutionize Your Travel Planning with Our Powerful AI-Powered Itinerary Builder</p>
@@ -121,6 +122,42 @@
   #start-btn:hover {
     border: 2px solid #FF5A5F; /* Change border color */
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
+}
+
+@keyframes fly {
+	0% {
+
+		transform: translate(0,20vh) rotateZ(20deg);opacity: 1;
+	}
+
+  25% {
+		transform: translate(25vw,20vh) rotateZ(20deg);
+	}
+
+	50% {
+		transform: translate(50vw,20vh) rotateZ(20deg);
+	}
+
+  75% {
+		transform: translate(75vw,17vh) rotateZ(10deg);
+	}
+
+	100% {
+		transform: translate(100vw,13vh) rotateZ(0deg);opacity: 1;
+	}
+}
+
+/* Apply animation to the logo */
+.animated-logo {
+  animation: fly 8s linear infinite; 
+  transform: translateY(-50%); 
+  position: fixed;
+  width: 50px;
+  height: auto;
+  left: 0;
+  top: 0;
+  z-index: 999;
+	pointer-events: none;
 }
   
   </style>
