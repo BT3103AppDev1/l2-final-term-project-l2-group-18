@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  signOut,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, getFirestore } from "firebase/firestore";
 
@@ -88,6 +89,18 @@ export default {
       } catch (error) {
         console.error("Error fetching user data:", error);
         commit("SET_LOGIN_ERROR", error.message);
+      }
+    },
+    async signOut({ commit }) {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        commit('SET_USER', null);  // Clear user data from state
+        commit('SET_LOGGED_IN', false);
+        console.log("User signed out successfully");
+      } catch (error) {
+        console.error("Error signing out:", error);
+        throw error;  // Rethrow if needed or handle error as necessary
       }
     },
   },

@@ -26,14 +26,19 @@
         <router-link to = "/itineraries" id= "profile_logo">
             <img class = "profile_logo" src= "../assets/profile_pic1.jpeg" alt = "Profile Picture"> 
         </router-link> 
+        <SignOutButton />
         </div>
     </div>
 </template>
   
   <script>
   import { RouterLink, RouterView } from "vue-router";
+  import SignOutButton from "./SignoutButton.vue";  
   export default {
     name: 'NavBar',
+    components: {
+        SignOutButton,
+    }
   };
   </script>
   
