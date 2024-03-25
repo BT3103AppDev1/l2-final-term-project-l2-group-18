@@ -4,14 +4,14 @@
       <div class = "account-message">
         Already have an account? <a href="/login">Login</a>
       </div>
-      <form @submit.prevent="createAccount">
+      <form @submit.prevent="submitCreateAccount">
         <input v-model="username" type="text" placeholder="Username" required />
         <input v-model="email" type = "email" placeholder = "email@example.com" required/>
         <input v-model="password" type="password" placeholder="Password" required />
         <input v-model="retypePassword" type = "password" placeholder="Retype Password" required/>
         <button type="submit" class="create-account-button">Create Account</button>
       </form>
-      <button @click="signInWithGoogle" class="google-sign-in-button">Continue with Google</button>
+      <button @click="submitSignInWithGoogle" class="google-sign-in-button">Continue with Google</button>
       <div class="additional-links">
         <a href="/help">Need help?</a>
         <a href="/usage">Usage</a>
@@ -20,8 +20,7 @@
 </template>
   
 <script>
-import {getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
-import {doc, setDoc, getFirestore} from "firebase/firestore";
+import { mapActions } from "vuex";
 export default {
     name: 'SignUpForm',
     data() {
@@ -34,7 +33,8 @@ export default {
         };
     },
     methods: {
-        async createAccount() {
+        ...mapActions('user', ['createAccount', 'signInWithGoogle']),
+        async submitCreateAccount() {
             if (!this.username || !this.email || !this.password || !this.retypePassword) {
                 this.createAccountError = 'All fields are required.';
                 return;
@@ -45,46 +45,37 @@ export default {
                 return;
             }
 
-            const auth = getAuth();
             try {
-                const userCredentials = await createUserWithEmailAndPassword(auth, this.email, this.password);
-                console.log("Account created successfully", userCredentials.user);
-                await this.addUserToFirestore(userCredentials.user);
-                this.$router.push('/itineraries')
+                await this.createAccount({ email: this.email, password: this.password, username: this.username });
+                this.$router.push('/itineraries');
             } catch (error) {
-                this.createAccountError = error;
-                console.error("Login Error:", error );
+                this.createAccountError = error.message;
+                console.error("Account creation error:", error);
             }
         },
-        async signInWithGoogle() {
-            const auth = getAuth();
-            const provider = new GoogleAuthProvider();
+        async submitSignInWithGoogle() {
             try {
-                const result = await signInWithPopup(auth, provider);
-                const token = result.credential?.accessToken;
-                const user = result.user;
-                console.log("Google sign in successful", user);
-                await this.addUserToFirestore(user);
-                this.$router.push('/itineraries')
+                await this.signInWithGoogle();
+                this.$router.push('/itineraries');
             } catch (error) {
-                this.loginError = error;
+                this.createAccountError = error.message;
                 console.error("Google Sign In Error", error);
             }
         },
-        async addUserToFirestore(user) {
-            const db = getFirestore();
-            try {
-                await setDoc(doc(db, "users", user.uid), {
-                    username: this.username,
-                    email: this.email,
-                }
-            );
-            console.log("User added to Firestore");
-            } catch (error) {
-                console.log("Error adding user to Firestore:", error);
-                this.createAccountError = error.message;
-            }
-        }
+        // async addUserToFirestore(user) {
+        //     const db = getFirestore();
+        //     try {
+        //         await setDoc(doc(db, "users", user.uid), {
+        //             username: this.username,
+        //             email: this.email,
+        //         }
+        //     );
+        //     console.log("User added to Firestore");
+        //     } catch (error) {
+        //         console.log("Error adding user to Firestore:", error);
+        //         this.createAccountError = error.message;
+        //     }
+        // }
     },
 };
 </script>
