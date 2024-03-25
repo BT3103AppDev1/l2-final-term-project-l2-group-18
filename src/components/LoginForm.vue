@@ -19,7 +19,9 @@
 </template>
   
 <script>
-import {getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup} from "firebase/auth"
+import {getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
+import {doc, getDoc, getFirestore} from "firebase/firestore";
+
 export default {
     name: 'LoginForm',
     data() {
@@ -38,8 +40,9 @@ export default {
 
             const auth = getAuth();
             try {
-                await signInWithEmailAndPassword(auth, this.email, this.password);
+                const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
                 console.log("Logged in successfully");
+                await this.fetchUserData(userCredential.user.uid);
                 this.$router.push('/home')
             } catch (error) {
                 this.loginError = error.message;
@@ -54,12 +57,28 @@ export default {
                 const token = result.credential?.accessToken;
                 const user = result.user;
                 console.log("Google sign in successful", user);
+                await this.fetchUserData(user.uid);
                 this.$router.push('/itineraries')
             } catch (error) {
                 this.loginError = error;
                 console.error("Google Sign In Error", error);
             }
-        }
+        },
+        async fetchUserData(userId) {
+            const db = getFirestore();
+            const docRef = doc(db, "users", userId);
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                console.log("User data:", docSnap.data());
+                // Perform actions with user data or store it in your state
+                } else {
+                console.log("No user data found");
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        },
     },
 };
 </script>

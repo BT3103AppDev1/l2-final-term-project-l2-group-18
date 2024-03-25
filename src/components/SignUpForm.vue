@@ -20,7 +20,8 @@
 </template>
   
 <script>
-import {getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup} from "firebase/auth"
+import {getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
+import {doc, setDoc, getFirestore} from "firebase/firestore";
 export default {
     name: 'SignUpForm',
     data() {
@@ -48,6 +49,7 @@ export default {
             try {
                 const userCredentials = await createUserWithEmailAndPassword(auth, this.email, this.password);
                 console.log("Account created successfully", userCredentials.user);
+                await this.addUserToFirestore(userCredentials.user);
                 this.$router.push('/itineraries')
             } catch (error) {
                 this.createAccountError = error;
@@ -62,10 +64,25 @@ export default {
                 const token = result.credential?.accessToken;
                 const user = result.user;
                 console.log("Google sign in successful", user);
+                await this.addUserToFirestore(user);
                 this.$router.push('/itineraries')
             } catch (error) {
                 this.loginError = error;
                 console.error("Google Sign In Error", error);
+            }
+        },
+        async addUserToFirestore(user) {
+            const db = getFirestore();
+            try {
+                await setDoc(doc(db, "users", user.uid), {
+                    username: this.username,
+                    email: this.email,
+                }
+            );
+            console.log("User added to Firestore");
+            } catch (error) {
+                console.log("Error adding user to Firestore:", error);
+                this.createAccountError = error.message;
             }
         }
     },
