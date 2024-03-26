@@ -1,21 +1,34 @@
 <template>
     <div class="signup-form">
       <h2>Create an account with HTLV!</h2>
-      <div class = "account-message">
-        Already have an account? <a href="/login">Login</a>
-      </div>
+
       <form @submit.prevent="submitCreateAccount">
+        <button @click="submitSignInWithGoogle" class="google-sign-in-button">
+            <img src = "../assets/google_logo.png" id = "google_logo">Sign up with Google</button>
+
+        <div class="or_block">
+            <hr class="line" />
+            <h4>or</h4>
+            <hr class="line" />
+        </div>
+
         <input v-model="username" type="text" placeholder="Username" required />
         <input v-model="email" type = "email" placeholder = "email@example.com" required/>
         <input v-model="password" type="password" placeholder="Password" required />
         <input v-model="retypePassword" type = "password" placeholder="Retype Password" required/>
+
         <button type="submit" class="create-account-button">Create Account</button>
       </form>
-      <button @click="submitSignInWithGoogle" class="google-sign-in-button">Continue with Google</button>
-      <div class="additional-links">
+
+      <div class = "account-message">
+        Already have an account? 
+        <a href="/login" class = "login">Login</a>
+      </div>
+
+      <!-- <div class="additional-links">
         <a href="/help">Need help?</a>
         <a href="/usage">Usage</a>
-      </div>
+      </div> -->
     </div>
 </template>
   
@@ -84,59 +97,107 @@ export default {
     .signup-form {
     width: 400px;
     margin: 0 auto;
-    text-align: center;
+    display: grid;
+    align-content: center;
+    overflow: hidden;
     }
 
     h2 {
     margin-bottom: 1.5rem;
     font-size: 24px;
-    text-align: left;
     }
 
-    .account-message {
-        margin-bottom: 1.5rem;
-        text-align: left;
-        font-size: 16px;
-    }
     form {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
+    #google_logo {
+    height: 20px;
+    width: auto;
+    padding-right: 15px;
+    }
+
+    .google-sign-in-button {
+    background-color: white;
+    border-radius: 20px; 
+    padding: 0.5rem;
+    width: 85%;
+    cursor: pointer;
+    font-size: 16px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    border: 2px solid transparent;
+    }
+
+    .google-sign-in-button:hover {
+    border: 2px solid #FF5A5F; /* Change border color */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
+    background-color: #f4efef;
+    }
+
+    .line {
+    width: 7vw;
+    border: none;
+    border-top: 1px solid #d7c9c9; /* Style the line */
+    margin: 0 20px; /* Adjust margin to create space between the line and text */
+    }
+
+    .or_block {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    }
+
     input {
-        width: 100%;
+        width: 80%;
         margin-bottom: 1rem;
         padding: 0.75rem;
         border: 1px solid #ccc;
-        border-radius: 4px;
+        border-radius: 8px;
         font-size: 16px;
     }
 
-    .forgot-password {
-    margin-bottom: 0.5rem;
-    color: #666;
-    text-decoration: none;
-    }
-
     .create-account-button {
-    width: 100%;
+    width: 84%;
     padding: 0.5rem;
     background-color: #ff5b5b;
     color: #fff;
-    border: none;
-    border-radius: 4px;
+    border: 2px solid transparent;
+    border-radius: 20px; 
     cursor: pointer;
-    }
-    .google-sign-in-button {
-        margin-top: 1rem;
-        background-color: #fff;
-        color: black;
-        border-radius: 20px;
-        padding: 5px 10px;
+    font-size: 16px;
+    margin-top: 0.5rem;
+    margin-bottom: 0.3rem;
     }
 
-    .additional-links {
+    .create-account-button:hover {
+    border: 2px solid black; /* Change border color */
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.3); /* Add shadow effect */
+    }
+
+    .account-message {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    }
+
+    .login {
+    text-decoration: underline;
+    font-weight: bold;
+    color: #666;
+    }
+
+    .login:hover {
+    text-decoration: underline;
+    font-weight: bold;
+    color: black;
+    }
+
+    /* .additional-links {
     margin-top: 1rem;
     }
 
@@ -144,5 +205,6 @@ export default {
     margin-right: 1rem;
     color: #666;
     text-decoration: none;
-    }
+    } */
+
 </style>

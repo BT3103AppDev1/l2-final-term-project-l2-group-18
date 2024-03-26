@@ -169,7 +169,7 @@ input {
 }
 
 #email_input {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .forgot-password {
