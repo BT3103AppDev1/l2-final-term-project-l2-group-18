@@ -44,16 +44,8 @@
         SignOutButton,
         UploadPic
     },
-    data() {
-        return {
-            profilePictureUrl: null
-        };
-    },
     computed: {
         ...mapGetters('user', ['userPIC'])
-    },
-    mounted() {
-        this.profilePictureUrl = this.userPIC;
     },
     methods: {
         ...mapActions('user', ['updatePhoto']),
