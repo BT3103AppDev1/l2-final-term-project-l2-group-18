@@ -46,7 +46,7 @@ export default {
         };
     },
     computed: {
-    ...mapGetters('user', ['userState', 'userData'])
+    ...mapGetters('user', ['userState', 'userData', 'userUID'])
     },
     methods: {
         ...mapActions('user', ['createAccount', 'signInWithGoogle', 'fetchUserData']),
@@ -65,7 +65,8 @@ export default {
                 const user_uid = await this.createAccount({ email: this.email, password: this.password, username: this.username });
                 await this.fetchUserData(user_uid);
 
-                console.log(this.userData.data())
+                console.log(this.userUID);
+                console.log(this.userData.data());
                 this.$router.push('/itineraries');
             } catch (error) {
                 this.createAccountError = error.message;
@@ -77,7 +78,8 @@ export default {
                 const user_uid = await this.signInWithGoogle();
                 await this.fetchUserData(user_uid);
 
-                console.log(this.userData.data())
+                console.log(this.userUID);
+                console.log(this.userData.data());
                 this.$router.push('/itineraries');
             } catch (error) {
                 this.createAccountError = error.message;

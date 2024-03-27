@@ -1,7 +1,7 @@
 <template>
     <div class = "nav_bar_rectangle"> 
         <div id = "main_logo_rect">
-        <router-link to = "/" id= "logo_home_tab">
+        <router-link to = "/home" id= "logo_home_tab">
             <img class = "main_logo" src= "../assets/HTLVlogo.png" alt = "HTLV Logo"> 
         </router-link> 
         </div>
@@ -24,20 +24,47 @@
 
         <div id = "profile_rect">
         <router-link to = "/itineraries" id= "profile_logo">
-            <img class = "profile_logo" src= "../assets/profile_pic1.jpeg" alt = "Profile Picture"> 
+            <img class = "profile_logo"  :src="userPIC" alt = "Profile Picture"> 
         </router-link> 
-        <SignOutButton />
         </div>
+        <UploadPic @image-uploaded="update_pic($event)" /> 
+        <SignOutButton />
     </div>
 </template>
   
-  <script>
+<script>
   import { RouterLink, RouterView } from "vue-router";
   import SignOutButton from "./SignoutButton.vue";  
+  import UploadPic from "./UploadPic.vue";
+  import { mapGetters, mapActions} from "vuex";
+
   export default {
     name: 'NavBar',
     components: {
         SignOutButton,
+        UploadPic
+    },
+    data() {
+        return {
+            profilePictureUrl: null
+        };
+    },
+    computed: {
+        ...mapGetters('user', ['userPIC'])
+    },
+    mounted() {
+        this.profilePictureUrl = this.userPIC;
+    },
+    methods: {
+        ...mapActions('user', ['updatePhoto']),
+        async update_pic(url) {
+            try {
+                await this.updatePhoto(url);
+                console.log("NEW URL",this.userPIC)
+            } catch (error) {
+                console.error("Error updating image:", error);
+            }
+        }
     }
   };
   </script>
@@ -78,6 +105,7 @@
     display: flex;
     width: 900px;
     justify-content: space-between;
+    cursor: pointer;
 }
 
 .tab {
@@ -141,18 +169,20 @@
 }
 
 #profile_rect {
-    padding-left: 30px;
-    padding-right: 30px;
-    display: flex;
-    align-items: center;
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
     margin-left: auto;
+    padding: 2px;
+    padding-left: 4px;
 }
 
 .profile_logo {
     cursor: pointer;
-    width: 80px;
-    height: 60px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
+    object-fit: cover;
 }
 
 .profile_logo:hover {

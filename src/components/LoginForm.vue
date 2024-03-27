@@ -55,7 +55,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters('user', ['userState', 'userData'])
+    ...mapGetters('user', ['userState', 'userData', 'userUID'])
   },
   methods: {
     ...mapActions('user', ['login', 'signInWithGoogle', 'fetchUserData']),
@@ -69,7 +69,8 @@ export default {
         console.log("Logged in successfully");
         await this.fetchUserData(user_uid);
         this.$router.push("/home");
-        console.log(this.userData.data())
+        console.log(this.userUID);
+        console.log(this.userData.data());
       } catch (error) {
         this.loginError = error.message;
         console.error("Login Error:", error);
@@ -81,7 +82,8 @@ export default {
         console.log("Google sign in successful");
         await this.fetchUserData(user_uid);
         this.$router.push("/itineraries");
-        console.log(this.userData.data())
+        console.log(this.userUID);
+        console.log(this.userData.data());
       } catch (error) {
         this.loginError = error;
         console.error("Google Sign In Error", error);
