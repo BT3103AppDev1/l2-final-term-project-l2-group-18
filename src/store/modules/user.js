@@ -15,9 +15,12 @@ export default {
     data: null,
   },
   getters: {
-    user(state) {
+    userState(state) { // Modified Userstate getter from User
       return state;
     },
+    userData(state) {
+      return state.data
+    }
   },
   mutations: {
     SET_LOGGED_IN(state, value) {
@@ -36,28 +39,40 @@ export default {
           email,
           password
         );
-        console.log("Account created successfully", userCredentials.user);
+
+        console.log("Account created successfully", userCredentials.user.username);
         await setDoc(doc(getFirestore(), "users", userCredentials.user.uid), {
           username,
           email,
         });
-        commit("SET_USER", userCredentials.user);
+
         commit("SET_LOGGED_IN", true);
-        return userCredentials.user;
+
+        const user_uid = userCredentials.user.uid;
+        return user_uid;
+
       } catch (error) {
         throw error;
       }
     },
-    async signInWithGoogle({ commit }) {
+    async signInWithGoogle({ commit }) {   // This is the same funcition for sign in or create account with google
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
       try {
-        const result = await signInWithPopup(auth, provider);
-        commit("SET_USER", result.user);
+        const userCredentials = await signInWithPopup(auth, provider);
+
+        // Store user data in Firestore when sign in or create account with google
+        await setDoc(doc(getFirestore(), "users", userCredentials.user.uid), {
+          username: userCredentials.user.displayName, // Need to see whether we want to take their Google name as username
+          email: userCredentials.user.email
+        });
+
         commit("SET_LOGGED_IN", true);
-        return result.user;
+
+        const user_uid = userCredentials.user.uid;
+        return user_uid;
       } catch (error) {
-        throw error;
+          throw error;
       }
     },
     async login({ commit }, { email, password }) {
@@ -68,11 +83,14 @@ export default {
           email,
           password
         );
-        commit("SET_USER", userCredential.user);
+
         commit("SET_LOGGED_IN", true);
-        return userCredential.user; // to use in the component for routing or other logic
+
+        const user_uid = userCredential.user.uid;
+        return user_uid;
+
       } catch (error) {
-        throw error; // rethrow to catch in the component
+          throw error; // rethrow to catch in the component
       }
     },
     async fetchUserData({ commit }, userId) {
@@ -81,8 +99,7 @@ export default {
       try {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          // You might want to store the fetched user data in the Vuex state
-          console.log("User data:", docSnap.data());
+          commit("SET_USER", docSnap);
         } else {
           console.log("No user data found");
         }
