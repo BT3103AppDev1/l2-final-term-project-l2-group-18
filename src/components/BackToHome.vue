@@ -2,7 +2,7 @@
     <div class="back-to-home">
         <a href="/"> 
             <span class="back-arrow">&#8592;</span>
-            Back To Homepage
+            <div id="homepage_text">Back To Homepage</div>
         </a>
     </div>
 </template>
@@ -15,8 +15,7 @@
   
 <style scoped>
     .back-to-home {
-        text-align: center;
-        margin-bottom: 2rem;
+        text-align: left;
     }
 
     .back-to-home a {
@@ -24,10 +23,19 @@
         align-items: center;
         text-decoration: none;
         color: #333;
+        padding: 6px;
+    }   
+
+    #homepage_text:hover{
+        text-decoration: underline;
     }   
     
     .back-arrow {
         font-size: 1.2rem;
         margin-right: 0.5rem;
+    }
+
+    .back-arrow:hover {
+        text-decoration: none;
     }
 </style>

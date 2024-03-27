@@ -91,9 +91,10 @@
   .call-to-action {
     padding: 6rem 1rem;
     position: relative;
-    height: 600px;
-    background: url('../assets/landing_bg.jpg');
+    height: 100vh;
+    background: url('../assets/landing_bg.jpg') ;
     background-size: cover;
+    overflow: hidden;
   }
 
   #CTA {
@@ -126,32 +127,38 @@
 
 @keyframes fly {
 	0% {
-
-		transform: translate(0,20vh) rotateZ(20deg);opacity: 1;
+		transform: translate(0, calc(13vh - 60px)) rotateZ(20deg);
+		opacity: 1;
 	}
 
-  25% {
-		transform: translate(25vw,20vh) rotateZ(20deg);
+	15% {
+		transform: translate(18vw, calc(13vh - 60px)) rotateZ(20deg);
 	}
 
-	50% {
-		transform: translate(50vw,20vh) rotateZ(20deg);
+	25% {
+		transform: translate(25vw, calc(20vh - 60px)) rotateZ(45deg);
 	}
 
-  75% {
-		transform: translate(75vw,17vh) rotateZ(10deg);
+	30% {
+		transform: translate(30vw, calc(20vh - 60px)) rotateZ(20deg);
+	}
+
+	70% {
+		transform: translate(70vw, calc(20vh - 60px)) rotateZ(10deg);
 	}
 
 	100% {
-		transform: translate(100vw,13vh) rotateZ(0deg);opacity: 1;
+		transform: translate(100vw, calc(13vh - 60px)) rotateZ(0deg);
+		opacity: 1;
 	}
 }
 
+
 /* Apply animation to the logo */
 .animated-logo {
-  animation: fly 8s linear infinite; 
+  animation: fly 15s linear infinite; 
   transform: translateY(-50%); 
-  position: fixed;
+  position: absolute;
   width: 50px;
   height: auto;
   left: 0;
