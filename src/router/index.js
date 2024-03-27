@@ -5,12 +5,18 @@ import SignUpView from "../views/SignUpView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ItinerariesView from "../views/ItinerariesView.vue";
 import CommunityView from "../views/CommunityView.vue";
+import LandingView from "../views/LandingView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: "/",
+      name: "Landing",
+      component: LandingView,
+    },
+    {
+      path: "/home",
       name: "Home",
       component: HomeView,
     },

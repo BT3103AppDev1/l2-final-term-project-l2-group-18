@@ -1,10 +1,7 @@
 <template>
     <div class = "signup-view">
-      <div class = "left-container">
-        <BackToHome />
-        <Logo />
-      </div>
       <div class = "content">
+        <BackToHome />
         <ForgetPasswordForm />
       </div>
     </div>
@@ -12,13 +9,11 @@
   
 <script>
   import BackToHome from "@/components/BackToHome.vue";
-  import Logo from "@/components/Logo.vue";
   import ForgetPasswordForm from "@/components/ForgotPasswordForm.vue";
   export default {
     name: "ForgotPasswordView",
     components: {
       BackToHome,
-      Logo,
       ForgetPasswordForm,
     },
   }
@@ -27,17 +22,20 @@
 <style scoped>
   .signup-view {
     display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
     width: 100vw;
+    background: url('../assets/login_leftpic.png') ;
+    background-size: cover;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
   }
-  .left-container {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .content {
-    margin-left: 2rem;
-  }
+
+.content {
+  background-color: rgba(231, 219, 220, 0.8);
+  width: max-content;
+  text-align: center;
+  padding: 30px 20px;
+  border-radius: 20px;
+}
 </style>

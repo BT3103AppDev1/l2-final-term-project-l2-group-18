@@ -1,22 +1,24 @@
 <template>
+  <NavBar />
     <div class="home-page">
       <h1>Welcome to HTLV!</h1>
-      <button @click="goToSignup" class="button">SignUp</button>
-      <button @click="goToLogin" class="button">Login</button>
+      <ItineraryList />
+      <SearchLocation />
+
     </div>
 </template>
   
 <script>
+import SearchLocation from '@/components/SearchLocation.vue';
+import ItineraryList from '@/components/ItineraryList.vue';
+import NavBar from '@/components/NavBar.vue'
   export default {
     name: 'HomeView',
-    methods: {
-      goToLogin() {
-        this.$router.push('/login');
-      },
-      goToSignup() {
-        this.$router.push('/signup');
-      },
-    },
+    components: {
+      SearchLocation,
+      ItineraryList,
+      NavBar,
+    }
   };
 </script>
   

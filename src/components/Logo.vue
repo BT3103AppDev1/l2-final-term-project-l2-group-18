@@ -16,12 +16,12 @@ export default {
 .header {
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
 }
 
 .logo{
-    max-width:400px;
-    height: auto;
-    padding:20px;
+    width:auto;
+    height: 150px;
+    padding: 0%;
+    margin: 0%;
 }
 </style>
