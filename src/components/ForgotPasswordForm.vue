@@ -1,17 +1,25 @@
 <template>
     <div class="forgot-password-form">
-      <h2>Need to reset your password?</h2>
+      <h2>Forgot your password?</h2>
+
       <div class = "account-message">
-        Enter your email address and we'll send you a link to reset your password!
+        Enter your email and we'll send you a link to reset your password!
       </div>
+
       <form @submit.prevent="reset">
         <input v-model="email" type="text" placeholder="Email" required />
         <button type="submit" class="reset-button">Send password reset link &rarr;</button>
       </form>
-      <div class="additional-links">
+
+      <div class = "account-message2">
+        Hold on.. I remember it now!  
+        <a href="/login" class = "login"> Back to Login</a>
+      </div>
+
+      <!-- <div class="additional-links">
         <a href="/help">Need help?</a>
         <a href="/usage">Usage</a>
-      </div>
+      </div> -->
     </div>
 </template>
   
@@ -49,57 +57,82 @@ export default {
     .login-form {
     width: 400px;
     margin: 0 auto;
-    text-align: center;
+    display: grid;
+    align-content: center;
+    overflow: hidden;
     }
 
     h2 {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     font-size: 24px;
     }
 
-    .account-message {
-        margin-bottom: 1.5rem;
-        text-align: left;
-        font-size: 16px;
-    }
     form {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
-    input {
-        width: 100%;
+    .account-message {
         margin-bottom: 1rem;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    input {
+        width: 90%;
+        margin-bottom: 0.5rem;
         padding: 0.75rem;
         border: 1px solid #ccc;
-        border-radius: 4px;
+        border-radius: 8px;
         font-size: 16px;
     }
 
-    .forgot-password {
-        margin-bottom: 0.5rem;
-        color: #666;
-        text-decoration: none;
-    }
-
     .reset-button {
-        width: 100%;
-        padding: 0.5rem;
-        background-color: #ff5b5b;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+    width: 84%;
+    padding: 0.5rem;
+    background-color: #ff5b5b;
+    color: #fff;
+    border: 2px solid transparent;
+    border-radius: 20px; 
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
     }
 
-    .additional-links {
+    .reset-button:hover {
+    border: 2px solid black; /* Change border color */
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.3); /* Add shadow effect */
+    }
+
+    .account-message2 {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 0.1rem;
+    }
+
+    .login {
+    text-decoration: underline;
+    font-weight: bold;
+    color: #666;
+    }
+
+    .login:hover {
+    text-decoration: underline;
+    font-weight: bold;
+    color: black;
+    }
+    
+    /* .additional-links {
         margin-top: 1rem;
-    }
+    } */
 
-    .additional-links a {
+    /* .additional-links a {
         margin-right: 1rem;
         color: #666;
         text-decoration: none;
-    }
+    } */
 </style>
