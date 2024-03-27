@@ -69,9 +69,9 @@ export default {
           password
         );
         commit("SET_USER", userCredential.user);
+        commit("SET_LOGGED_IN", true);
         return userCredential.user; // to use in the component for routing or other logic
       } catch (error) {
-        commit("SET_LOGIN_ERROR", error.message);
         throw error; // rethrow to catch in the component
       }
     },
@@ -88,7 +88,6 @@ export default {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        commit("SET_LOGIN_ERROR", error.message);
       }
     },
     async signOut({ commit }) {
@@ -100,7 +99,7 @@ export default {
         console.log("User signed out successfully");
       } catch (error) {
         console.error("Error signing out:", error);
-        throw error;  // Rethrow if needed or handle error as necessary
+        throw error;  
       }
     },
   },
