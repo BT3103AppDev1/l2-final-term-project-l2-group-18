@@ -5,7 +5,9 @@
       <form @submit.prevent="submitCreateAccount">
         <button @click="submitSignInWithGoogle" class="google-sign-in-button">
             <img src = "../assets/google_logo.png" id = "google_logo">Sign up with Google</button>
+      </form>
 
+      <form @submit.prevent="submitCreateAccount">
         <div class="or_block">
             <hr class="line" />
             <h4>or</h4>
@@ -159,7 +161,7 @@ export default {
     .or_block {
     display: flex;
     align-items: center;
-    padding: 4px;
+    padding: 0px;
     }
 
     input {

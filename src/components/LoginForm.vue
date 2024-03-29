@@ -3,11 +3,13 @@
     <h2>Log in to your HTLV account</h2>
 
     <form @submit.prevent="submitLogin">
-      <button @click="submitSignInWithGoogle" class="google-sign-in-button">
+    <button @click="submitSignInWithGoogle" class="google-sign-in-button">
       <img src = "../assets/google_logo.png" id = "google_logo">
       Continue with Google
       </button>
+    </form>
 
+    <form @submit.prevent="submitLogin">
       <div class="or_block">
         <hr class="line" />
         <h4>or</h4>
