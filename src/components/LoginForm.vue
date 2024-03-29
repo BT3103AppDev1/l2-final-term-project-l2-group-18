@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { mapActions} from 'vuex';
+import {mapGetters, mapActions} from 'vuex';
 
 export default {
   name: "LoginForm",
@@ -54,6 +54,9 @@ export default {
       loginError: "", 
     };
   },
+  computed: {
+    ...mapGetters('user', ['userState', 'userData', 'userUID'])
+  },
   methods: {
     ...mapActions('user', ['login', 'signInWithGoogle', 'fetchUserData']),
     async submitLogin() {
@@ -62,10 +65,12 @@ export default {
         return;
       }
       try {
-        const user = await this.login({ email: this.email, password: this.password });
+        const user_uid = await this.login({ email: this.email, password: this.password });
         console.log("Logged in successfully");
-        await this.fetchUserData(user.uid);
+        await this.fetchUserData(user_uid);
         this.$router.push("/home");
+        console.log(this.userUID);
+        console.log(this.userData.data());
       } catch (error) {
         this.loginError = error.message;
         console.error("Login Error:", error);
@@ -73,30 +78,17 @@ export default {
     },
     async submitSignInWithGoogle() {
       try {
-        const user = await this.signInWithGoogle();
-        console.log("Google sign in successful", user);
-        await this.fetchUserData(user.uid);
+        const user_uid = await this.signInWithGoogle();
+        console.log("Google sign in successful");
+        await this.fetchUserData(user_uid);
         this.$router.push("/itineraries");
+        console.log(this.userUID);
+        console.log(this.userData.data());
       } catch (error) {
         this.loginError = error;
         console.error("Google Sign In Error", error);
       }
     },
-    // async fetchUserData(userId) {
-    //   const db = getFirestore();
-    //   const docRef = doc(db, "users", userId);
-    //   try {
-    //     const docSnap = await getDoc(docRef);
-    //     if (docSnap.exists()) {
-    //       console.log("User data:", docSnap.data());
-    //       // Perform actions with user data or store it in your state
-    //     } else {
-    //       console.log("No user data found");
-    //     }
-    //   } catch (error) {
-    //     console.error("Error fetching user data:", error);
-    //   }
-    // },
   },
 };
 </script>

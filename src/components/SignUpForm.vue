@@ -33,7 +33,7 @@
 </template>
   
 <script>
-import { mapActions } from "vuex";
+import {mapGetters, mapActions } from "vuex";
 export default {
     name: 'SignUpForm',
     data() {
@@ -45,8 +45,11 @@ export default {
         createAccountError:'',
         };
     },
+    computed: {
+    ...mapGetters('user', ['userState', 'userData', 'userUID'])
+    },
     methods: {
-        ...mapActions('user', ['createAccount', 'signInWithGoogle']),
+        ...mapActions('user', ['createAccount', 'signInWithGoogle', 'fetchUserData']),
         async submitCreateAccount() {
             if (!this.username || !this.email || !this.password || !this.retypePassword) {
                 this.createAccountError = 'All fields are required.';
@@ -59,7 +62,11 @@ export default {
             }
 
             try {
-                await this.createAccount({ email: this.email, password: this.password, username: this.username });
+                const user_uid = await this.createAccount({ email: this.email, password: this.password, username: this.username });
+                await this.fetchUserData(user_uid);
+
+                console.log(this.userUID);
+                console.log(this.userData.data());
                 this.$router.push('/itineraries');
             } catch (error) {
                 this.createAccountError = error.message;
@@ -68,7 +75,11 @@ export default {
         },
         async submitSignInWithGoogle() {
             try {
-                await this.signInWithGoogle();
+                const user_uid = await this.signInWithGoogle();
+                await this.fetchUserData(user_uid);
+
+                console.log(this.userUID);
+                console.log(this.userData.data());
                 this.$router.push('/itineraries');
             } catch (error) {
                 this.createAccountError = error.message;
