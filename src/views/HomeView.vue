@@ -2,7 +2,10 @@
   <NavBar />
     <div class="home-page">
       <h1>Welcome to HTLV!</h1>
-      <ItineraryList />
+      <h2>Community</h2>
+      <ItineraryList type="community"/>
+      <h2>Your itineraries</h2>
+      <ItineraryList type="personal"/>
       <SearchLocation />
 
     </div>

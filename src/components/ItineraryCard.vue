@@ -1,9 +1,9 @@
 <template>
     <div class = "card">
-        <img :src="itinerary.image" alt="" class= "card-image">
+        <img :src="itinerary.imageURL" alt="" class= "card-image">
         <div clas="card-info">
             <h2 class="card-title">{{ itinerary.title }}</h2>
-            <p class ="card-dates">{{  itinerary.dates }}</p>
+            <p class ="card-dates">{{  itinerary.dateRange }}</p>
         </div>
     </div>
 </template>
@@ -13,15 +13,20 @@
         props: {
             itinerary: {
                 type: Object,
-                required: true
+                required: true,
+                default: () => ({
+                    destination: '',
+                    dateRange: {},
+                    imageURL: ''
+                })
             }
         },
         computed: {
             dateStart() {
-                return this.formatDate(this.itinerary.dateStart);
+                return this.formatDate(this.itinerary.dateRange[0]);
             },
             dateEnd() {
-                return this.formatDate(this.itinerary.dateEnd)
+                return this.formatDate(this.itinerary.dateRange[1]);
             }
         },
         methods: {
