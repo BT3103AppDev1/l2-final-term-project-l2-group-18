@@ -25,7 +25,8 @@
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { Loader } from "@googlemaps/js-api-loader";
-
+import {mapGetters, mapActions } from "vuex";
+import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/firestore";
 
   export default {
     name: 'PlanTrip',
@@ -40,10 +41,16 @@ import { Loader } from "@googlemaps/js-api-loader";
         }
       };
     },
+    computed: {
+      ...mapGetters('user', ['userData', 'userUID'])
+    },
     methods: {
-      submitForm() {
+      async submitForm() {
         console.log('Trip details:', this.trip);
-            //TODO: Backend logic to handle itinerary creation`
+        const userId = this.userUID;
+        const itinerariesRef = collection(getFirestore(), "users", userId, "itineraries")
+        const docRef = await addDoc(itinerariesRef, this.trip);
+        console.log('Document added with ID:', docRef.id);
         this.$router.push('/itineraries')
       },
       initializeAutocomplete() {
@@ -71,7 +78,7 @@ import { Loader } from "@googlemaps/js-api-loader";
     },
     mounted() {
       this.initializeAutocomplete();
-    }
+    },
 }
   </script>
   
