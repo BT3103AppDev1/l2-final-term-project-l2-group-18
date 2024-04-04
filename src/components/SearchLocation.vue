@@ -37,7 +37,8 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
       return {
         trip: {
           destination: '',
-          dateRange: [new Date(), new Date()]
+          dateRange: [new Date(), new Date()],
+          imageURL: '',
         }
       };
     },
@@ -46,12 +47,17 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
     },
     methods: {
       async submitForm() {
+        await this.fetchImage();
         console.log('Trip details:', this.trip);
         const userId = this.userUID;
-        const itinerariesRef = collection(getFirestore(), "users", userId, "itineraries")
-        const docRef = await addDoc(itinerariesRef, this.trip);
-        console.log('Document added with ID:', docRef.id);
-        this.$router.push('/itineraries')
+        try {
+          const itinerariesRef = collection(getFirestore(), "users", userId, "itineraries")
+          const docRef = await addDoc(itinerariesRef, this.trip);
+          console.log('Document added with ID:', docRef.id);
+          this.$router.push('/itineraries');
+        } catch (error) {
+          console.error("Error processing form submission:", error);
+        }
       },
       initializeAutocomplete() {
         const loader = new Loader({
@@ -74,6 +80,27 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
           });
         }
         });
+      },
+      async fetchImage() {
+        const apiKey = import.meta.env.VITE_GOOGLE_CUSTOM_SEARCH_API_KEY;
+        const cx = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID;
+        const query = this.trip.destination; + " attraction";
+        const url = `https://customsearch.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${query}&searchType=image`;
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+          console.log(response);
+          console.log(data);
+          if (data.items && data.items.length > 0) {
+            const imageUrl = data.items[0].link;
+            console.log(imageUrl);
+            this.trip.imageURL = imageUrl;
+          } else {
+            console.log('No images found');
+          }
+        } catch (error) {
+          console.error("Error fetching image from google api:", error);
+        }
       }
     },
     mounted() {
