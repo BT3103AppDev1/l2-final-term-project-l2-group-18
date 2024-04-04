@@ -40,13 +40,15 @@
 
 <script>
 import { firebaseApp, auth } from "../firebaseConfig";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(firebaseApp);
 
 export default {
   name: "AddLocationForm",
-
+  props: {
+    dayNumber: Number,
+  },
   data() {
     return {
       // Defining data properties for form inputs
@@ -55,15 +57,12 @@ export default {
         description: "",
         category: "",
       },
+      userId: null //To store user's ID
     };
   },
-
-  props: {
-    dayNumber: Number,
-  },
-
   created() {
     onAuthStateChanged(auth, (user) => {
+      console.log("User state changed", user);
       if (user) {
         this.userId = user.uid;
       } else {
@@ -79,32 +78,27 @@ export default {
     },
 
     async saveLocation() {
+      console.log("saveLocation called"); // Add this line to check if the method is called
       if (!this.userId) {
         alert("You must be logged in to save a location.");
         return;
       }
-      if (!this.itineraryId) {
-        alert("You must select an itinerary to add a location to.");
-        return;
-      }
-      if (!this.dayId) {
-        alert("You must select a day to add your location to.");
-        return;
-      }
-
+      // Assumes itineraryId is passed as a prop or can be otherwise obtained
+      const itineraryId = "OjKPjGvFB5mvb0cI0TpF"; 
+      
       try {
+         // Construct the document path where the location data will be saved
         const locationRef = collection(
           db,
           "users",
           this.userId,
           "itineraries",
-          this.itineraryId,
-          "days",
-          this.dayId,
+          itineraryId, //hardcoded for now
           "locations"
         );
         await addDoc(locationRef, {
-          ...this.formData,
+          ...this.formData, //spread operator to include all form data
+          day: this.dayNumber.toString(),
         });
         alert("Location added successfully to the day!");
         // Reset form data
