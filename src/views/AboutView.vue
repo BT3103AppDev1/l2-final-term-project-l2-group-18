@@ -56,38 +56,37 @@ export default {
 
 .about-logo {
   width: 100%;
-  max-width: 500px; /* Adjust maximum width as needed */
+  max-width: 500px;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .about-content {
   flex: 1;
-  max-width: 600px; /* Adjust maximum width as needed */
-  padding-left: 2rem; /* Add padding to the left */
+  max-width: 600px;
+  padding-left: 2rem;
 }
 
 .about-title {
-  font-size: 4em; /* Using em for font size */
+  font-size: 4em;
   font-weight: bold;
   color: #333;
-  text-shadow: 0.1em 0.1em 0.2em rgba(0, 0, 0, 0.1); /* Using em for text shadow */
+  text-shadow: 0.1em 0.1em 0.2em rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
 
 .about-content p {
-  font-size: 1.5em; /* Using em for font size */
+  font-size: 1.5em;
   line-height: 1.8;
   margin-bottom: 1rem;
   font-weight: bold;
-  text-align: justify; /* Align text */
+  text-align: justify;
 }
 
 .highlight {
-  color: red; /* Set the color to red */
+  color: red;
 }
 
-/* Media query for smaller screens */
 @media screen and (max-width: 768px) {
   .about-image {
     flex: none;
@@ -97,7 +96,7 @@ export default {
   .about-content {
     flex: none;
     max-width: none;
-    padding-left: 0; /* Adjust padding for smaller screens */
+    padding-left: 0;
   }
 }
 </style>
