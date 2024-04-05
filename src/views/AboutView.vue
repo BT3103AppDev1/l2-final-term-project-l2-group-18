@@ -10,7 +10,7 @@
           <div class="about-content">
             <h2 class="about-title">ABOUT <span class="highlight">HTLV</span></h2>
             <p>Welcome to Hasta La Vista (<span class="highlight">HTLV</span>) - your ultimate travel companion!</p>
-            <p><span class="highlight">HTLV</span> is a revolutionary web application designed to simplify and enhance your travel planning experience. Say goodbye to the hassle of juggling multiple platforms and tools for itinerary creation and collaboration. With <span class="highlight">HTLV</span>, you can streamline your travel plans, discover new destinations, and connect with fellow travelers - all in one place.</p>
+            <p><span class="highlight">HTLV</span> is a travel application designed to simplify and enhance your travel planning experience. Say goodbye to the hassle of juggling multiple platforms and tools for itinerary creation and collaboration. With <span class="highlight">HTLV</span>, you can streamline your travel plans, discover new destinations, and connect with fellow travelers - all in one place.</p>
           </div>
         </div>
       </div>
