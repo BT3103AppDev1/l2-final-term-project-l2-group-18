@@ -28,11 +28,15 @@ export default {
 .content-container {
   display: flex;
   width: 100vw; 
+  height: calc(100vh - 9vh); /* Since navbar occupies 9vh */
 }
 
 .places, .maps {
-  height: 100%;
   flex: 1;
+}
+
+.places {
+  overflow-y: auto;
 }
 
 </style>
