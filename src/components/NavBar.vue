@@ -12,15 +12,6 @@
             <router-link to = "/community" id= "community_tab" class = "tab">Community</router-link> 
             <router-link to = "/itineraries" id= "about_tab" class = "tab">About</router-link> 
         </div>
-        <div id = "search_bar_container"> 
-            <form id = "search_bar_form">
-                <input type="text" id = "search_bar_input" placeholder="Where to next?"> 
-                <button type = "submit" id = "submit_button">
-                    <img src = "../assets/search_icon.png" alt = "search">
-                </button>
-            </form>
-            
-        </div>
 
         <div id = "profile_rect">
         <router-link to = "/itineraries" id= "profile_logo">
@@ -112,52 +103,6 @@
 .tab:hover {
     background-color: #FFF35D;
     color:#FF2C3B;
-}
-
-#search_bar_container {
-    position: relative;
-    display: flex;
-    flex-grow: 1;
-}
-
-#search_bar_form {
-    position: relative;
-    display: flex;
-    flex-grow: 1;
-    padding-left: 10px;
-}
-
-#search_bar_input {
-    flex-grow: 1;
-    font-style: italic;
-    border: 1px solid;
-    border-radius: 25px;
-    padding: 10px 40px 5px 15px;
-    background-color: rgb(232, 225, 225);
-    color: #7f7272;
-    font-size: large;
-    width:auto;
-}
-
-#search_bar_input:hover {
-    border: 2px solid #FF5A5F; /* Change border color */
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
-}
-
-#submit_button {
-    border: none;
-    background-color: transparent;
-    padding: 0;
-    cursor: pointer;
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-#submit_button img {
-    width: 20px;
-    height: 20px;
 }
 
 #profile_rect {
