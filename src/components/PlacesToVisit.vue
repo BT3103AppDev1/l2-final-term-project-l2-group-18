@@ -1,4 +1,5 @@
 <template>
+  <PlacesSearchBar @place-selected="handlePlaceSelection" />
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
@@ -11,7 +12,6 @@
         <button class="new-day-button" @click="addNewDay">Add New Day</button>
       </div>
     </div>
-
     <div class="days-container" v-for="(day, index) in days" :key="index">
       <div class="days-title-container">
         <font-awesome-icon
@@ -72,6 +72,7 @@
 
 <script>
 import AddLocationForm from "./AddLocationForm.vue";
+import PlacesSearchBar from "./PlacesSearchBar.vue"
 
 export default {
   mounted() {
@@ -183,10 +184,14 @@ export default {
       // Return the color for the specified category
       return categoryColors[category];
     },
+    handlePlaceSelection(place) {
+      this.$emit("place-selected", place);
+    }
   },
 
   components: {
     AddLocationForm,
+    PlacesSearchBar
   },
 };
 </script>

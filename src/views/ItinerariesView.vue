@@ -2,10 +2,10 @@
   <NavBar /> 
   <div class = "content-container"> 
     <div class = "places">
-      <PlacesToVisit />
+      <PlacesToVisit @place-selected="handlePlaceSelection" />
     </div>
     <div class = "maps">
-      <GoogleMaps />
+      <GoogleMaps :selectedPlace= "selectedPlace"/>
     </div>
   </div>
 </template>
@@ -21,6 +21,16 @@ export default {
     GoogleMaps,
     NavBar
   },
+  data() {
+    return {
+      selectedPlace: null
+    };
+  },
+  methods: {
+    handlePlaceSelection(place) {
+      this.selectedPlace = place;
+    }
+  }
 };
 </script>
 
