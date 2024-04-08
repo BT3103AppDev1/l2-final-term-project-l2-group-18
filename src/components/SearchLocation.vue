@@ -2,17 +2,23 @@
     <div class="plan-trip">
       <h1>Plan a new trip</h1>
       <form @submit.prevent="submitForm" class="trip-form">
-        <div class="input-group with-border">
-          <span class = "label">Where?</span>
-          <input type="text" id="destination" v-model="trip.destination" placeholder="Search destinations" class="input-destination" />
-        </div> 
-        <div class="date-group with-border">
-          <span class = "label">Dates</span>
-          <Datepicker 
-            v-model="trip.dateRange" 
-            format="dd/MM/yyyy" 
-            placeholder="Pick a Date"
-            range/>
+        <div class="title-group">
+          <span class="label">Title</span>
+          <input type="text" id="title" v-model="trip.title" placeholder="Enter trip title" class="input-title" />
+        </div>
+        <div class="input-group-bottom">
+          <div class="input-group with-border">
+            <span class = "label">Where?</span>
+            <input type="text" id="destination" v-model="trip.destination" placeholder="Search destinations" class="input-destination" />
+          </div> 
+          <div class="date-group with-border">
+            <span class = "label">Dates</span>
+            <Datepicker 
+              v-model="trip.dateRange" 
+              format="dd/MM/yyyy" 
+              placeholder="Pick a Date"
+              range/>
+          </div>
         </div>
         <button type="submit" class="submit-btn">
           <img src="/src/assets/HTLVlogo.png" alt="Plan" class="submit-icon" />
@@ -27,6 +33,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 import { Loader } from "@googlemaps/js-api-loader";
 import {mapGetters, mapActions } from "vuex";
 import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/firestore";
+import user from '@/store/modules/user';
 
   export default {
     name: 'PlanTrip',
@@ -36,6 +43,7 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
     data() {
       return {
         trip: {
+          title: '',
           destination: '',
           dateRange: [new Date(), new Date()],
           imageURL: '',
@@ -51,8 +59,9 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
         console.log('Trip details:', this.trip);
         const userId = this.userUID;
         try {
-          const itinerariesRef = collection(getFirestore(), "users", userId, "itineraries")
-          const docRef = await addDoc(itinerariesRef, this.trip);
+          const globalItinerariesRef = collection(getFirestore(), "global_user_itineraries");
+          const docRef = await addDoc(globalItinerariesRef, this.trip);
+          await setDoc(doc(getFirestore(), "users", userId , "itineraries", docRef.id), {});
           console.log('Document added with ID:', docRef.id);
           this.$router.push('/itineraries');
         } catch (error) {
@@ -120,6 +129,9 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
   background-color: #e7dcdc54;
 }
 
+.title-group {
+  padding:10px;
+}
 .input-group.with-border::after, .date-group.with-border::after {
   content: '';
   position: absolute;
@@ -132,7 +144,7 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
 
 .trip-form {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 2px solid #ccc;
@@ -144,13 +156,19 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
   margin-bottom: 30px;
 }
 
-.input-group, .date-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.trip-form .input-group,
+.trip-form .date-group {
+  flex: 1;
   margin: 0 10px;
   position: relative;
 }
+
+.input-group-bottom {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
 
 .input-destination {
   border: none;
@@ -158,7 +176,6 @@ import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/
   padding: 10px;
   font-size: 16px;
   border-radius: 15px;
-  /* margin-top: 5px; */
   text-align: center;
 }
 

@@ -17,7 +17,7 @@
 <script>
 import ItineraryCard from './ItineraryCard.vue';
 import {mapGetters, mapActions } from "vuex";
-import { doc, setDoc, getDocs, addDoc, getFirestore, collection, QuerySnapshot } from "firebase/firestore";
+import { doc, getDoc, getDocs, addDoc, getFirestore, collection, QuerySnapshot } from "firebase/firestore";
 
 export default {
     components: {
@@ -49,16 +49,27 @@ export default {
             try {
                 const itinerariesRef = collection(getFirestore(), "users", userId, "itineraries")
                 const myItineraries = await getDocs(itinerariesRef);
-                this.itineraries = myItineraries.docs.map(doc => {
-                    const data = doc.data();
+                const itineraryIds = myItineraries.docs.map((doc) => doc.id);
+                const itinerariesDocs = await Promise.all(itineraryIds.map(id =>
+                    getDoc(doc(getFirestore(), "global_user_itineraries", id)))
+                );
+                this.itineraries = itinerariesDocs.map(docSnap => {
+                    if (docSnap.exists()) {
+                    const data = docSnap.data();
                     return {
-                        id: doc.id,
-                        date:data.dateRange,
+                        id: docSnap.id,
+                        date: data.dateRange,
                         destination: data.destination,
                         imageURL: data.imageURL,
+                        title: data.title
                     };
-                });
-                console.log("Fetch success");
+                } else {
+                    console.log("No document!");
+                    return null;
+                }
+            }).filter(itinerary => itinerary !== null);
+
+            console.log("Fetch success");
             } catch (error) {
                 console.error("Error fetching itineraries:", error);
             }
