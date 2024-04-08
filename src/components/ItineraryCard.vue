@@ -1,72 +1,64 @@
 <template>
-    <div class = "card">
-        <img :src="itinerary.imageURL" alt="" class= "card-image">
-        <div clas="card-info">
-            <h2 class="card-title">{{ itinerary.title }}</h2>
-            <p class ="card-dates">{{  itinerary.dateRange }}</p>
-        </div>
+    <div class="itinerary-details">
+      <img class="itinerary-pic" :src="itineraryPic" :alt="title" />
+      <h3>{{ title }}</h3>
+      <div class="profile-info">
+        <img class="profile-img" :src="profilePic" :alt="name" />
+        <p class="profile-name">{{ name }}</p>
+      </div>
     </div>
-</template>
-
-<script>
-    export default {
-        props: {
-            itinerary: {
-                type: Object,
-                required: true,
-                default: () => ({
-                    destination: '',
-                    dateRange: {},
-                    imageURL: ''
-                })
-            }
-        },
-        computed: {
-            dateStart() {
-                return this.formatDate(this.itinerary.dateRange[0]);
-            },
-            dateEnd() {
-                return this.formatDate(this.itinerary.dateRange[1]);
-            }
-        },
-        methods: {
-            formatDate(date) {
-                const options = { year: 'numeric', month: 'short', day: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
-            }
-        }
+  </template>
+  
+  <script>
+  export default {
+    props: {
+      profilePic: String,
+      name: String,
+      title: String,
+      itineraryPic: String,
+      selected: Boolean
+    },
+    computed: {
+      isSelected() {
+        return this.selected;
+      }
     }
-</script>
-
-<style scoped>
-.itinerary-card {
-  display: flex;
-  flex-direction: column;
-  width: 250px; 
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  margin: 10px;
-}
-
-.itinerary-image {
-  width: 100%;
-  height: 150px; 
-  object-fit: cover;
-}
-
-.itinerary-details {
-  padding: 15px;
-  background: #fff;
-}
-
-.itinerary-title {
-  font-size: 1.2em;
-  margin-bottom: 5px;
-}
-
-.itinerary-dates {
-  font-size: 0.9em;
-  color: #666;
-}
-</style>
+  };
+  </script>
+  
+  <style scoped>
+  .itinerary-details {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #ffcbcb;
+    width: 300px;
+    margin-left: 100px;
+  }
+  
+  .profile-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .profile-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .profile-name {
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .itinerary-pic {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  </style>
+  

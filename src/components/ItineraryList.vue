@@ -3,9 +3,13 @@
         <h1>Your Trips</h1>
         <div class="cards">
             <itinerary-card
-                v-for="itinerary in itineraries" 
-                :key="itinerary.id"     
-                :itinerary="itinerary" />
+                v-for="itinerary in itineraries"
+                :key="itinerary.id"
+                :title="itinerary.destination"
+                :itineraryPic="itinerary.imageURL"
+                :profilePic="itinerary.profilePic"
+                :name="itinerary.name"
+                :selected="itinerary.selected" />
         </div>
     </div>
 </template>
@@ -69,6 +73,18 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+.trips.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
 
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px; /* Adds space between the cards */
+}
 </style>
