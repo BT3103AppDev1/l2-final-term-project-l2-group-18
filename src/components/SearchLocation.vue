@@ -93,7 +93,7 @@ import user from '@/store/modules/user';
       async fetchImage() {
         const apiKey = import.meta.env.VITE_GOOGLE_CUSTOM_SEARCH_API_KEY;
         const cx = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID;
-        const query = this.trip.destination; + " attractions";
+        const query = this.trip.destination + " famous attractions";
         const url = `https://customsearch.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${query}&searchType=image`;
         try {
           const response = await fetch(url);
