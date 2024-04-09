@@ -57,7 +57,7 @@ export default {
         description: "",
         category: "",
       },
-      userId: null //To store user's ID
+      userId: null, //To store user's ID
     };
   },
   created() {
@@ -84,18 +84,20 @@ export default {
         return;
       }
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF"; 
-      
+      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+
       try {
-         // Construct the document path where the location data will be saved
+        // Construct the document path where the location data will be saved
+
         const locationRef = collection(
           db,
-          "users",
-          this.userId,
-          "itineraries",
-          itineraryId, //hardcoded for now
+          "global_user_itineraries",
+          itineraryId,
+          "days",
+          this.dayNumber.toString(), //hardcoded for now
           "locations"
         );
+
         await addDoc(locationRef, {
           ...this.formData, //spread operator to include all form data
           day: this.dayNumber.toString(),
