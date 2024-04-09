@@ -8,7 +8,7 @@
         <p>See where others love to go!</p>
       </div>
       <CommunitySearch @submit="fetchItineraries" />
-      <ItinerariesBox v-if="selectedCountry" :country="selectedCountry" />
+      <CommunityList v-if="selectedCountry" :country="selectedCountry" :itineraries="itineraries"/>
     </div>
   </div>
 </template>
@@ -16,23 +16,25 @@
 <script>
 import NavBar from "../components/NavBar.vue";
 import CommunitySearch from "../components/CommunitySearch.vue";
-import ItinerariesBox from "../components/ItinerariesBox.vue";
+import CommunityList from "../components/CommunityList.vue";
 
 export default {
   name: "CommunityView",
   components: {
     NavBar,
     CommunitySearch,
-    ItinerariesBox
+    CommunityList
   },
     data() {
     return {
-      selectedCountry: null
+      selectedCountry: null,
+      itineraries: []
     };
   },
   methods: {
-    fetchItineraries(country) {
+    fetchItineraries(country, itineraries) {
       this.selectedCountry = country;
+      this.itineraries = itineraries;
     }
   }
 };
