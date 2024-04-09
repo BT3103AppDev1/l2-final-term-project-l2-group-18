@@ -3,7 +3,7 @@
     <img class="itinerary-pic" :src="itineraryPic" :alt="title" />
     <h3>{{ title }}</h3>
     <div class="itinerary-info">
-      <h2 class="card-title">{{ destination }}</h2>
+      <h3 class="card-title">{{ destination }}</h3>
       <p class="card-dates">{{ startDate }} - {{ endDate }}</p>
     </div>
   </div>
@@ -37,14 +37,14 @@ export default {
   padding: 20px;
   margin-bottom: 20px;
   background-color: #ffcbcb;
-  width: 280px;
+  width: 200px;
   overflow: hidden;
   box-shadow: 0 4px 8 px rgba(0, 0, 0, 0, 2);
 }
 
 .itinerary-info {
   background-color: #ffcbcb;
-  padding: 16px;
+  padding: 1px;
   text-align: center;
 }
 
