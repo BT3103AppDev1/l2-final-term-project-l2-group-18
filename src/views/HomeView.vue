@@ -4,7 +4,7 @@
       <h1>Welcome to HTLV!</h1>
       <h2>Community</h2>
       <ItineraryList type="community"/>
-      <h2>Your itineraries</h2>
+      <h2>Your Recent Itineraries</h2>
       <ItineraryList type="personal"/>
       <SearchLocation />
 

@@ -1,15 +1,15 @@
 <template>
     <div class ="trips container">
-        <h1>Your Trips</h1>
         <div class="cards">
             <itinerary-card
-                v-for="itinerary in itineraries"
+                v-for="itinerary in displayedItineraries"
                 :key="itinerary.id"
-                :title="itinerary.destination"
+                :title="itinerary.title"
+                :destination="itinerary.destination"
                 :itineraryPic="itinerary.imageURL"
-                :profilePic="itinerary.profilePic"
-                :name="itinerary.name"
-                :selected="itinerary.selected" />
+                :selected="itinerary.selected"
+                :startDate="itinerary.startDate"
+                :endDate="itinerary.endDate" />
         </div>
     </div>
 </template>
@@ -24,10 +24,17 @@ export default {
         ItineraryCard
     },
     props: {
-        type: String
+        type: String, //Personal or Community
+        limit: {
+            type: Number,
+            default: Infinity
+        }
     },
     computed: {
-      ...mapGetters('user', ['userData', 'userUID'])
+      ...mapGetters('user', ['userData', 'userUID']),
+      displayedItineraries() {
+        return this.itineraries.slice(0, this.limit);
+      }
     },
     data() {
         return {
@@ -56,9 +63,11 @@ export default {
                 this.itineraries = itinerariesDocs.map(docSnap => {
                     if (docSnap.exists()) {
                     const data = docSnap.data();
+                    const options = {year : 'numeric', month: 'short', day: '2-digit'};
                     return {
                         id: docSnap.id,
-                        date: data.dateRange,
+                        startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString('en-GB', options),
+                        endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString('en-GB', options),
                         destination: data.destination,
                         imageURL: data.imageURL,
                         title: data.title
