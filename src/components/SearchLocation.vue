@@ -9,7 +9,7 @@
         <div class="input-group-bottom">
           <div class="input-group with-border">
             <span class = "label">Where?</span>
-            <input type="text" id="destination" v-model="trip.destination" placeholder="Search destinations" class="input-destination" />
+            <input type="text" id="destination" v-model="trip.destination" placeholder="E.g. Paris, Hawaii, Japan" class="input-destination" />
           </div> 
           <div class="date-group with-border">
             <span class = "label">Dates</span>
@@ -93,7 +93,7 @@ import user from '@/store/modules/user';
       async fetchImage() {
         const apiKey = import.meta.env.VITE_GOOGLE_CUSTOM_SEARCH_API_KEY;
         const cx = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID;
-        const query = this.trip.destination; + " attraction";
+        const query = this.trip.destination; + " attractions";
         const url = `https://customsearch.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${query}&searchType=image`;
         try {
           const response = await fetch(url);
@@ -119,80 +119,83 @@ import user from '@/store/modules/user';
   </script>
   
 
-<style scoped>
+<style>
 .plan-trip {
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: 'Arial', sans-serif;
-  border: 1px solid black;
-  background-color: #e7dcdc54;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem auto;
 }
 
-.title-group {
-  padding:10px;
-}
-.input-group.with-border::after, .date-group.with-border::after {
-  content: '';
-  position: absolute;
-  right: -10px;
-  top: 0;
-  bottom: 0;
-  width: 1px; 
-  background-color: black;
+.title-group, .input-group, .date-group {
+  width: 100%;
+  margin-bottom: 1rem;
 }
 
-.trip-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #ccc;
-  border-radius: 30px;
-  padding: 8px;
-  max-width: 800px;
-  box-sizing: border-box;
-  background-color: white;
-  margin-bottom: 30px;
+.title-group input, 
+.input-group input, 
+.date-group .vue-datetimepicker-input {
+  width: 95%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
-.trip-form .input-group,
-.trip-form .date-group {
-  flex: 1;
-  margin: 0 10px;
+.input-group.with-border, .date-group.with-border {
   position: relative;
+}
+
+.input-group.with-border::after, .date-group.with-border::after {
+  display: none;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-weight: bold;
+}
+
+.submit-btn {
+  background-color: ddd;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 1px solid #e65a5a;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #e65a5a;
+}
+
+.submit-icon {
+  width: auto;
+  height: 25px;
 }
 
 .input-group-bottom {
   display: flex;
-  width: 100%;
-  justify-content: space-between;
+  gap: 30px;
 }
 
-
-.input-destination {
-  border: none;
-  outline: none;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 15px;
-  text-align: center;
+@media (max-width: 600px) {
+  .input-group-bottom {
+    flex-direction: column;
+  }
 }
 
-.label {
-  margin-bottom: 10px;
-}
-.submit-btn {
-  border: none;
-  border-radius: 50%;
-  padding: 10px;
-  cursor: pointer;
-  outline: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-left: 10px;
-}
-
-.submit-icon {
-  height: 24px;
-}
 </style>
