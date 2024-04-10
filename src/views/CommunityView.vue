@@ -7,8 +7,8 @@
         <h2>Trending Placelists in your City</h2>
         <p>See where others love to go!</p>
       </div>
-      <CommunitySearch @submit="fetchItineraries" />
-      <CommunityList v-if="selectedCountry" :country="selectedCountry" :itineraries="itineraries"/>
+      <CommunitySearch @submit="updateSelectedCountry" />
+      <CommunityList v-if="selectedCountry" :country="selectedCountry"/>
     </div>
   </div>
 </template>
@@ -32,9 +32,9 @@ export default {
     };
   },
   methods: {
-    fetchItineraries(country, itineraries) {
-      this.selectedCountry = country;
-      this.itineraries = itineraries;
+    updateSelectedCountry(country) {
+      console.log("updated", country.name);
+      this.selectedCountry = country.name;
     }
   }
 };
