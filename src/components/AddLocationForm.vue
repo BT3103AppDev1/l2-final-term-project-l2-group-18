@@ -1,28 +1,14 @@
 <template>
   <button class="close-button" @click="closeForm()">X</button>
   <form @submit.prevent="saveLocation">
-    <label for="location">Location</label>
-    <input
-      class="location"
-      v-model="formData.location"
-      type="text"
-      placeholder="Enter Location Title"
-      required
-    />
+    <label for="location">Select Location</label>
+    <PlacesSearchBar ref="placesSearchBar" @place-selected="handlePlaceSelection" />
+
+    <!-- <input class="location" v-model="formData.location" type="text" placeholder="Enter Location Title" required /> -->
     <label for="description">Description</label>
-    <textarea
-      class="description"
-      v-model="formData.description"
-      placeholder="Enter Description"
-      required
-    ></textarea>
+    <textarea class="description" v-model="formData.description" placeholder="Enter Description" required></textarea>
     <label for="category">Category</label>
-    <select
-      name="category"
-      class="category"
-      v-model="formData.category"
-      required
-    >
+    <select name="category" class="category" v-model="formData.category" required>
       <option value="" disabled selected>Select Category</option>
       <option value="food">Food</option>
       <option value="bar">Bar</option>
@@ -36,6 +22,7 @@
     </select>
     <button type="submit" class="save-button">Save</button>
   </form>
+
 </template>
 
 <script>
@@ -43,9 +30,14 @@ import { firebaseApp, auth } from "../firebaseConfig";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(firebaseApp);
+import PlacesSearchBar from "./PlacesSearchBar.vue"
+
 
 export default {
   name: "AddLocationForm",
+  components: {
+    PlacesSearchBar,
+  },
   props: {
     dayNumber: Number,
   },
@@ -56,6 +48,8 @@ export default {
         location: "",
         description: "",
         category: "",
+        latitude: null,
+        longitude: null,
       },
       userId: null, //To store user's ID
     };
@@ -84,7 +78,7 @@ export default {
         return;
       }
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const itineraryId = "testing_document";
 
       try {
         // Construct the document path where the location data will be saved
@@ -94,23 +88,48 @@ export default {
           "global_user_itineraries",
           itineraryId,
           "days",
-          this.dayNumber.toString(), //hardcoded for now
+          this.dayNumber.toString(),
           "locations"
         );
 
-        await addDoc(locationRef, {
-          ...this.formData, //spread operator to include all form data
+        // await addDoc(locationRef, {
+        //   ...this.formData, //spread operator to include all form data
+        //   day: this.dayNumber.toString(),
+        // });
+        // alert("Location added successfully to the day!");
+        const docRef = await addDoc(locationRef, {
+          ...this.formData,
           day: this.dayNumber.toString(),
         });
-        alert("Location added successfully to the day!");
-        // Reset form data
-        this.formData = { location: "", description: "", category: "" };
+
+        // This log confirms the document was added
+        console.log("Location added successfully with ID:", docRef.id);
+        this.resetForm();
       } catch (error) {
         console.error("Error adding location: ", error);
       }
     },
+
+    resetForm() {
+      this.formData = {
+        location: '',
+        description: '',
+        category: '',
+        latitude: null,
+        longitude: null
+      };
+      this.$refs.placesSearchBar.reset();
+    },
+
+    handlePlaceSelection(place) {
+      this.formData.location = place.name; // Use the name property from the place object
+      this.formData.latitude = place.geometry.location.lat();
+      this.formData.longitude = place.geometry.location.lng();
+      console.log('formData after place selection:', this.formData);
+
+    },
   },
-};
+}
 </script>
 
 <style scoped>

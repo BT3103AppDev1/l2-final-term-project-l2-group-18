@@ -1,5 +1,5 @@
-<template> 
-    <div class = "map-container" ref = "map"></div>
+<template>
+    <div class="map-container" ref="map"></div>
 
 </template>
 
@@ -30,7 +30,7 @@ export default {
             const script = document.createElement('script');
 
             // CHANGE API KEY ACCORDINGLY
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCEIJoWm0qw_YiyrWisG2F_b96Ca20wrR4&loading=async&libraries=places&callback=initMap`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8&loading=async&libraries=places&callback=initMap`;
             script.async = true;
             script.defer = true;
 
@@ -41,7 +41,7 @@ export default {
 
             // Append newly created script element to the document
             document.head.appendChild(script);
-            },
+        },
         initMap() {
             // Initialize the Map
 
@@ -62,25 +62,25 @@ export default {
                 },
                 {
                     locationName: "USS Singapore",
-                    lat: 1.2572443091996244, 
+                    lat: 1.2572443091996244,
                     lng: 103.82386625540691,
                     address: "8 Sentosa Gateway, 098269"
                 },
                 {
                     locationName: "NEX",
-                    lat: 1.3519537524416878, 
+                    lat: 1.3519537524416878,
                     lng: 103.87239724729993,
                     address: "Serangoon Central, 23, Singapore 556083"
                 },
                 {
                     locationName: "NUS COM3",
                     lat: 1.2951079728030417,
-                    lng: 103.77454683882502, 
+                    lng: 103.77454683882502,
                     address: "11 Research Link, Singapore 119391"
                 }
             ]
 
-            const centerMap = { lat:1.3408578, lng: 103.8054434} // Singapore as default for now
+            const centerMap = { lat: 1.3408578, lng: 103.8054434 } // Singapore as default for now
 
             const mapOptions = {
                 center: centerMap,
@@ -98,49 +98,49 @@ export default {
             const bounds = new google.maps.LatLngBounds();
 
             // Loop through all markers
-            for (let i = 0 ; i < markers.length; i++) {
+            for (let i = 0; i < markers.length; i++) {
                 const marker = new google.maps.Marker({
-                    position: { lat: markers[i]["lat"], lng: markers[i]["lng"]},
+                    position: { lat: markers[i]["lat"], lng: markers[i]["lng"] },
                     map: map
                 });
 
                 function createInfoWindows() {
-                    const infoWindowContent = `<div class ="content_to_view"> TEST </div>` ;
+                    const infoWindowContent = `<div class ="content_to_view"> TEST </div>`;
 
-                    google.maps.event.addListener(marker, "click", function() {
+                    google.maps.event.addListener(marker, "click", function () {
                         infoWindow.setContent(infoWindowContent);
                         infoWindow.open(map, marker)
                     });
 
-                    
+
                 }
                 createInfoWindows();
 
-                infoWindow.addListener("closeclick", function() {
+                infoWindow.addListener("closeclick", function () {
                     map.fitBounds(bounds);
                 })
 
-                bounds.extend(new google.maps.LatLng(markers[i]["lat"],markers[i]["lng"] ))
+                bounds.extend(new google.maps.LatLng(markers[i]["lat"], markers[i]["lng"]))
                 map.fitBounds(bounds)
 
             }
         },
         addMarkerForPlace(place) {
-        // Check if map is initialized
-        if (!this.map) {
-            console.error("Google Maps not initialized");
-            return;
-        }
-        const location = place.geometry.location;
+            // Check if map is initialized
+            if (!this.map) {
+                console.error("Google Maps not initialized");
+                return;
+            }
+            const location = place.geometry.location;
 
-        // Create a marker for the place
-        const marker = new google.maps.Marker({
-            map: this.map,
-            position: location,
-        });
-        // Center the map on the marker and adjust the zoom level
-        this.map.setCenter(location);
-        this.map.setZoom(15);
+            // Create a marker for the place
+            const marker = new google.maps.Marker({
+                map: this.map,
+                position: location,
+            });
+            // Center the map on the marker and adjust the zoom level
+            this.map.setCenter(location);
+            this.map.setZoom(15);
         }
     },
     watch: {
@@ -157,8 +157,10 @@ export default {
 <style scoped>
 .map-container {
     position: relative;
-    height: 100%; /* Full height */
-    width: 100%; /* Full width */
+    height: 100%;
+    /* Full height */
+    width: 100%;
+    /* Full width */
 
 }
 </style>
