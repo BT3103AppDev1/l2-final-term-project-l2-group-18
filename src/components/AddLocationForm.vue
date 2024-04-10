@@ -50,6 +50,7 @@ export default {
         category: "",
         latitude: null,
         longitude: null,
+        country: ""
       },
       userId: null, //To store user's ID
     };
@@ -92,11 +93,6 @@ export default {
           "locations"
         );
 
-        // await addDoc(locationRef, {
-        //   ...this.formData, //spread operator to include all form data
-        //   day: this.dayNumber.toString(),
-        // });
-        // alert("Location added successfully to the day!");
         const docRef = await addDoc(locationRef, {
           ...this.formData,
           day: this.dayNumber.toString(),
@@ -116,17 +112,29 @@ export default {
         description: '',
         category: '',
         latitude: null,
-        longitude: null
+        longitude: null,
+        country: ''
       };
       this.$refs.placesSearchBar.reset();
     },
 
+    getCountryFromAddressComponents(addressComponents) {
+      const country = addressComponents.find(
+        (component) => component.types.includes("country")
+      );
+
+      return country ? country.long_name : "";
+    },
+
     handlePlaceSelection(place) {
+      const country = this.getCountryFromAddressComponents(place.address_components);
+
       this.formData.location = place.name; // Use the name property from the place object
       this.formData.latitude = place.geometry.location.lat();
       this.formData.longitude = place.geometry.location.lng();
-      console.log('formData after place selection:', this.formData);
+      this.formData.country = country;
 
+      console.log('formData after place selection:', this.formData);
     },
   },
 }
