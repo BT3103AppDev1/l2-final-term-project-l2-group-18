@@ -6,6 +6,7 @@ import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ItinerariesView from "../views/ItinerariesView.vue";
 import CommunityView from "../views/CommunityView.vue";
 import LandingView from "../views/LandingView.vue";
+import MyItinerariesView from "@/views/MyItinerariesView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -34,6 +35,11 @@ const router = createRouter({
       path: "/forgot-password",
       name: "ForgetPassword",
       component: ForgotPasswordView,
+    },
+    {
+      path: "/my-itineraries",
+      name: "MyItineraries",
+      component: MyItinerariesView,
     },
     {
       path: "/itineraries",
