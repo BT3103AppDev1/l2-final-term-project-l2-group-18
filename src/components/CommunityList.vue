@@ -1,7 +1,7 @@
 <template>
   <div class="trips container">
     <div class="cards">
-      <ItinerariesBox
+      <CommunityCard
         v-for="itinerary in itineraries"
         :itineraryId="itinerary.id"
         :country="itinerary.destination"
@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import ItinerariesBox from "./ItinerariesBox.vue";
+import CommunityCard from "./CommunityCard.vue";
 import { mapGetters, mapActions } from "vuex";
 import {
   doc,
@@ -30,7 +30,7 @@ import { handleError } from "vue";
 
 export default {
   components: {
-    ItinerariesBox,
+    CommunityCard,
   },
   props: {
     type: String, //Personal or Community
