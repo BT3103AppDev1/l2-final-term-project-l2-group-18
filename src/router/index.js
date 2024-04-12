@@ -6,6 +6,7 @@ import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ItinerariesView from "../views/ItinerariesView.vue";
 import CommunityView from "../views/CommunityView.vue";
 import LandingView from "../views/LandingView.vue";
+import AboutView from "../views/AboutView.vue";
 import MyItinerariesView from "@/views/MyItinerariesView.vue";
 
 const router = createRouter({
@@ -50,6 +51,11 @@ const router = createRouter({
       path: "/community",
       name: "Community",
       component: CommunityView,
+    },
+    {
+      path: "/about",
+      name: "About",
+      component: AboutView,
     }
   ],
 });
