@@ -24,24 +24,48 @@ export default {
     itineraryId: {
       type: String,
       required: true
-    },
-    title: {
-      type: String,
-      required: true
-    },
-    itineraryPic: {
-      type: String,
-      required: true
-    },
-    profilePic: {
-      type: String,
-      required: true
-    },
-    name: {
-      type: String,
-      required: true
     }
   },
+  data() {
+    return {
+      itineraryPic: '',
+      title: '',
+      name: '',
+      profilePic: '',
+      loading: false
+    };
+  },
+  async mounted() {
+    await this.fetchItineraryData(); 
+  },
+  methods: {
+    async fetchItineraryData() {
+      try {
+        const docRef = doc(
+          db,
+          'global_community_itineraries',
+          this.country,
+          'Itineraries',
+          this.itineraryId
+        );
+
+        const docSnapshot = await getDoc(docRef);
+        if (docSnapshot.exists()) {
+          const itineraryData = docSnapshot.data();
+          this.itineraryPic = itineraryData.itineraryPic;
+          this.title = itineraryData.title;
+          this.name = itineraryData.name;
+          this.profilePic = itineraryData.profilePic;
+        } else {
+          throw new Error('Itinerary not found');
+        }
+      } catch (error) {
+        console.error('Error fetching itinerary data:', error);
+      } finally {
+        this.loading = false;
+      }
+    }
+  }
 };
 </script>
 
