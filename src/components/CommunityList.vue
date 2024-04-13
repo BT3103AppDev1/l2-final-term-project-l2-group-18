@@ -1,15 +1,16 @@
 <template>
   <div class="trips container">
     <div class="cards">
-      <CommunityCard
+    <CommunityCard
         v-for="itinerary in itineraries"
+        :key="itinerary.id"
         :itineraryId="itinerary.id"
         :country="itinerary.destination"
         :title="itinerary.title"
         :itineraryPic="itinerary.imageURL"
         :profilePic="itinerary.photoURL"
         :name="itinerary.username"
-      />
+    />
     </div>
   </div>
 </template>
