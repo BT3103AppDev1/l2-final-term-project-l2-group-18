@@ -1,44 +1,64 @@
 <template>
   <div class="search-bar">
-    <input type="text" v-model="searchQuery" @input="filterCountries" placeholder="Search...">
-    <div v-if="filteredCountries.length > 0" class="dropdown">
-      <ul>
-        <li v-for="country in filteredCountries" :key="country.code" @click="selectCountry(country)">
-          {{ country.name }}
-        </li>
-      </ul>
-    </div>
+    <input type="text" v-model="searchQuery" @focus="initializeAutocomplete" placeholder="Search..." ref="autocomplete">
     <button type="submit" class="submit-btn" @click="submitSearch">
-      <img src="/src/assets/HTLVlogo.png" alt="Plan" class="submit-icon" />
+      <img src="/src/assets/HTLVlogo.png" alt="Search" class="submit-icon" />
     </button>
   </div>
 </template>
 
 <script>
-import { countries } from 'countries-list';
+import { Loader } from "@googlemaps/js-api-loader";
 
 export default {
   name: 'CommunitySearch',
   data() {
     return {
       searchQuery: '',
-      filteredCountries: [],
+      autocomplete: null,
       selectedCountry: null
     };
   },
   methods: {
-    filterCountries() {
-      this.filteredCountries = Object.values(countries).filter(country => {
-        return country.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+    initializeAutocomplete() {
+      if (this.autocomplete) {
+        console.log('Autocomplete already initialized.');
+        return;
+      }
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      console.log('API Key:', apiKey);
+      const loader = new Loader({
+        apiKey: apiKey,
+        libraries: ["places"],
+      });
+
+      loader.load().then(() => {
+        this.autocomplete = new google.maps.places.Autocomplete(this.$refs.autocomplete, {
+          types: ["(regions)"],
+        });
+
+        this.autocomplete.addListener('place_changed', this.onPlaceChanged); 
+      }).catch(e => {
+        console.error("Error loading Google Maps JavaScript API Library: ", e);
       });
     },
-    selectCountry(country) {
-      this.searchQuery = country.name;
-      this.selectedCountry = country;
-      this.filteredCountries = []; 
+    onPlaceChanged() {
+      const place = this.autocomplete.getPlace();
+      if (!place.geometry) {
+        console.log("No details available for input: '" + place.name + "'");
+        return;
+      }
+      this.selectedCountry = {
+        name: place.name,
+        code: place.place_id
+      };
     },
     submitSearch() {
-      this.$emit('submit', this.selectedCountry);
+      if (this.selectedCountry) {
+        this.$emit('submit', this.selectedCountry);
+      } else {
+        console.log('No country selected to submit');
+      }
     }
   }
 };
