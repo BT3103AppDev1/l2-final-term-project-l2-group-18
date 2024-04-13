@@ -163,6 +163,8 @@ export default {
               day: locData.day,
               description: locData.description,
               location: locData.location,
+              latitude: locData.latitude,
+              longitude: locData.longitude,
             };
             // Push the modified data to the structuredData array
             structuredData.push(locWithIds);
