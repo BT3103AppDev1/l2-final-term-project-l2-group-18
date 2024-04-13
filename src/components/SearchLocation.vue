@@ -2,17 +2,23 @@
     <div class="plan-trip">
       <h1>Plan a new trip</h1>
       <form @submit.prevent="submitForm" class="trip-form">
-        <div class="input-group with-border">
-          <span class = "label">Where?</span>
-          <input type="text" id="destination" v-model="trip.destination" placeholder="Search destinations" class="input-destination" />
-        </div> 
-        <div class="date-group with-border">
-          <span class = "label">Dates</span>
-          <Datepicker 
-            v-model="trip.dateRange" 
-            format="dd/MM/yyyy" 
-            placeholder="Pick a Date"
-            range/>
+        <div class="title-group">
+          <span class="label">Title</span>
+          <input type="text" id="title" v-model="trip.title" placeholder="Enter trip title" class="input-title" />
+        </div>
+        <div class="input-group-bottom">
+          <div class="input-group with-border">
+            <span class = "label">Where?</span>
+            <input type="text" id="destination" v-model="trip.destination" placeholder="E.g. Paris, Hawaii, Japan" class="input-destination" />
+          </div> 
+          <div class="date-group with-border">
+            <span class = "label">Dates</span>
+            <Datepicker 
+              v-model="trip.dateRange" 
+              format="dd/MM/yyyy" 
+              placeholder="Pick a Date"
+              range/>
+          </div>
         </div>
         <button type="submit" class="submit-btn">
           <img src="/src/assets/HTLVlogo.png" alt="Plan" class="submit-icon" />
@@ -25,7 +31,9 @@
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { Loader } from "@googlemaps/js-api-loader";
-
+import {mapGetters, mapActions } from "vuex";
+import { doc, setDoc, getDoc, addDoc, getFirestore, collection } from "firebase/firestore";
+import user from '@/store/modules/user';
 
   export default {
     name: 'PlanTrip',
@@ -35,16 +43,30 @@ import { Loader } from "@googlemaps/js-api-loader";
     data() {
       return {
         trip: {
+          title: '',
           destination: '',
-          dateRange: [new Date(), new Date()]
+          dateRange: [new Date(), new Date()],
+          imageURL: '',
         }
       };
     },
+    computed: {
+      ...mapGetters('user', ['userData', 'userUID'])
+    },
     methods: {
-      submitForm() {
+      async submitForm() {
+        await this.fetchImage();
         console.log('Trip details:', this.trip);
-            //TODO: Backend logic to handle itinerary creation`
-        this.$router.push('/itineraries')
+        const userId = this.userUID;
+        try {
+          const globalItinerariesRef = collection(getFirestore(), "global_user_itineraries");
+          const docRef = await addDoc(globalItinerariesRef, this.trip);
+          await setDoc(doc(getFirestore(), "users", userId , "itineraries", docRef.id), {});
+          console.log('Document added with ID:', docRef.id);
+          this.$router.push('/itineraries');
+        } catch (error) {
+          console.error("Error processing form submission:", error);
+        }
       },
       initializeAutocomplete() {
         const loader = new Loader({
@@ -67,81 +89,113 @@ import { Loader } from "@googlemaps/js-api-loader";
           });
         }
         });
+      },
+      async fetchImage() {
+        const apiKey = import.meta.env.VITE_GOOGLE_CUSTOM_SEARCH_API_KEY;
+        const cx = import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID;
+        const query = this.trip.destination + " famous attractions";
+        const url = `https://customsearch.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${query}&searchType=image`;
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+          console.log(response);
+          console.log(data);
+          if (data.items && data.items.length > 0) {
+            const imageUrl = data.items[0].link;
+            console.log(imageUrl);
+            this.trip.imageURL = imageUrl;
+          } else {
+            console.log('No images found');
+          }
+        } catch (error) {
+          console.error("Error fetching image from google api:", error);
+        }
       }
     },
     mounted() {
       this.initializeAutocomplete();
-    }
+    },
 }
   </script>
   
 
-<style scoped>
+<style>
 .plan-trip {
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: 'Arial', sans-serif;
-  border: 1px solid black;
-  background-color: #e7dcdc54;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem auto;
 }
 
-.input-group.with-border::after, .date-group.with-border::after {
-  content: '';
-  position: absolute;
-  right: -10px;
-  top: 0;
-  bottom: 0;
-  width: 1px; 
-  background-color: black;
+.title-group, .input-group, .date-group {
+  width: 100%;
+  margin-bottom: 1rem;
 }
 
-.trip-form {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #ccc;
-  border-radius: 30px;
-  padding: 8px;
-  max-width: 800px;
-  box-sizing: border-box;
-  background-color: white;
-  margin-bottom: 30px;
+.title-group input, 
+.input-group input, 
+.date-group .vue-datetimepicker-input {
+  width: 95%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
-.input-group, .date-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 10px;
+.input-group.with-border, .date-group.with-border {
   position: relative;
 }
 
-.input-destination {
-  border: none;
-  outline: none;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 15px;
-  /* margin-top: 5px; */
-  text-align: center;
+.input-group.with-border::after, .date-group.with-border::after {
+  display: none;
 }
 
 .label {
-  margin-bottom: 10px;
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-weight: bold;
 }
+
 .submit-btn {
+  background-color: ddd;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 1px solid #e65a5a;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
   border: none;
-  border-radius: 50%;
-  padding: 10px;
   cursor: pointer;
-  outline: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-left: 10px;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #e65a5a;
 }
 
 .submit-icon {
-  height: 24px;
+  width: auto;
+  height: 25px;
 }
+
+.input-group-bottom {
+  display: flex;
+  gap: 30px;
+}
+
+@media (max-width: 600px) {
+  .input-group-bottom {
+    flex-direction: column;
+  }
+}
+
 </style>

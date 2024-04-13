@@ -83,7 +83,7 @@ export default {
         const user_uid = await this.signInWithGoogle();
         console.log("Google sign in successful");
         await this.fetchUserData(user_uid);
-        this.$router.push("/itineraries");
+        this.$router.push("/home");
         console.log(this.userUID);
         console.log(this.userData.data());
       } catch (error) {
