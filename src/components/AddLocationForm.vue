@@ -108,7 +108,6 @@ export default {
           where("day", "==", this.dayNumber)
         );
         const daySnapshot = await getDocs(q);
-        console.log(daySnapshot);
         const dayDocId = daySnapshot.docs[0].id;
         const locationRef = collection(
           db,
