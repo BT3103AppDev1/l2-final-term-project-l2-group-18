@@ -17,12 +17,14 @@
       </div>
 
       <input id="email_input" v-model="email" type="text" placeholder="Email" required />
-      <input
+      <input 
         v-model="password"
         type="password"
         placeholder="Password"
         required
       />
+
+      <p v-if="showError" id="error">⚠️Username or Password is incorrect</p>
 
       <a href="/forgot-password" class="forgot-password">
       Forgot password?
@@ -53,7 +55,8 @@ export default {
     return {
       email: "",
       password: "",
-      loginError: "", 
+      loginError: "",
+      showError: false, 
     };
   },
   computed: {
@@ -75,6 +78,7 @@ export default {
         console.log(this.userData.data());
       } catch (error) {
         this.loginError = error.message;
+        this.showError = true;
         console.error("Login Error:", error);
       }
     },
@@ -216,13 +220,12 @@ input {
   color: black;
 }
 
-/* .additional-links {
-  margin-top: 1rem;
+#error {
+  color: rgba(255, 0, 0, 0.582);
+  text-align: left;
+  width: 85%;
+  margin-bottom: 1rem;
+  margin-top:-0.3rem;
 }
 
-.additional-links a {
-  margin-right: 1rem;
-  color: #666;
-  text-decoration: none;
-} */
 </style>
