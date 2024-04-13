@@ -1,14 +1,13 @@
 <template>
   <button class="close-button" @click="closeForm()">X</button>
   <form @submit.prevent="saveLocation">
-    <label for="location">Location</label>
-    <input
-      class="location"
-      v-model="formData.location"
-      type="text"
-      placeholder="Enter Location Title"
-      required
+    <label for="location">Select Location</label>
+    <PlacesSearchBar
+      ref="placesSearchBar"
+      @place-selected="handlePlaceSelection"
     />
+
+    <!-- <input class="location" v-model="formData.location" type="text" placeholder="Enter Location Title" required /> -->
     <label for="description">Description</label>
     <textarea
       class="description"
@@ -52,9 +51,13 @@ import {
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(firebaseApp);
+import PlacesSearchBar from "./PlacesSearchBar.vue";
 
 export default {
   name: "AddLocationForm",
+  components: {
+    PlacesSearchBar,
+  },
   props: {
     dayNumber: Number,
   },
@@ -65,6 +68,9 @@ export default {
         location: "",
         description: "",
         category: "",
+        latitude: null,
+        longitude: null,
+        country: "",
       },
       userId: null, //To store user's ID
     };
@@ -93,7 +99,7 @@ export default {
         return;
       }
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const itineraryId = "testing_document";
 
       try {
         // Construct the document path where the location data will be saved
@@ -125,6 +131,39 @@ export default {
       } catch (error) {
         console.error("Error adding location: ", error);
       }
+    },
+
+    resetForm() {
+      this.formData = {
+        location: "",
+        description: "",
+        category: "",
+        latitude: null,
+        longitude: null,
+        country: "",
+      };
+      this.$refs.placesSearchBar.reset();
+    },
+
+    getCountryFromAddressComponents(addressComponents) {
+      const country = addressComponents.find((component) =>
+        component.types.includes("country")
+      );
+
+      return country ? country.long_name : "";
+    },
+
+    handlePlaceSelection(place) {
+      const country = this.getCountryFromAddressComponents(
+        place.address_components
+      );
+
+      this.formData.location = place.name; // Use the name property from the place object
+      this.formData.latitude = place.geometry.location.lat();
+      this.formData.longitude = place.geometry.location.lng();
+      this.formData.country = country;
+
+      console.log("formData after place selection:", this.formData);
     },
   },
 };
