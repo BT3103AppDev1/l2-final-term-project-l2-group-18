@@ -24,15 +24,15 @@
       required
     >
       <option value="" disabled selected>Select Category</option>
-      <option value="food">Food</option>
-      <option value="bar">Bar</option>
-      <option value="adventure">Adventure</option>
-      <option value="hotel">Hotel</option>
-      <option value="nature">Nature</option>
-      <option value="sightseeing">Sightseeing</option>
-      <option value="shopping">Shopping</option>
-      <option value="religious">Religious Site</option>
-      <option value="others">Others</option>
+      <option value="Food">Food</option>
+      <option value="Bar">Bar</option>
+      <option value="Adventure">Adventure</option>
+      <option value="Hotel">Hotel</option>
+      <option value="Nature">Nature</option>
+      <option value="Sightseeing">Sightseeing</option>
+      <option value="Shopping">Shopping</option>
+      <option value="Religious Site">Religious Site</option>
+      <option value="Others">Others</option>
     </select>
     <button type="submit" class="save-button">Save</button>
   </form>
@@ -40,7 +40,16 @@
 
 <script>
 import { firebaseApp, auth } from "../firebaseConfig";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  setDoc,
+  getDocs,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(firebaseApp);
 
@@ -88,21 +97,29 @@ export default {
 
       try {
         // Construct the document path where the location data will be saved
-
+        const q = query(
+          collection(db, "global_user_itineraries", itineraryId, "days"),
+          where("day", "==", this.dayNumber)
+        );
+        const daySnapshot = await getDocs(q);
+        const dayDocId = daySnapshot.docs[0].id;
         const locationRef = collection(
           db,
           "global_user_itineraries",
           itineraryId,
           "days",
-          this.dayNumber.toString(), //hardcoded for now
+          dayDocId,
           "locations"
         );
 
         await addDoc(locationRef, {
           ...this.formData, //spread operator to include all form data
-          day: this.dayNumber.toString(),
+          day: this.dayNumber,
         });
-        alert("Location added successfully to the day!");
+
+        window.alert("Location added successfully to the day!");
+
+        this.$emit("saveLocation");
         // Reset form data
         this.formData = { location: "", description: "", category: "" };
       } catch (error) {
