@@ -1,14 +1,13 @@
 <template>
   <button class="close-button" @click="closeForm()">X</button>
   <form @submit.prevent="saveLocation">
-    <label for="location">Location</label>
-    <input
-      class="location"
-      v-model="formData.location"
-      type="text"
-      placeholder="Enter Location Title"
-      required
+    <label for="location">Select Location</label>
+    <PlacesSearchBar
+      ref="placesSearchBar"
+      @place-selected="handlePlaceSelection"
     />
+
+    <!-- <input class="location" v-model="formData.location" type="text" placeholder="Enter Location Title" required /> -->
     <label for="description">Description</label>
     <textarea
       class="description"
@@ -24,15 +23,15 @@
       required
     >
       <option value="" disabled selected>Select Category</option>
-      <option value="food">Food</option>
-      <option value="bar">Bar</option>
-      <option value="adventure">Adventure</option>
-      <option value="hotel">Hotel</option>
-      <option value="nature">Nature</option>
-      <option value="sightseeing">Sightseeing</option>
-      <option value="shopping">Shopping</option>
-      <option value="religious">Religious Site</option>
-      <option value="others">Others</option>
+      <option value="Food">Food</option>
+      <option value="Bar">Bar</option>
+      <option value="Adventure">Adventure</option>
+      <option value="Hotel">Hotel</option>
+      <option value="Nature">Nature</option>
+      <option value="Sightseeing">Sightseeing</option>
+      <option value="Shopping">Shopping</option>
+      <option value="Religious Site">Religious Site</option>
+      <option value="Others">Others</option>
     </select>
     <button type="submit" class="save-button">Save</button>
   </form>
@@ -40,12 +39,25 @@
 
 <script>
 import { firebaseApp, auth } from "../firebaseConfig";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  setDoc,
+  getDocs,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 const db = getFirestore(firebaseApp);
+import PlacesSearchBar from "./PlacesSearchBar.vue";
 
 export default {
   name: "AddLocationForm",
+  components: {
+    PlacesSearchBar,
+  },
   props: {
     dayNumber: Number,
   },
@@ -56,8 +68,11 @@ export default {
         location: "",
         description: "",
         category: "",
+        latitude: null,
+        longitude: null,
+        country: "",
       },
-      userId: null //To store user's ID
+      userId: null, //To store user's ID
     };
   },
   created() {
@@ -84,28 +99,71 @@ export default {
         return;
       }
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF"; 
-      
+      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+
       try {
-         // Construct the document path where the location data will be saved
+        // Construct the document path where the location data will be saved
+        const q = query(
+          collection(db, "global_user_itineraries", itineraryId, "days"),
+          where("day", "==", this.dayNumber)
+        );
+        const daySnapshot = await getDocs(q);
+        const dayDocId = daySnapshot.docs[0].id;
         const locationRef = collection(
           db,
-          "users",
-          this.userId,
-          "itineraries",
-          itineraryId, //hardcoded for now
+          "global_user_itineraries",
+          itineraryId,
+          "days",
+          dayDocId,
           "locations"
         );
+
         await addDoc(locationRef, {
           ...this.formData, //spread operator to include all form data
-          day: this.dayNumber.toString(),
+          day: this.dayNumber,
         });
-        alert("Location added successfully to the day!");
+
+        window.alert("Location added successfully to the day!");
+
+        this.$emit("saveLocation");
         // Reset form data
         this.formData = { location: "", description: "", category: "" };
       } catch (error) {
         console.error("Error adding location: ", error);
       }
+    },
+
+    resetForm() {
+      this.formData = {
+        location: "",
+        description: "",
+        category: "",
+        latitude: null,
+        longitude: null,
+        country: "",
+      };
+      this.$refs.placesSearchBar.reset();
+    },
+
+    getCountryFromAddressComponents(addressComponents) {
+      const country = addressComponents.find((component) =>
+        component.types.includes("country")
+      );
+
+      return country ? country.long_name : "";
+    },
+
+    handlePlaceSelection(place) {
+      const country = this.getCountryFromAddressComponents(
+        place.address_components
+      );
+
+      this.formData.location = place.name; // Use the name property from the place object
+      this.formData.latitude = place.geometry.location.lat();
+      this.formData.longitude = place.geometry.location.lng();
+      this.formData.country = country;
+
+      console.log("formData after place selection:", this.formData);
     },
   },
 };
