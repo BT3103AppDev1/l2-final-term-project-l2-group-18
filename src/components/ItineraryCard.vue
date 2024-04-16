@@ -53,11 +53,11 @@ export default {
   flex-direction: column;
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
 }
 
 .itinerary-details:hover {
   transform: scale(1.01);
+  opacity: 0.80;
 }
 
 .itinerary-info {

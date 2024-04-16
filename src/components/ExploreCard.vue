@@ -30,7 +30,6 @@ export default {
     border-radius: 20px;
     box-shadow: 0;
     overflow: hidden;
-    padding: 10px;
     display: flex;
     align-items: end;
 }

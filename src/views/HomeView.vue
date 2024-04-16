@@ -3,7 +3,7 @@
     <div class="home-page">
       <Explore />
       <ItineraryList type="community" limit="4"/>
-      <h2>Your Recent Itineraries</h2>
+      <h1 class="recent-itineraries">Your Recent Itineraries</h1>
       <ItineraryList type="personal" limit="4"/>
       <SearchLocation />
 
@@ -29,8 +29,15 @@ import Explore from '@/components/Explore.vue'
 <style scoped>
   .home-page {
     text-align: center;
-    margin-top: 50px;
-    
+    margin: 50px auto;
+    width: 75%;
+  }
+
+  .recent-itineraries {
+    font-size: 30px;
+    font-weight: 400;
+    text-align: center;
+    text-transform: capitalize;
   }
   
   .button {

@@ -80,12 +80,12 @@ export default {
 .tours-container{
     position: relative;
     width: 100%;
-    height: 600px;
+    height: 500px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    grid-gap: 40px;
-    margin-top: 100px;
+    grid-gap: 20px;
+    margin-top: 10px;
 }
 
 .tour-card:nth-child(2){
