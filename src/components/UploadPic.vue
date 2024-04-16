@@ -7,7 +7,7 @@
     ref="photoInput"
     @change="handleFileUpload"
     />
-    <button @click="openFilePicker" class="upload-pic-button">Upload Profile Picture</button>
+    <button @click="openFilePicker" class="upload-pic-button">Upload Picture</button>
 </div>
 </template>
 
@@ -66,6 +66,7 @@ import {mapGetters } from "vuex";
   cursor: pointer;
   width: auto;
   height: fit-content;
+  margin-bottom: 5px;
 }
 
 .upload-pic-button:hover {

@@ -12,14 +12,14 @@
             <router-link to = "/community" id= "community_tab" class = "tab">Community</router-link> 
             <router-link to = "/about" id= "about_tab" class = "tab">About</router-link> 
         </div>
-
-        <div id = "profile_rect">
-        <router-link to = "/itineraries" id= "profile_logo">
-            <img class = "profile_logo"  :src="userPIC" alt = "Profile Picture"> 
-        </router-link> 
+        
+        <div id = "profile_rect" @mouseleave="hideDropdown">
+            <img class = "profile_logo"  :src="userPIC" alt = "Profile Picture" @click="toggleDropdown"> 
+            <div v-show = "showDropdown" class = "dropdown">
+                <UploadPic @image-uploaded="update_pic($event)" /> 
+                <SignOutButton />
+            </div>
         </div>
-        <UploadPic @image-uploaded="update_pic($event)" /> 
-        <SignOutButton />
     </div>
 </template>
   
@@ -28,12 +28,18 @@
   import SignOutButton from "./SignoutButton.vue";  
   import UploadPic from "./UploadPic.vue";
   import { mapGetters, mapActions} from "vuex";
+import { faL } from "@fortawesome/free-solid-svg-icons";
 
   export default {
     name: 'NavBar',
     components: {
         SignOutButton,
         UploadPic
+    },
+    data() {
+        return {
+            showDropdown: false
+        };
     },
     computed: {
         ...mapGetters('user', ['userPIC'])
@@ -47,18 +53,24 @@
             } catch (error) {
                 console.error("Error updating image:", error);
             }
+        },
+        toggleDropdown() {
+            this.showDropdown = true;
+        },
+        hideDropdown() {
+            this.showDropdown = false;
         }
     }
-  };
-  </script>
-  
+};
+</script>
+
 <style scoped>
 .nav_bar_rectangle {
     display: flex;
     justify-content:flex-start; 
     align-items: center;
     width: 100%;
-    height: 9vh;
+    height: 90px;
     border-bottom: 2px solid black;
     background-color: white;
     overflow: hidden;
@@ -106,12 +118,14 @@
 }
 
 #profile_rect {
+    position: relative;
     width: 80px;
     height: 80px;
-    overflow: hidden;
     margin-left: auto;
     padding: 2px;
-    padding-left: 4px;
+    padding-left: 10px;
+    padding-right: 15px;
+    cursor: pointer;
 }
 
 .profile_logo {
@@ -120,14 +134,34 @@
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid #f5bec2;
 }
 
 .profile_logo:hover {
-    border: 2px solid #FF5A5F; /* Change border color */
+    border: 3px solid #FF5A5F; /* Change border color */
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
 }
 
 #itineraries_tab {
     color: #347d36;
 }
+
+.dropdown {
+    position: absolute;
+    top: 92px; /* Should be the same as the height of #profile_rect */
+    right: 0;
+    background-color: red; /* Ensure it’s a color that stands out */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1000; /* High z-index to ensure it's on top of other content */
+    width: 100px; /* Adjust width as needed */
+    display: none; /* Start as hidden */
+    flex-direction: column;
+    padding: 5px 15px 10px 0px; /* Add some padding inside the dropdown */
+    border: 1px solid #ccc; /* Optional: adds a border for better visibility */
+}
+
+#profile_rect:hover .dropdown {
+    display: flex; /* Show on hover */
+}
+
 </style>
