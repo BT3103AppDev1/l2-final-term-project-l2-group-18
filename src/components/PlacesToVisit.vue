@@ -32,7 +32,7 @@
       <div class="location-container">
         <div
           class="location-details"
-          v-for="item in filteredMockData(day)"
+          v-for="item in filteredItineraryData(day)"
           :key="item"
         >
           <div class="location-header">
@@ -43,13 +43,18 @@
                 :style="{ backgroundColor: getCategoryColor(item.category) }"
                 >{{ item.category }}</span
               >
-              <button class="minus-button">-</button>
+              <button
+                class="minus-button"
+                @click="deleteLocation(item.dayid, item.locid)"
+              >
+                -
+              </button>
             </div>
           </div>
           <span class="location-description">{{ item.description }}</span>
         </div>
         <div class="add-location-container">
-          <button class="plus-button" @click="showAddLocationForm = day">
+          <button class="plus-button" @click="showAddLocationForm = index + 1">
             +
           </button>
           <span class="add-location">Add Location</span>
@@ -63,6 +68,7 @@
     >
       <AddLocationForm
         @closeForm="showAddLocationForm = null"
+        @saveLocation="handleSaveForm"
         v-if="showAddLocationForm !== null"
         :dayNumber="showAddLocationForm"
       />
@@ -72,12 +78,27 @@
 
 <script>
 import AddLocationForm from "./AddLocationForm.vue";
-import PlacesSearchBar from "./PlacesSearchBar.vue"
+import PlacesSearchBar from "./PlacesSearchBar.vue";
+import { ref, onMounted } from "vue";
+import { firebaseApp, auth } from "../firebaseConfig";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  setDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+const db = getFirestore(firebaseApp);
 
 export default {
   mounted() {
     document.body.style.backgroundColor = "#e7dcdc";
-    this.days = [...new Set(this.mockData.map((item) => item.day))];
+    this.fetchData();
   },
 
   beforeDestroy() {
@@ -90,84 +111,187 @@ export default {
       showAddLocationForm: null,
       iconSize: "xl",
       days: [],
-      mockData: [
-        {
-          day: 1,
-          location: "Marina Bay Sands",
-          description:
-            "Integrated resort (IR) with a hotel, casino, retail mall, as well as convention facilities and entertainment venues including theatres, nightclubs and a museum.",
-          category: "Hotel",
-        },
-        {
-          day: 1,
-          location: "Gardens by the Bay",
-          description:
-            "Gardens by the Bay is a huge, colourful, futuristic park in the bay area of Singapore. Among the standout features are the famous Supertree structures. These offer an impressive skywalk over the gardens, with oversized seashell-shaped greenhouses that recreate chilly mountain climates.",
-          category: "Nature",
-        },
-        {
-          day: 2,
-          location: "PocoLoco",
-          description: "Best Italian restaurant in Singapore",
-          category: "Food",
-        },
-        {
-          day: 2,
-          location: "Atlas",
-          description:
-            "Luxurious 1920s-inspired venue for European cuisine, afternoon tea & cocktails, plus art deco decor.",
-          category: "Bar",
-        },
-        {
-          day: 2,
-          location: "Skyline Luge Sentosa",
-          description:
-            "Skyline Luge Singapore offers 4 purpose-built tracks with hairpin corners, exhilarating tunnels and downhill slopes through a rainforest with mystical creatures, which can be enjoyed during the day or night! It's the ultimate fun day out for the whole family.",
-          category: "Adventure",
-        },
-        {
-          day: 2,
-          location: "Merlion Park",
-          description:
-            "The Merlion is the official mascot of Singapore. It is depicted as a mythical creature with the head of a lion and the body of a fish.",
-          category: "Sightseeing",
-        },
-        {
-          day: 3,
-          location: "ION Orchard",
-          description:
-            "ION Orchard is a stylish architectural wonder, glowing like a futuristic beacon at the end of Orchard Road - enticing fashionistas and luxury shoppers inside.",
-          category: "Shopping",
-        },
-        {
-          day: 3,
-          location: "Sri Mariamman Temple",
-          description:
-            "The oldest Hindu temple in Singapore, Sri Mariamman Temple serves as a focal point for the Hindu community, and is dedicated to Goddess Mariamman, known for her powers in curing epidemic illnesses.",
-          category: "Religious Site",
-        },
-        {
-          day: 3,
-          location: "ABC Cooking Studio",
-          description:
-            "ABC Cooking Studio, which hails from Japan, is one of the country's top culinary schools. With four outlets in Singapore, the classes teach you to master the art of Japanese cuisine, from takoyaki to tempura to tonkatsu.",
-          category: "Others",
-        },
-      ],
+      itineraryData: [],
     };
   },
 
   methods: {
-    addNewDay() {
-      this.days.push(this.days.length + 1);
+    filteredItineraryData(dayNumber) {
+      return this.itineraryData.filter((item) => item.day === dayNumber);
     },
-    deleteDay(index) {
+
+    async fetchData() {
+      const db = getFirestore(firebaseApp);
+      // Assumes itineraryId is passed as a prop or can be otherwise obtained
+      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const daysRef = collection(
+        db,
+        "global_user_itineraries",
+        itineraryId,
+        "days"
+      );
+
+      try {
+        // Fetch all days for the given itinerary
+        const daysSnapshot = await getDocs(daysRef);
+
+        // Initialize empty arrays to hold structured itinerary data and days
+        const structuredData = [];
+        const days = [];
+
+        // Iterate through each day document
+        for (const dayDoc of daysSnapshot.docs) {
+          // Fetch all locations for the current day
+          const locationsRef = collection(
+            db,
+            "global_user_itineraries",
+            itineraryId,
+            "days",
+            dayDoc.id,
+            "locations"
+          );
+          const locationsSnapshot = await getDocs(locationsRef);
+          // Iterate through each day document
+          for (const locDoc of locationsSnapshot.docs) {
+            // Extract location data from each location document
+            const locData = locDoc.data();
+            // Construct the object with additional fields (dayid and locid)
+            const locWithIds = {
+              dayid: dayDoc.id,
+              locid: locDoc.id,
+              category: locData.category,
+              day: locData.day,
+              description: locData.description,
+              location: locData.location,
+              latitude: locData.latitude,
+              longitude: locData.longitude,
+            };
+            // Push the modified data to the structuredData array
+            structuredData.push(locWithIds);
+          }
+          // Extract the day value from the document data
+          const dayValue = dayDoc.data().day;
+          days.push(dayValue);
+        }
+
+        // Sort days
+        days.sort((a, b) => a - b);
+        // Set the fetched days to days
+        this.days = days;
+        console.log(structuredData);
+        // Set the fetched data to itineraryData
+        this.itineraryData = structuredData;
+      } catch (error) {
+        console.error("Error fetching itinerary data: ", error);
+      }
+    },
+
+    async addNewDay() {
+      this.days.push(this.days.length + 1); // mock data code, can remove once firebase
+      // Assumes itineraryId is passed as a prop or can be otherwise obtained
+      console.log(this.days[this.days.length - 1]);
+      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const maxDay = this.days[this.days.length - 1];
+      try {
+        // Construct the document path where the location data will be saved
+        const daysRef = collection(
+          db,
+          "global_user_itineraries",
+          itineraryId,
+          "days"
+        );
+        await addDoc(daysRef, {
+          day: maxDay,
+        });
+        alert("Day successfully added!");
+      } catch (error) {
+        console.error("Error adding day: ", error);
+      }
+      this.fetchData();
+    },
+
+    async deleteDay(index) {
       // add code to delete data from firebase with itineraries in the same day
+      console.log(index + 1);
       this.days.splice(index, 1);
+      const maxDay = index + 1;
+      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+
+      try {
+        const q = query(
+          collection(db, "global_user_itineraries", itineraryId, "days"),
+          where("day", "==", maxDay)
+        );
+        const maxDaySnapshot = await getDocs(q);
+        const daysRef = collection(
+          db,
+          "global_user_itineraries",
+          itineraryId,
+          "days"
+        );
+        if (!maxDaySnapshot.empty) {
+          // Get the document ID of the latest day
+          const maxDayDocId = maxDaySnapshot.docs[0].id;
+
+          // Construct the reference to the day's "locations" subcollection
+          const locationsRef = collection(
+            db,
+            "global_user_itineraries",
+            itineraryId,
+            "days",
+            maxDayDocId, // Convert maxDay to string since it's part of the path
+            "locations"
+          );
+
+          // Query and retrieve all documents from the "locations" subcollection
+          const locationsSnapshot = await getDocs(locationsRef);
+
+          // Iterate through each location document and delete it
+          locationsSnapshot.forEach(async (doc) => {
+            await deleteDoc(doc.ref);
+            console.log("Location deleted:", doc.id);
+          });
+
+          alert("Latest day successfully deleted!");
+          // Delete the latest day document
+          await deleteDoc(doc(daysRef, maxDayDocId));
+        } else {
+          console.log("No days found to delete.");
+        }
+      } catch (error) {
+        console.error("Error deleting day: ", error);
+      } finally {
+        this.fetchData();
+      }
     },
-    filteredMockData(dayNumber) {
-      return this.mockData.filter((item) => item.day === dayNumber);
+
+    async deleteLocation(dayid, locid) {
+      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      try {
+        // Construct the reference to the day's "locations" subcollection
+        const locationsRef = collection(
+          db,
+          "global_user_itineraries",
+          itineraryId,
+          "days",
+          dayid,
+          "locations"
+        );
+
+        // Get a reference to the location document
+        const locationDocRef = doc(locationsRef, locid);
+
+        // Delete the location document
+        await deleteDoc(locationDocRef);
+
+        alert("Location deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting location:", error);
+      } finally {
+        this.fetchData();
+      }
     },
+
     getCategoryColor(category) {
       // Define colors for different categories
       const categoryColors = {
@@ -184,14 +308,20 @@ export default {
       // Return the color for the specified category
       return categoryColors[category];
     },
+
     handlePlaceSelection(place) {
       this.$emit("place-selected", place);
-    }
+    },
+
+    handleSaveForm() {
+      this.showAddLocationForm = null;
+      this.fetchData();
+    },
   },
 
   components: {
     AddLocationForm,
-    PlacesSearchBar
+    PlacesSearchBar,
   },
 };
 </script>
@@ -334,16 +464,16 @@ h3 {
 
 .add-location-form {
   position: fixed;
-  top: 0;
-  right: -50%; /* Sidebar starts off-screen */
+  top: 4.3rem;
+  left: -50%; /* Sidebar starts off-screen */
   width: 50%;
   height: 100%;
   background-color: #fff;
-  transition: right 0.3s ease; /* Transition effect */
+  transition: left 0.3s ease; /* Transition effect */
   z-index: 1000; /* Ensure sidebar is above other content */
 }
 
 .add-location-form.open {
-  right: 0; /* Slide sidebar into view */
+  left: 0; /* Slide sidebar into view */
 }
 </style>
