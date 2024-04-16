@@ -2,7 +2,7 @@
   <NavBar /> 
   <div class = "content-container"> 
     <div class = "places">
-      <PlacesToVisit @place-selected="handlePlaceSelection" />
+      <PlacesToVisit @place-selected="handlePlaceSelection" :itineraryId="itineraryId"/>
     </div>
     <div class = "maps">
       <GoogleMaps :selectedPlace= "selectedPlace"/>
