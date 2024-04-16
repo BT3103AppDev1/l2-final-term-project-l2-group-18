@@ -43,9 +43,10 @@ const router = createRouter({
       component: MyItinerariesView,
     },
     {
-      path: "/itineraries",
+      path: "/itineraries/:itineraryId",
       name: "Itineraries",
       component: ItinerariesView,
+      props:true,
     },
     {
       path: "/community",

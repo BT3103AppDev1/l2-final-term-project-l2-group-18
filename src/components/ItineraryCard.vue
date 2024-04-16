@@ -16,13 +16,11 @@ import ItinerariesView from '@/views/ItinerariesView.vue';
 
 export default {
   props: {
-    profilePic: String,
-    name: String,
+    id: String,
     title: String,
     destination: String,
     itineraryPic: String,
     selected: Boolean,
-    type: String,
     startDate: String,
     endDate: String,
   },
@@ -33,7 +31,7 @@ export default {
   },
   methods: {
     navigateToItinerary() {
-      this.$router.push({name: 'Itineraries', params: {}} );
+      this.$router.push({name: 'Itineraries', params: {itineraryId: this.id}} );
     }
   }
 };

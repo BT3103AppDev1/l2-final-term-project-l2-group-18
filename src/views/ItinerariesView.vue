@@ -16,6 +16,7 @@ import GoogleMaps from "../components/GoogleMaps.vue"
 import PlacesToVisit from "@/components/PlacesToVisit.vue";
 export default {
   name: "Itineraries",
+  props:['itineraryId'],
   components: {
     PlacesToVisit,
     GoogleMaps,

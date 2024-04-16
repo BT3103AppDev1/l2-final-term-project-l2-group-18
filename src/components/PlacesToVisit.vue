@@ -114,8 +114,11 @@ export default {
       itineraryData: [],
     };
   },
+  props: {
+    itineraryId:String,
+  },
 
-  methods: {
+    methods: {
     filteredItineraryData(dayNumber) {
       return this.itineraryData.filter((item) => item.day === dayNumber);
     },
@@ -123,7 +126,7 @@ export default {
     async fetchData() {
       const db = getFirestore(firebaseApp);
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const itineraryId = this.itineraryId;
       const daysRef = collection(
         db,
         "global_user_itineraries",
@@ -190,7 +193,7 @@ export default {
       this.days.push(this.days.length + 1); // mock data code, can remove once firebase
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
       console.log(this.days[this.days.length - 1]);
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const itineraryId = this.itineraryId;
       const maxDay = this.days[this.days.length - 1];
       try {
         // Construct the document path where the location data will be saved
@@ -215,7 +218,7 @@ export default {
       console.log(index + 1);
       this.days.splice(index, 1);
       const maxDay = index + 1;
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const itineraryId = this.itineraryId;
 
       try {
         const q = query(
@@ -266,7 +269,7 @@ export default {
     },
 
     async deleteLocation(dayid, locid) {
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
+      const itineraryId = this.itineraryId;
       try {
         // Construct the reference to the day's "locations" subcollection
         const locationsRef = collection(
