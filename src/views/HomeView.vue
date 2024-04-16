@@ -1,8 +1,7 @@
 <template>
   <NavBar />
     <div class="home-page">
-      <h1>Welcome to HTLV!</h1>
-      <h2>Community</h2>
+      <Explore />
       <ItineraryList type="community" limit="4"/>
       <h2>Your Recent Itineraries</h2>
       <ItineraryList type="personal" limit="4"/>
@@ -14,13 +13,15 @@
 <script>
 import SearchLocation from '@/components/SearchLocation.vue';
 import ItineraryList from '@/components/ItineraryList.vue';
-import NavBar from '@/components/NavBar.vue'
+import NavBar from '@/components/NavBar.vue';
+import Explore from '@/components/Explore.vue'
   export default {
     name: 'HomeView',
     components: {
       SearchLocation,
       ItineraryList,
       NavBar,
+      Explore,
     }
   };
 </script>
