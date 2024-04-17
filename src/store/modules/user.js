@@ -14,7 +14,8 @@ export default {
     loggedIn: false,
     data: null,
     uid: null,
-    pic: null
+    pic: null,
+    username: null
   },
   getters: {
     userState(state) { // Modified Userstate getter from User
@@ -29,6 +30,9 @@ export default {
     userPIC(state) {
       return state.pic;
     },
+    userName(state) {
+      return state.username;
+    }
   },
   mutations: {
     SET_LOGGED_IN(state, value) {
@@ -42,7 +46,10 @@ export default {
     },
     SET_PHOTO_URL(state, url) {
       state.pic = url;
-    }
+    },
+    SET_USERNAME(state, username) {
+      state.username = username;  
+    },
   },
   actions: {
     async createAccount({ commit }, { email, password, username }) {
@@ -122,6 +129,7 @@ export default {
         if (docSnap.exists()) {
           commit("SET_USER", docSnap);
           commit("SET_PHOTO_URL", docSnap.data().photoURL)
+          commit('SET_USERNAME', docSnap.data().username)
         } else {
           console.log("No user data found");
         }
@@ -136,6 +144,7 @@ export default {
         await signOut(auth);
         commit('SET_UID', null);  // Clear user data from state
         commit('SET_USER', null);  // Clear user data from state
+        commit('SET_USERNAME', null) // Clear user data from state
         commit('SET_LOGGED_IN', false);
         console.log("User signed out successfully");
       } catch (error) {
@@ -146,6 +155,17 @@ export default {
 
     async updatePhoto({ commit }, url) {
       commit("SET_PHOTO_URL", url);
+    },
+    async updateUsername({ commit }, { userId, username }) {
+      const db = getFirestore();
+      const userRef = doc(db, "users", userId);
+      try {
+          await updateDoc(userRef, { username: username });
+          commit('SET_USERNAME', username);  // Commit new username to store
+      } catch (error) {
+          console.error("Error updating username:", error);
+          throw error;  // Rethrow to handle in component
+      }
     },
   },
 };

@@ -1,5 +1,5 @@
 <template>
-  <button @click="submitSignOut" class="sign-out-button">Sign Out</button>
+  <button @click="submitSignOut" class="sign-out-button"> <font-awesome-icon icon="sign-out-alt" /> Sign Out</button>
 </template>
 
 <script>
@@ -20,15 +20,23 @@ export default {
 <style scoped>
 .sign-out-button {
   margin-left: 15px;
-  padding: 5px 10px;
-  background-color: #ff5a5f;
-  color: white;
+  background-color: #e0e0e0;
+  color: black;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  width: auto;
+  height: fit-content;
+  margin-bottom: 1px;
+  margin-top: 1px;
+  font-size: 13px;
+  padding: 3px;
+  text-decoration: none;
+  text-align: center;
 }
 
 .sign-out-button:hover {
-  background-color: #ff2c3b;
+  background-color: #FF5A5F;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
 }
 </style>

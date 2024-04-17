@@ -17,7 +17,7 @@
             <img class = "profile_logo"  :src="userPIC" alt = "Profile Picture" @click="toggleDropdown"> 
         </div>
         <div v-if= "showDropdown" class = "dropdown">
-            <UploadPic @image-uploaded="update_pic($event)" /> 
+            <router-link to="/profile" class = "profile_view"> <font-awesome-icon icon="user" /> View Profile</router-link>
             <SignOutButton id="signout"/>
         </div>
     </div>
@@ -26,14 +26,12 @@
 <script>
   import { RouterLink, RouterView } from "vue-router";
   import SignOutButton from "./SignoutButton.vue";  
-  import UploadPic from "./UploadPic.vue";
   import { mapGetters, mapActions} from "vuex";
 
   export default {
     name: 'NavBar',
     components: {
-        SignOutButton,
-        UploadPic
+        SignOutButton
     },
     mounted() {
         document.addEventListener("click", this.closeDropdown)
@@ -79,18 +77,16 @@
     justify-content:flex-start; 
     align-items: center;
     width: 100%;
-    height: 90px;
+    height: 70px;
     border-bottom: 2px solid black;
     background-color: white;
-    overflow: hidden;
 }
 
 #main_logo_rect {
     display: relative;
     width: 80px;
-    overflow: hidden;
     padding-right: 15px;
-    padding-left: 15px;
+    padding-left: 5px;
 
 }
 
@@ -101,18 +97,18 @@
 
 #main_logo_rect:hover img {
     transform: scale(1.05); /* Increase the size slightly on hover */
-    transform: rotate(20deg);
+    transform: rotate(15deg);
 }
 
 .main_logo {
     cursor: pointer;
-    width: 80px;
+    width: 65px;
     height: auto;
     image-rendering: optimizeQuality;
 }
 
 .nav_links{
-    font-size: 28px;
+    font-size: 25px;
     font-weight: 500;
     display: flex;
     flex: 1;
@@ -140,10 +136,10 @@
 
 #profile_rect {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     margin-left: auto;
-    padding: 2px;
+
     padding-left: 10px;
     padding-right: 25px;
 }
@@ -162,27 +158,64 @@
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
 }
 
-.dropdown {
-    position: absolute;
-    top: 92px; /* Should be the same as the height of #profile_rect */
-    right: 0;
-    background-color: white; /* Ensure it’s a color that stands out */
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1000; /* High z-index to ensure it's on top of other content */
-    width: 100px; /* Adjust width as needed */
-    display: flex;
-    flex-direction: column;
-    padding: 5px 15px 10px 0px; /* Add some padding inside the dropdown */
-    border: 1px solid #ccc; /* Optional: adds a border for better visibility */
+.profile_view {
+    margin-left: 15px;
+    background-color: #e0e0e0;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: auto;
+    height: fit-content;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 13px;
+    padding: 3px;
+    text-decoration: none;
+    text-align: center;
 }
 
 #signout {
     border-top: 5px;
 }
 
+.dropdown {
+    position: absolute;
+    top: 72px; /* Should be the same as the height of #profile_rect */
+    right: 0;
+    z-index: 1000; /* High z-index to ensure it's on top of other content */
+    width: 150px; /* Adjust width as needed */
+
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px; /* Add some padding inside the dropdown */
+    padding-left: 0px;
+
+    background-color: #fff; /* Clean white background */
+    border: 1px solid #ccc; /* Subtle border */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for 3D effect */
+    border-radius: 4px; /* Rounded corners */
+    
+    font-family: 'Arial', sans-serif; /* Use a standard font for clarity */
+    text-align: left; /* Align text to the left for better readability */
+    font-size: 14px; /* Suitable font size for dropdown items */
+    color: #333; /* Darker text for better readability */
+    line-height: 1.2;
+}
+
+
+.dropdown a:hover, .dropdown div:hover {
+    background-color: #17b41c; /* Slightly darker green on hover */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
+    color: black;
+}
+
+
 .active {
     font-weight: bold; /* Makes the active tab bold */
     color: #FF5A5F; /* Optional: change color to make it more noticeable */
 }
+
+
 
 </style>
