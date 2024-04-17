@@ -8,6 +8,7 @@ import CommunityView from "../views/CommunityView.vue";
 import LandingView from "../views/LandingView.vue";
 import AboutView from "../views/AboutView.vue";
 import ProfileView from "../views/ProfileView.vue";
+import MyItinerariesView from "@/views/MyItinerariesView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -38,9 +39,15 @@ const router = createRouter({
       component: ForgotPasswordView,
     },
     {
-      path: "/itineraries",
+      path: "/my-itineraries",
+      name: "MyItineraries",
+      component: MyItinerariesView,
+    },
+    {
+      path: "/itineraries/:itineraryId",
       name: "Itineraries",
       component: ItinerariesView,
+      props:true,
     },
     {
       path: "/community",

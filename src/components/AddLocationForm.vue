@@ -60,6 +60,7 @@ export default {
   },
   props: {
     dayNumber: Number,
+    itineraryId: String,
   },
   data() {
     return {
@@ -99,8 +100,9 @@ export default {
         return;
       }
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
-      const itineraryId = "OjKPjGvFB5mvb0cI0TpF";
-
+      const itineraryId = this.itineraryId;
+      console.log(this.itineraryId);
+      console.log(this.dayNumber);
       try {
         // Construct the document path where the location data will be saved
         const q = query(
@@ -108,6 +110,7 @@ export default {
           where("day", "==", this.dayNumber)
         );
         const daySnapshot = await getDocs(q);
+        console.log(daySnapshot.docs);
         const dayDocId = daySnapshot.docs[0].id;
         const locationRef = collection(
           db,

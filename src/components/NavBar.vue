@@ -6,6 +6,7 @@
         </router-link> 
         </div>
     
+
         <div class="nav_links">
             <router-link :to="{ name: 'Home' }" class="tab" :class="{ 'active': $route.name === 'Home' }">Home</router-link>
             <router-link :to="{ name: 'Itineraries' }" class="tab" :class="{ 'active': $route.name === 'Itineraries' }">My Itineraries</router-link>
