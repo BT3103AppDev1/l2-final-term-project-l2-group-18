@@ -50,4 +50,8 @@ export default {
   overflow-y: auto;
 }
 
+#itineraries_tab {
+  background-color: aquamarine;
+}
+
 </style>

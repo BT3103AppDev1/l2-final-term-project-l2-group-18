@@ -7,6 +7,7 @@ import ItinerariesView from "../views/ItinerariesView.vue";
 import CommunityView from "../views/CommunityView.vue";
 import LandingView from "../views/LandingView.vue";
 import AboutView from "../views/AboutView.vue";
+import ProfileView from "../views/ProfileView.vue";
 import MyItinerariesView from "@/views/MyItinerariesView.vue";
 
 const router = createRouter({
@@ -57,6 +58,11 @@ const router = createRouter({
       path: "/about",
       name: "About",
       component: AboutView,
+    },    
+    {
+      path: "/profile",
+      name: "Profile",
+      component: ProfileView,
     }
   ],
 });
