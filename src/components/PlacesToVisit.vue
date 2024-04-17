@@ -71,6 +71,7 @@
         @saveLocation="handleSaveForm"
         v-if="showAddLocationForm !== null"
         :dayNumber="showAddLocationForm"
+        :itineraryId="this.itineraryId"
       />
     </div>
   </div>
