@@ -9,7 +9,7 @@
 
         <div class="nav_links">
             <router-link :to="{ name: 'Home' }" class="tab" :class="{ 'active': $route.name === 'Home' }">Home</router-link>
-            <router-link :to="{ name: 'Itineraries' }" class="tab" :class="{ 'active': $route.name === 'Itineraries' }">My Itineraries</router-link>
+            <router-link :to="{ name: 'MyItineraries' }" class="tab" :class="{ 'active': $route.name === 'MyItineraries' }">My Itineraries</router-link>
             <router-link :to="{ name: 'Community' }" class="tab" :class="{ 'active': $route.name === 'Community' }">Community</router-link>
             <router-link :to="{ name: 'About' }" class="tab" :class="{ 'active': $route.name === 'About' }">About</router-link>
         </div>

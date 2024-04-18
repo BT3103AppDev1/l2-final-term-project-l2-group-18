@@ -69,7 +69,7 @@ export default {
 
                 console.log(this.userUID);
                 console.log(this.userData.data());
-                this.$router.push('/itineraries');
+                this.$router.push('/home');
             } catch (error) {
                 this.createAccountError = error.message;
                 console.error("Account creation error:", error);
@@ -82,7 +82,7 @@ export default {
 
                 console.log(this.userUID);
                 console.log(this.userData.data());
-                this.$router.push('/itineraries');
+                this.$router.push('/home');
             } catch (error) {
                 this.createAccountError = error.message;
                 console.error("Google Sign In Error", error);
