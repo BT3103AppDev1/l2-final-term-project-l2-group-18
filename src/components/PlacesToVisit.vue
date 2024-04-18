@@ -1,5 +1,8 @@
 <template>
-  <PlacesSearchBar @place-selected="handlePlaceSelection" />
+  <div class="title-container">
+    <h1>{{ this.title }}</h1>
+    <h2>{{ this.startDate }} - {{ this.endDate }}</h2>
+  </div>
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
@@ -86,7 +89,7 @@ import {
   getFirestore,
   collection,
   addDoc,
-  setDoc,
+  getDoc,
   getDocs,
   deleteDoc,
   doc,
@@ -113,13 +116,16 @@ export default {
       iconSize: "xl",
       days: [],
       itineraryData: [],
+      title: "",
+      startDate: "",
+      endDate: "",
     };
   },
   props: {
-    itineraryId:String,
+    itineraryId: String,
   },
 
-    methods: {
+  methods: {
     filteredItineraryData(dayNumber) {
       return this.itineraryData.filter((item) => item.day === dayNumber);
     },
@@ -136,6 +142,23 @@ export default {
       );
 
       try {
+        // Fetch Title, Start date, End date
+        const itineraryDocRef = doc(
+          getFirestore(),
+          "global_user_itineraries",
+          this.itineraryId
+        );
+        const itineraryDocSnap = await getDoc(itineraryDocRef);
+        const headerData = itineraryDocSnap.data();
+        const options = { year: "numeric", month: "short", day: "2-digit" };
+        this.title = headerData.title;
+        this.startDate = new Date(
+          headerData.dateRange[0].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+        this.endDate = new Date(
+          headerData.dateRange[1].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+
         // Fetch all days for the given itinerary
         const daysSnapshot = await getDocs(daysRef);
 
@@ -331,6 +354,11 @@ export default {
 </script>
 
 <style scoped>
+.title-container {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
 .places-container {
   padding-left: 3rem;
   padding-right: 3rem;
