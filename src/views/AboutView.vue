@@ -11,7 +11,7 @@
     <div class="container">
       <p>We believe that travel is for everyone. It helps us learn about ourselves and the world around us. With HTLV, planning your next adventure is just a few clicks away. Whether you want to create unforgettable itineraries or join our vibrant community, we're here to help you every step of the way.</p>
       <div class="button-container">
-        <router-link to="/itineraries" class="cta-button">Start Planning</router-link>
+        <router-link to="/my-itineraries" class="cta-button">Start Planning</router-link>
         <router-link to="/community" class="cta-button">Join Community</router-link>
       </div>
     </div>
