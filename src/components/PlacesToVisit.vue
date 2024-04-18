@@ -1,17 +1,28 @@
 <template>
-  <div class="title-container">
-    <h1>{{ this.title }}</h1>
-    <h2>{{ this.startDate }} - {{ this.endDate }}</h2>
-  </div>
+  <PlacesSearchBar @place-selected="handlePlaceSelection" />
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
       <div class="share-button-container">
         <font-awesome-icon
           icon="share-from-square"
-          class="fa-regular share-icon"
+          class="share-icon"
           :size="iconSize"
+          @click="toggleDropdown"
         />
+        <div v-if="showDropdown" class="dropdown-menu" @click.stop>
+          <div v-if="!sharingToUser">
+            <div @click="enableShareToUser" class="share_buttons"> <font-awesome-icon icon="users" class="share_icons" /> Share with other Users</div>
+            <div @click="shareToCommunity" class="share_buttons"> <font-awesome-icon icon="globe" class="share_icons" /> Share with Community</div>
+          </div>
+          <div v-else>
+            <div id="share_users_text">Share with:</div>
+            <div class="input_group">
+              <input type="text" v-model="username" placeholder="Enter username" @keyup.enter="shareToSpecificUser" id="username_input">
+              <button @click="shareToSpecificUser" id="shareWithUsers_button">Share</button>
+            </div>
+          </div>
+        </div>
         <button class="new-day-button" @click="addNewDay">Add New Day</button>
       </div>
     </div>
@@ -89,7 +100,7 @@ import {
   getFirestore,
   collection,
   addDoc,
-  getDoc,
+  setDoc,
   getDocs,
   deleteDoc,
   doc,
@@ -97,17 +108,20 @@ import {
   where,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { faL } from "@fortawesome/free-solid-svg-icons";
 const db = getFirestore(firebaseApp);
 
 export default {
   mounted() {
     document.body.style.backgroundColor = "#e7dcdc";
+    document.addEventListener("click", this.handleOutsideClick)
     this.fetchData();
   },
 
   beforeDestroy() {
     // Reset the background color when the component is destroyed
     document.body.style.backgroundColor = "";
+    document.removeEventListener("click", this.handleOutsideClick)
   },
 
   data() {
@@ -116,13 +130,13 @@ export default {
       iconSize: "xl",
       days: [],
       itineraryData: [],
-      title: "",
-      startDate: "",
-      endDate: "",
+      showDropdown: false,
+      sharingToUser: false, // To manage sharing to specific user
+      username: "",
     };
   },
   props: {
-    itineraryId: String,
+    itineraryId:String,
   },
 
   methods: {
@@ -142,23 +156,6 @@ export default {
       );
 
       try {
-        // Fetch Title, Start date, End date
-        const itineraryDocRef = doc(
-          getFirestore(),
-          "global_user_itineraries",
-          this.itineraryId
-        );
-        const itineraryDocSnap = await getDoc(itineraryDocRef);
-        const headerData = itineraryDocSnap.data();
-        const options = { year: "numeric", month: "short", day: "2-digit" };
-        this.title = headerData.title;
-        this.startDate = new Date(
-          headerData.dateRange[0].seconds * 1000
-        ).toLocaleDateString("en-GB", options);
-        this.endDate = new Date(
-          headerData.dateRange[1].seconds * 1000
-        ).toLocaleDateString("en-GB", options);
-
         // Fetch all days for the given itinerary
         const daysSnapshot = await getDocs(daysRef);
 
@@ -344,6 +341,58 @@ export default {
       this.showAddLocationForm = null;
       this.fetchData();
     },
+
+    toggleDropdown(event) {
+      event.stopPropagation();
+      this.showDropdown = !this.showDropdown;
+      console.log("Share Dropdown status: ", this.showDropdown)
+    },
+
+    handleOutsideClick() {
+      this.showDropdown = false;
+      this.sharingToUser = false;
+    },
+
+    shareToCommunity() { // TO BE EDITED BY SIRUI <3
+      alert('Shared to Community!');
+      this.showDropdown = false;
+    },
+
+    enableShareToUser(event) {
+      event.stopPropagation();
+      this.sharingToUser = true;
+    },
+
+    async shareToSpecificUser() {
+      if (!this.username) {
+        alert("Please enter a username.");
+        return;
+      }
+
+      const usersRef = collection(db, "users");
+      const querySnapshot = await getDocs(query(usersRef, where("username", "==", this.username)));
+
+      if (querySnapshot.empty) {
+        alert("No user found with that username. Please enter a valid username.");
+        this.username = ''
+        return;
+      }
+
+      // Iterate through each found user document
+      querySnapshot.forEach(async (userDoc) => {
+        // Access or create the 'itineraries' sub-collection under each user found
+        console.log(2, userDoc.ref);
+
+        // Add this.itineraryId to the user's 'itineraries' collection
+        await setDoc(userDoc.ref, {"itineraries":this.itineraryId});
+      });
+
+      // Reset dropdown state
+      this.sharingToUser = false;
+      this.showDropdown = false;
+      this.username = ''; // Reset the username input
+      alert("This Itinerary has been shared with {{this.username}} uccessfully!");
+    }
   },
 
   components: {
@@ -354,11 +403,6 @@ export default {
 </script>
 
 <style scoped>
-.title-container {
-  padding-left: 3rem;
-  padding-right: 3rem;
-}
-
 .places-container {
   padding-left: 3rem;
   padding-right: 3rem;
@@ -377,7 +421,7 @@ h1 {
 
 .share-button-container {
   margin-left: auto;
-  display: flex;
+  display: relative;
   align-items: center;
 }
 
@@ -508,4 +552,91 @@ h3 {
 .add-location-form.open {
   left: 0; /* Slide sidebar into view */
 }
+
+.share-icon {
+    cursor: pointer;
+    margin-left: 10px;  
+    color: #646464; 
+}
+
+.share-icon:hover {
+    color: #0d6efd;  
+}
+
+.dropdown-menu {
+  background-color: #ffffff;;
+  border-radius: 8px;
+  padding: 5px;
+  width: 240px;
+  z-index: 100;
+  position: absolute;
+  transform: translateX(-87%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.dropdown-menu div {
+  padding: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 1px solid #d5cece; /* Separator */
+  font-family: 'Arial', sans-serif; /* Use a standard font for clarity */
+}
+
+/* Remove border from the last div */
+.dropdown-menu div:last-child {
+  border-bottom: none;
+}
+
+.share_buttons:hover {
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 5px;
+}
+
+.share_icons {
+    cursor: pointer;
+    margin-right: 5px;  
+}
+
+.input-group {
+  display: flex;
+  align-items: center; /* Align vertically */
+  width: 100%; /* Ensure the group takes full width */
+  padding-bottom: 2px; /* Spacing from the label above */
+  margin-bottom: 0px;
+}
+
+#username_input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px; /* Rounded corners on the left side only */
+  margin-right: -2px; /* Overlap border with button */
+  position: 50%;
+}
+
+
+#share_users_text {
+  border-bottom: none;
+  padding: 0px;
+  font-family: 'Arial', sans-serif; /* Use a standard font for clarity */
+  cursor:auto;
+}
+
+#shareWithUsers_button {
+  padding: 8px 12px;
+  background-color: #4A90E2; /* A pleasant blue */
+  color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: -10px;
+  cursor: pointer;
+}
+
+#shareWithUsers_button:hover {
+  background-color: #357ABD; /* A pleasant blue */
+}
+
+
 </style>
