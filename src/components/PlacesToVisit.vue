@@ -1,8 +1,7 @@
 <template>
-  <!-- <PlacesSearchBar @place-selected="handlePlaceSelection" /> -->
   <div class="title-container">
-    <h1>Title: {{ this.title }}</h1>
-    <h2>Dates: {{ this.startDate }} - {{ this.endDate }}</h2>
+    <h1>{{ this.title }}</h1>
+    <h2>{{ this.startDate }} - {{ this.endDate }}</h2>
   </div>
   <div class="places-container">
     <div class="header-container">
@@ -68,7 +67,7 @@ import {
   getFirestore,
   collection,
   addDoc,
-  setDoc,
+  getDoc,
   getDocs,
   getDoc,
   deleteDoc,
@@ -98,13 +97,18 @@ export default {
       showAddLocationForm: null,
       iconSize: "xl",
       days: [],
-      itineraryData: [], //array of days regardless of order -> use this to 
+      itineraryData: [],
+      title: "",
+      startDate: "",
+      endDate: "",
     };
   },
   props: {
     itineraryId: String,
+    itineraryId: String,
   },
 
+  methods: {
   methods: {
     filteredItineraryData(dayNumber) {
       return this.itineraryData.filter((item) => item.day === dayNumber);
@@ -122,6 +126,23 @@ export default {
       );
 
       try {
+        // Fetch Title, Start date, End date
+        const itineraryDocRef = doc(
+          getFirestore(),
+          "global_user_itineraries",
+          this.itineraryId
+        );
+        const itineraryDocSnap = await getDoc(itineraryDocRef);
+        const headerData = itineraryDocSnap.data();
+        const options = { year: "numeric", month: "short", day: "2-digit" };
+        this.title = headerData.title;
+        this.startDate = new Date(
+          headerData.dateRange[0].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+        this.endDate = new Date(
+          headerData.dateRange[1].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+
         // Fetch Title, Start date, End date
         const itineraryDocRef = doc(
           getFirestore(),
@@ -413,6 +434,11 @@ export default {
 </script>
 
 <style scoped>
+.title-container {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
 .places-container {
   padding-left: 3rem;
   padding-right: 3rem;
