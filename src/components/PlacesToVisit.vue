@@ -1,13 +1,28 @@
 <template>
-  <div class="title-container">
-    <h1>{{ this.title }}</h1>
-    <h2>{{ this.startDate }} - {{ this.endDate }}</h2>
-  </div>
+  <PlacesSearchBar @place-selected="handlePlaceSelection" />
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
       <div class="share-button-container">
-        <font-awesome-icon icon="share-from-square" class="fa-regular share-icon" :size="iconSize" />
+        <font-awesome-icon
+          icon="share-from-square"
+          class="share-icon"
+          :size="iconSize"
+          @click="toggleDropdown"
+        />
+        <div v-if="showDropdown" class="dropdown-menu" @click.stop>
+          <div v-if="!sharingToUser">
+            <div @click="enableShareToUser" class="share_buttons"> <font-awesome-icon icon="users" class="share_icons" /> Share with other Users</div>
+            <div @click="shareToCommunity" class="share_buttons"> <font-awesome-icon icon="globe" class="share_icons" /> Share with Community</div>
+          </div>
+          <div v-else>
+            <div id="share_users_text">Share with:</div>
+            <div class="input_group">
+              <input type="text" v-model="username" placeholder="Enter username" @keyup.enter="shareToSpecificUser" id="username_input">
+              <button @click="shareToSpecificUser" id="shareWithUsers_button">Share</button>
+            </div>
+          </div>
+        </div>
         <button class="new-day-button" @click="addNewDay">Add New Day</button>
       </div>
     </div>
@@ -67,7 +82,7 @@ import {
   getFirestore,
   collection,
   addDoc,
-  getDoc,
+  setDoc,
   getDocs,
   getDoc,
   deleteDoc,
@@ -77,11 +92,13 @@ import {
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { faL } from "@fortawesome/free-solid-svg-icons";
+import { faL } from "@fortawesome/free-solid-svg-icons";
 const db = getFirestore(firebaseApp);
 
 export default {
   mounted() {
     document.body.style.backgroundColor = "#e7dcdc";
+    document.addEventListener("click", this.handleOutsideClick)
     document.addEventListener("click", this.handleOutsideClick)
     this.fetchData();
   },
@@ -89,6 +106,7 @@ export default {
   beforeDestroy() {
     // Reset the background color when the component is destroyed
     document.body.style.backgroundColor = "";
+    document.removeEventListener("click", this.handleOutsideClick)
     document.removeEventListener("click", this.handleOutsideClick)
   },
 
@@ -98,14 +116,13 @@ export default {
       iconSize: "xl",
       days: [],
       itineraryData: [],
-      title: "",
-      startDate: "",
-      endDate: "",
+      showDropdown: false,
+      sharingToUser: false, // To manage sharing to specific user
+      username: "",
     };
   },
   props: {
-    itineraryId: String,
-    itineraryId: String,
+    itineraryId:String,
   },
 
   methods: {
@@ -126,40 +143,6 @@ export default {
       );
 
       try {
-        // Fetch Title, Start date, End date
-        const itineraryDocRef = doc(
-          getFirestore(),
-          "global_user_itineraries",
-          this.itineraryId
-        );
-        const itineraryDocSnap = await getDoc(itineraryDocRef);
-        const headerData = itineraryDocSnap.data();
-        const options = { year: "numeric", month: "short", day: "2-digit" };
-        this.title = headerData.title;
-        this.startDate = new Date(
-          headerData.dateRange[0].seconds * 1000
-        ).toLocaleDateString("en-GB", options);
-        this.endDate = new Date(
-          headerData.dateRange[1].seconds * 1000
-        ).toLocaleDateString("en-GB", options);
-
-        // Fetch Title, Start date, End date
-        const itineraryDocRef = doc(
-          getFirestore(),
-          "global_user_itineraries",
-          this.itineraryId
-        );
-        const itineraryDocSnap = await getDoc(itineraryDocRef);
-        const headerData = itineraryDocSnap.data();
-        const options = { year: "numeric", month: "short", day: "2-digit" };
-        this.title = headerData.title;
-        this.startDate = new Date(
-          headerData.dateRange[0].seconds * 1000
-        ).toLocaleDateString("en-GB", options);
-        this.endDate = new Date(
-          headerData.dateRange[1].seconds * 1000
-        ).toLocaleDateString("en-GB", options);
-
         // Fetch all days for the given itinerary
         const daysSnapshot = await getDocs(daysRef);
 
@@ -394,35 +377,25 @@ export default {
       const querySnapshot = await getDocs(query(usersRef, where("username", "==", this.username)));
 
       if (querySnapshot.empty) {
-        alert("No user found with that username. Please enter a valid username!!");
+        alert("No user found with that username. Please enter a valid username.");
         this.username = ''
         return;
       }
 
       // Iterate through each found user document
       querySnapshot.forEach(async (userDoc) => {
-        // Reference to the specific itinerary document under the user's 'itineraries' sub-collection
-        const itineraryDocRef = doc(userDoc.ref, "itineraries", this.itineraryId);
-        
-        // Get the document to check if it exists
-        const docSnap = await getDoc(itineraryDocRef);
+        // Access or create the 'itineraries' sub-collection under each user found
+        console.log(2, userDoc.ref);
 
-        if (docSnap.exists()) {
-          // Document exists, so the itinerary is already shared
-          alert(`This itinerary is already shared with ${userDoc.data().username}!`);
-          this.username = '';
-          return;
-        } else {          
-          // Document does not exist, share the itinerary
-          await setDoc(itineraryDocRef, {}); // Add an empty object or any data you want to store
-          alert(`Your itinerary has been shared with ${userDoc.data().username} successfully!`);
-        }
+        // Add this.itineraryId to the user's 'itineraries' collection
+        await setDoc(userDoc.ref, {"itineraries":this.itineraryId});
       });
 
       // Reset dropdown state
       this.sharingToUser = false;
       this.showDropdown = false;
       this.username = ''; // Reset the username input
+      alert("This Itinerary has been shared with {{this.username}} uccessfully!");
     }
   },
 
@@ -434,11 +407,6 @@ export default {
 </script>
 
 <style scoped>
-.title-container {
-  padding-left: 3rem;
-  padding-right: 3rem;
-}
-
 .places-container {
   padding-left: 3rem;
   padding-right: 3rem;
@@ -467,6 +435,7 @@ h2 {
 
 .share-button-container {
   margin-left: auto;
+  display: relative;
   display: relative;
   align-items: center;
 }
@@ -601,8 +570,6 @@ h3 {
 .add-location-form.open {
   left: 0;
   /* Slide sidebar into view */
-  left: 0;
-  /* Slide sidebar into view */
 }
 
 .share-icon {
@@ -690,12 +657,5 @@ h3 {
   background-color: #357ABD; /* A pleasant blue */
 }
 
-.title-container {
-  padding-left: 3rem;
-  margin-top: 0rem;
-  text-align: center; /* Center-align the text */
-  border-bottom: 1px solid #ccc; /* Add a subtle border */
-  padding-bottom: 2px;
-}
 
 </style>
