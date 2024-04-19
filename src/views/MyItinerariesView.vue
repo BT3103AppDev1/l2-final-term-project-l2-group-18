@@ -18,6 +18,9 @@
         SearchLocation,
         ItineraryList,
         NavBar,
+      },
+      mounted() {
+        document.body.style.backgroundColor = "#e7dcdc";
       }
     };
   </script>
