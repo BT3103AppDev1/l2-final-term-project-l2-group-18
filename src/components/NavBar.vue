@@ -9,7 +9,7 @@
 
         <div class="nav_links">
             <router-link :to="{ name: 'Home' }" class="tab" :class="{ 'active': $route.name === 'Home' }">Home</router-link>
-            <router-link :to="{ name: 'MyItineraries' }" class="tab" :class="{ 'active': $route.name === 'MyItineraries' }">My Itineraries</router-link>
+            <router-link :to="{ name: 'MyItineraries' }" class="tab" :class="{ 'active': isActiveRoute() }">My Itineraries</router-link>
             <router-link :to="{ name: 'Community' }" class="tab" :class="{ 'active': $route.name === 'Community' }">Community</router-link>
             <router-link :to="{ name: 'About' }" class="tab" :class="{ 'active': $route.name === 'About' }">About</router-link>
         </div>
@@ -67,6 +67,10 @@
             if (this.showDropdown){
                 this.showDropdown = false;
             }
+        },
+        isActiveRoute() {
+            // Check if the current route is 'MyItineraries' or starts with 'Itineraries'
+            return this.$route.name === 'MyItineraries' || this.$route.name === 'Itineraries';
         }
     }
 };
@@ -88,6 +92,8 @@
     width: 80px;
     padding-right: 15px;
     padding-left: 5px;
+    padding-bottom: -10px;
+    margin-bottom: -10px;
 
 }
 
