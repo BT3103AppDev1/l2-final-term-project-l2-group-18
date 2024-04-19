@@ -22,6 +22,9 @@ import Explore from '@/components/Explore.vue'
       ItineraryList,
       NavBar,
       Explore,
+    },
+    mounted() {
+      document.body.style.backgroundColor = "#e7dcdc";
     }
   };
 </script>

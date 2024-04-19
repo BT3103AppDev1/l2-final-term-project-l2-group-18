@@ -26,6 +26,9 @@ export default {
   name: "AboutView",
   components: {
     NavBar
+  },
+  mounted() {
+    document.body.style.backgroundColor = "#e7dcdc";
   }
 };
 </script>

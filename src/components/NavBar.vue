@@ -83,7 +83,7 @@
     align-items: center;
     width: 100%;
     height: 70px;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid rgb(204, 199, 199);
     background-color: white;
 }
 
@@ -157,7 +157,7 @@
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #f5bec2;
+    border: 3px solid #8dc7bd; /* f5bec2 */
 }
 
 .profile_logo:hover {

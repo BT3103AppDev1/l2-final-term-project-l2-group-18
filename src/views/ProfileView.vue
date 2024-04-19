@@ -1,8 +1,8 @@
 <template>
 <div class="profile-container">
     <div class="header">
-        <h1>Profile Page</h1>
-        <p class="subtitle">Manage your settings and preferences</p>
+        <h1>Your Profile</h1>
+        <p class="subtitle">Manage your profile information </p>
     </div>
     <img :src="userPIC" alt="Profile Picture" class="profile-pic"/>
     <UploadPic @image-uploaded="update_pic($event)" />
@@ -37,6 +37,9 @@ export default {
             newUsername: "", // Holds new username input
             editUsername: false
         };
+    },
+    mounted() {
+        document.body.style.backgroundColor = "#e7dcdc";
     },
     computed: {
         ...mapGetters('user', ['userPIC', 'userData', "userName", "userUID"]),
