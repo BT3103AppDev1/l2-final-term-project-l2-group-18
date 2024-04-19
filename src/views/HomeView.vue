@@ -1,10 +1,9 @@
 <template>
   <NavBar />
     <div class="home-page">
-      <h1>Welcome to HTLV!</h1>
-      <h2>Community</h2>
+      <Explore />
       <ItineraryList type="community" limit="4"/>
-      <h2>Your Recent Itineraries</h2>
+      <h1 class="recent-itineraries">Your Recent Itineraries</h1>
       <ItineraryList type="personal" limit="4"/>
       <SearchLocation />
 
@@ -14,13 +13,15 @@
 <script>
 import SearchLocation from '@/components/SearchLocation.vue';
 import ItineraryList from '@/components/ItineraryList.vue';
-import NavBar from '@/components/NavBar.vue'
+import NavBar from '@/components/NavBar.vue';
+import Explore from '@/components/Explore.vue'
   export default {
     name: 'HomeView',
     components: {
       SearchLocation,
       ItineraryList,
       NavBar,
+      Explore,
     }
   };
 </script>
@@ -28,8 +29,15 @@ import NavBar from '@/components/NavBar.vue'
 <style scoped>
   .home-page {
     text-align: center;
-    margin-top: 50px;
-    
+    margin: 50px auto;
+    width: 75%;
+  }
+
+  .recent-itineraries {
+    font-size: 30px;
+    font-weight: 400;
+    text-align: center;
+    text-transform: capitalize;
   }
   
   .button {

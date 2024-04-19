@@ -7,7 +7,7 @@
     ref="photoInput"
     @change="handleFileUpload"
     />
-    <button @click="openFilePicker" class="upload-pic-button">Upload Profile Picture</button>
+    <button @click="openFilePicker" class="upload-pic-button"> <font-awesome-icon icon="upload" id = "fa_upload_icon"/>  Upload New Profile Picture</button>
 </div>
 </template>
 
@@ -58,19 +58,26 @@ import {mapGetters } from "vuex";
 <style scoped>
 .upload-pic-button {
   margin-left: 15px;
-  padding: 5px 10px;
-  background-color: blue;
-  color: white;
+  padding: 6px 10px;
+  background-color: #f5bec2;
+  color: black;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   width: auto;
   height: fit-content;
+  margin-bottom: 20px;
+  margin-top: 5px;
 }
 
 .upload-pic-button:hover {
-  background-color: lightskyblue;
-  color: black;
+  background-color: #FF5A5F;
+  color: white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
+}
+
+#fa_upload_icon{
+    margin-right: 5px; /* Add some space between the icon and text */
 }
 </style>
   

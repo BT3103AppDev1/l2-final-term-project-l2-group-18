@@ -3,7 +3,7 @@
         <div class="cards">
             <itinerary-card
                 v-for="itinerary in displayedItineraries"
-                :key="itinerary.id"
+                :id="itinerary.id"
                 :title="itinerary.title"
                 :destination="itinerary.destination"
                 :itineraryPic="itinerary.imageURL"

@@ -1,22 +1,23 @@
 <template>
   <div>
     <NavBar />
-    <div class="about-view">
-      <div class="container">
-        <div class="row">
-          <div class="about-image">
-            <img class="about-logo" src="../assets/about_page.jpg" alt="About Logo">
-          </div>
-          <div class="about-content">
-            <h2 class="about-title">ABOUT <span class="highlight">HTLV</span></h2>
-            <p>Welcome to Hasta La Vista (<span class="highlight">HTLV</span>) - your ultimate travel companion!</p>
-            <p><span class="highlight">HTLV</span> is a travel application designed to simplify and enhance your travel planning experience. Say goodbye to the hassle of juggling multiple platforms and tools for itinerary creation and collaboration. With <span class="highlight">HTLV</span>, you can streamline your travel plans, discover new destinations, and connect with fellow travelers - all in one place.</p>
-          </div>
-        </div>
+    <div class="about-hero">
+      <img class="about-hero-image" src="../assets/about_page.jpg" alt="Group of friends">
+      <div class="hero-content">
+        <h1 class="hero-title">About Us</h1>
+        <p class="hero-subtitle">For explorers everywhere.</p>
+      </div>
+    </div>
+    <div class="container">
+      <p>We believe that travel is for everyone. It helps us learn about ourselves and the world around us. With HTLV, planning your next adventure is just a few clicks away. Whether you want to create unforgettable itineraries or join our vibrant community, we're here to help you every step of the way.</p>
+      <div class="button-container">
+        <router-link to="/my-itineraries" class="cta-button">Start Planning</router-link>
+        <router-link to="/community" class="cta-button">Join Community</router-link>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import NavBar from "../components/NavBar.vue";
@@ -30,73 +31,94 @@ export default {
 </script>
 
 <style scoped>
-.about-view {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 5% 0;
+.about-hero {
+  position: relative;
+  color: white;
+  text-align: center;
 }
 
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.about-image {
-  flex: 1;
-  margin-right: 2rem;
-}
-
-.about-logo {
+.about-hero-image {
   width: 100%;
-  max-width: 500px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 60vh;
+  object-fit: cover;
 }
 
-.about-content {
+.hero-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   flex: 1;
-  max-width: 600px;
-  padding-left: 2rem;
+  max-width: 800px;
+  padding: 0 20px;
 }
 
-.about-title {
-  font-size: 4em;
+.hero-title {
+  font-size: 3rem;
   font-weight: bold;
-  color: #333;
-  text-shadow: 0.1em 0.1em 0.2em rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  margin: 0;
 }
 
-.about-content p {
-  font-size: 1.5em;
-  line-height: 1.8;
-  margin-bottom: 1rem;
-  font-weight: bold;
+.hero-subtitle {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.about-main .container {
+  padding: 4rem;
   text-align: justify;
+  max-width: 1000px;
+  margin: auto;
+  word-wrap: break-word;
+  hyphens: auto;
+  text-align: justify;
+  text-justify: inter-word;
+  max-width : 1000px;
 }
 
-.highlight {
-  color: red;
+.container p {
+  font-size: 1.2rem;
+  text-align: justify;
+  text-justify: inter-word;
+  max-width: 1250px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 2rem;
+  hyphens: auto;
 }
 
-@media screen and (max-width: 768px) {
-  .about-image {
-    flex: none;
-    margin-right: 0;
-    margin-bottom: 2rem;
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 1rem;
+  margin-top: 2rem; 
+}
+
+.cta-button {
+  padding: 1rem 2rem;
+  margin: 0.5rem;
+  color: white;
+  background-color: #FF5A5F;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: #FF2C3B;
+}
+
+@media (max-width: 576px) {
+  .button-container {
+    flex-direction: column;
   }
-  .about-content {
-    flex: none;
-    max-width: none;
-    padding-left: 0;
+  .cta-button {
+    display: block;
+    width: auto;
+    margin: 10px auto;
   }
 }
 </style>
