@@ -1,5 +1,9 @@
 <template>
-  <PlacesSearchBar @place-selected="handlePlaceSelection" />
+  <!-- <PlacesSearchBar @place-selected="handlePlaceSelection" /> -->
+  <div class="title-container">
+    <h1>Title: {{ this.title }}</h1>
+    <h2>Dates: {{ this.startDate }} - {{ this.endDate }}</h2>
+  </div>
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
@@ -102,6 +106,7 @@ import {
   addDoc,
   setDoc,
   getDocs,
+  getDoc,
   deleteDoc,
   doc,
   query,
@@ -130,13 +135,16 @@ export default {
       iconSize: "xl",
       days: [],
       itineraryData: [],
+      title: "",
+      startDate: "",
+      endDate: "",
       showDropdown: false,
       sharingToUser: false, // To manage sharing to specific user
       username: "",
     };
   },
   props: {
-    itineraryId:String,
+    itineraryId: String,
   },
 
   methods: {
@@ -156,6 +164,23 @@ export default {
       );
 
       try {
+        // Fetch Title, Start date, End date
+        const itineraryDocRef = doc(
+          getFirestore(),
+          "global_user_itineraries",
+          this.itineraryId
+        );
+        const itineraryDocSnap = await getDoc(itineraryDocRef);
+        const headerData = itineraryDocSnap.data();
+        const options = { year: "numeric", month: "short", day: "2-digit" };
+        this.title = headerData.title;
+        this.startDate = new Date(
+          headerData.dateRange[0].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+        this.endDate = new Date(
+          headerData.dateRange[1].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+
         // Fetch all days for the given itinerary
         const daysSnapshot = await getDocs(daysRef);
 
@@ -373,25 +398,35 @@ export default {
       const querySnapshot = await getDocs(query(usersRef, where("username", "==", this.username)));
 
       if (querySnapshot.empty) {
-        alert("No user found with that username. Please enter a valid username.");
+        alert("No user found with that username. Please enter a valid username!!");
         this.username = ''
         return;
       }
 
       // Iterate through each found user document
       querySnapshot.forEach(async (userDoc) => {
-        // Access or create the 'itineraries' sub-collection under each user found
-        console.log(2, userDoc.ref);
+        // Reference to the specific itinerary document under the user's 'itineraries' sub-collection
+        const itineraryDocRef = doc(userDoc.ref, "itineraries", this.itineraryId);
+        
+        // Get the document to check if it exists
+        const docSnap = await getDoc(itineraryDocRef);
 
-        // Add this.itineraryId to the user's 'itineraries' collection
-        await setDoc(userDoc.ref, {"itineraries":this.itineraryId});
+        if (docSnap.exists()) {
+          // Document exists, so the itinerary is already shared
+          alert(`This itinerary is already shared with ${userDoc.data().username}!`);
+          this.username = '';
+          return;
+        } else {          
+          // Document does not exist, share the itinerary
+          await setDoc(itineraryDocRef, {}); // Add an empty object or any data you want to store
+          alert(`Your itinerary has been shared with ${userDoc.data().username} successfully!`);
+        }
       });
 
       // Reset dropdown state
       this.sharingToUser = false;
       this.showDropdown = false;
       this.username = ''; // Reset the username input
-      alert("This Itinerary has been shared with {{this.username}} uccessfully!");
     }
   },
 
@@ -415,8 +450,15 @@ export default {
 
 h1 {
   text-align: left;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  font-size: 2rem ;
+  color: #333; /* Dark grey color for better contrast */
+  margin-bottom: 0.5rem; /* Reduce space below the h1 */
+}
+
+h2 {
+  font-size: 1.5rem; /* Smaller font size for date range */
+  color: #666; /* Lighter color for subheading */
+  font-weight: normal; /* Less emphasis on the subheading */
 }
 
 .share-button-container {
@@ -638,5 +680,12 @@ h3 {
   background-color: #357ABD; /* A pleasant blue */
 }
 
+.title-container {
+  padding-left: 3rem;
+  margin-top: 0rem;
+  text-align: center; /* Center-align the text */
+  border-bottom: 1px solid #ccc; /* Add a subtle border */
+  padding-bottom: 2px;
+}
 
 </style>
