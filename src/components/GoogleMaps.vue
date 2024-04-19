@@ -4,21 +4,34 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex';
+
 
 export default {
     name: "GoogleMaps",
     props: {
         selectedPlace: Object,
+        itineraryId: String,
     },
     data() {
         return {
             map: null,
+            markers: [],
         };
     },
-    mounted() {
+
+    computed: {
+        // Map getters to get the locations from the store
+        ...mapGetters('locations', ['allLocations']),
+    },
+
+    async mounted() {
         this.loadMapScript();
     },
+
     methods: {
+        // ...mapActions('locations', ['fetchLocations']),
+
         loadMapScript() {
             // Check if Google Maps API Script is already loaded in the global scope to avoid loading multiple times
             if (typeof google !== 'undefined' && google.maps) {
@@ -42,114 +55,88 @@ export default {
             // Append newly created script element to the document
             document.head.appendChild(script);
         },
+
         initMap() {
-            // Initialize the Map
-
-
-            // This could be stored data, and will be dynamically updated
-            const markers = [
-                {
-                    locationName: "The Star Vista",
-                    lat: 1.3074159097266027,
-                    lng: 103.78847769104704,
-                    address: "1 Vista Exchange Green, Singapore 138617"
-                },
-                {
-                    locationName: "Singapore Zoo",
-                    lat: 1.407842716800087,
-                    lng: 103.79431942192079,
-                    address: "80 Mandai Lake Rd, 729826"
-                },
-                {
-                    locationName: "USS Singapore",
-                    lat: 1.2572443091996244,
-                    lng: 103.82386625540691,
-                    address: "8 Sentosa Gateway, 098269"
-                },
-                {
-                    locationName: "NEX",
-                    lat: 1.3519537524416878,
-                    lng: 103.87239724729993,
-                    address: "Serangoon Central, 23, Singapore 556083"
-                },
-                {
-                    locationName: "NUS COM3",
-                    lat: 1.2951079728030417,
-                    lng: 103.77454683882502,
-                    address: "11 Research Link, Singapore 119391"
-                }
-            ]
-
-            const centerMap = { lat: 1.3408578, lng: 103.8054434 } // Singapore as default for now
-
+            const centerMap = { lat: 1.3408578, lng: 103.8054434 }; // Center the map on Singapore by default
             const mapOptions = {
                 center: centerMap,
                 zoom: 12,
-                // disableDefaultUI: true 
             };
-            const map = new google.maps.Map(this.$refs.map, mapOptions);
-            this.map = map
+            this.map = new google.maps.Map(this.$refs.map, mapOptions);
+            this.createMarkers(); // Initial marker creation
+        },
+        reinitializeMap() {
+            // First, clear all existing markers to ensure they're not lingering around
+            this.clearMarkers();
 
-            const infoWindow = new google.maps.InfoWindow({
-                minWidth: 200,
-                maxWidth: 200
+            // Remove the existing map from the DOM to prevent memory leaks
+            if (this.map) {
+                google.maps.event.clearInstanceListeners(this.map);
+                this.$refs.map.innerHTML = ''; // Clear the map container
+            }
+
+            // Now, recreate the map
+            this.initMap();
+        },
+
+        clearMarkers() {
+            this.markers.forEach(marker => {
+                marker.setMap(null); // This detaches the marker from the map
             });
+            this.markers = []; // Clear the array after all markers are removed from the map
+        },
+
+        createMarkers() {
+            console.log("markers before clearing");
+            console.log(this.markers)
+            // First, clear existing markers 
+            this.clearMarkers();
 
             const bounds = new google.maps.LatLngBounds();
-
-            // Loop through all markers
-            for (let i = 0; i < markers.length; i++) {
+            this.allLocations.forEach(location => {
+                const position = { lat: location.latitude, lng: location.longitude };
                 const marker = new google.maps.Marker({
-                    position: { lat: markers[i]["lat"], lng: markers[i]["lng"] },
-                    map: map
+                    map: this.map,
+                    position: position,
+                    title: location.location,
                 });
 
-                function createInfoWindows() {
-                    const infoWindowContent = `<div class ="content_to_view"> TEST </div>`;
+                // Optionally, add an info window for each marker
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<h3>${location.location}</h3><p>${location.description}</p>`
+                });
 
-                    google.maps.event.addListener(marker, "click", function () {
-                        infoWindow.setContent(infoWindowContent);
-                        infoWindow.open(map, marker)
-                    });
+                marker.addListener('click', () => {
+                    infoWindow.open(this.map, marker);
+                });
 
-
-                }
-                createInfoWindows();
-
-                infoWindow.addListener("closeclick", function () {
-                    map.fitBounds(bounds);
-                })
-
-                bounds.extend(new google.maps.LatLng(markers[i]["lat"], markers[i]["lng"]))
-                map.fitBounds(bounds)
-
+                // Save the marker to the array
+                this.markers.push(marker);
+                bounds.extend(position);
+            });
+            console.log("markers after creation")
+            console.log(this.markers)
+            if (this.markers.length > 0) {
+                this.map.fitBounds(bounds);
+            } else {
+                this.map.setCenter({ lat: 1.3408578, lng: 103.8054434 }); // Default center
+                this.map.setZoom(12); // Default zoom
             }
         },
-        addMarkerForPlace(place) {
-            // Check if map is initialized
-            if (!this.map) {
-                console.error("Google Maps not initialized");
-                return;
-            }
-            const location = place.geometry.location;
-
-            // Create a marker for the place
-            const marker = new google.maps.Marker({
-                map: this.map,
-                position: location,
-            });
-            // Center the map on the marker and adjust the zoom level
-            this.map.setCenter(location);
-            this.map.setZoom(15);
-        }
     },
     watch: {
-        selectedPlace(newVal, oldVal) {
-            if (newVal && newVal.geometry) {
-                this.addMarkerForPlace(newVal)
-            }
-        }
-    }
+        allLocations: {
+            deep: true,
+            immediate: true,
+            handler(locations) {
+                if (this.map && locations) {
+                    console.log("in allLocations watcher")
+                    // console.log(markers)
+                    this.reinitializeMap(); // Reinitialize the map whenever locations change
+                }
+            },
+        },
+    },
 }
 
 </script>

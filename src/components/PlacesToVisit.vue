@@ -4,49 +4,28 @@
     <div class="header-container">
       <h1>Places to Visit</h1>
       <div class="share-button-container">
-        <font-awesome-icon
-          icon="share-from-square"
-          class="fa-regular share-icon"
-          :size="iconSize"
-        />
+        <font-awesome-icon icon="share-from-square" class="fa-regular share-icon" :size="iconSize" />
         <button class="new-day-button" @click="addNewDay">Add New Day</button>
       </div>
     </div>
     <div class="days-container" v-for="(day, index) in days" :key="index">
       <div class="days-title-container">
-        <font-awesome-icon
-          icon="calendar"
-          class="fa-regular calendar-icon"
-          :size="iconSize"
-        />
+        <font-awesome-icon icon="calendar" class="fa-regular calendar-icon" :size="iconSize" />
         <h2>Day {{ day }}</h2>
-        <button
-          v-if="index === days.length - 1 && days.length !== 1"
-          class="delete-day-button"
-          @click="deleteDay(index)"
-        >
+        <button v-if="index === days.length - 1 && days.length !== 1" class="delete-day-button"
+          @click="deleteDay(index)">
           Delete Day
         </button>
       </div>
 
       <div class="location-container">
-        <div
-          class="location-details"
-          v-for="item in filteredItineraryData(day)"
-          :key="item"
-        >
+        <div class="location-details" v-for="item in filteredItineraryData(day)" :key="item">
           <div class="location-header">
             <h3>{{ item.location }}</h3>
             <div>
-              <span
-                class="location-category"
-                :style="{ backgroundColor: getCategoryColor(item.category) }"
-                >{{ item.category }}</span
-              >
-              <button
-                class="minus-button"
-                @click="deleteLocation(item.dayid, item.locid)"
-              >
+              <span class="location-category" :style="{ backgroundColor: getCategoryColor(item.category) }">{{
+    item.category }}</span>
+              <button class="minus-button" @click="deleteLocation(item.dayid, item.locid)">
                 -
               </button>
             </div>
@@ -62,16 +41,9 @@
       </div>
     </div>
 
-    <div
-      class="add-location-form"
-      :class="{ open: showAddLocationForm !== null }"
-    >
-      <AddLocationForm
-        @closeForm="showAddLocationForm = null"
-        @saveLocation="handleSaveForm"
-        v-if="showAddLocationForm !== null"
-        :dayNumber="showAddLocationForm"
-      />
+    <div class="add-location-form" :class="{ open: showAddLocationForm !== null }">
+      <AddLocationForm @closeForm="showAddLocationForm = null" @saveLocation="handleSaveForm"
+        v-if="showAddLocationForm !== null" :dayNumber="showAddLocationForm" />
     </div>
   </div>
 </template>
@@ -111,7 +83,7 @@ export default {
       showAddLocationForm: null,
       iconSize: "xl",
       days: [],
-      itineraryData: [],
+      itineraryData: [], //array of days regardless of order -> use this to 
     };
   },
 
@@ -138,6 +110,7 @@ export default {
         // Initialize empty arrays to hold structured itinerary data and days
         const structuredData = [];
         const days = [];
+        const locations = []; // Collect all locations to update the Vuex store
 
         // Iterate through each day document
         for (const dayDoc of daysSnapshot.docs) {
@@ -168,19 +141,25 @@ export default {
             };
             // Push the modified data to the structuredData array
             structuredData.push(locWithIds);
+            locations.push(locData);
           }
           // Extract the day value from the document data
           const dayValue = dayDoc.data().day;
           days.push(dayValue);
         }
-
         // Sort days
         days.sort((a, b) => a - b);
+        
         // Set the fetched days to days
         this.days = days;
         console.log(structuredData);
+        
         // Set the fetched data to itineraryData
         this.itineraryData = structuredData;
+       
+        // Dispatch the Vuex action to update locations in the store
+        this.$store.dispatch('locations/updateLocations', locations);
+
       } catch (error) {
         console.error("Error fetching itinerary data: ", error);
       }
@@ -289,6 +268,7 @@ export default {
         console.error("Error deleting location:", error);
       } finally {
         this.fetchData();
+        console.log("fetched data after deleting location")
       }
     },
 
@@ -465,15 +445,19 @@ h3 {
 .add-location-form {
   position: fixed;
   top: 4.3rem;
-  left: -50%; /* Sidebar starts off-screen */
+  left: -50%;
+  /* Sidebar starts off-screen */
   width: 50%;
   height: 100%;
   background-color: #fff;
-  transition: left 0.3s ease; /* Transition effect */
-  z-index: 1000; /* Ensure sidebar is above other content */
+  transition: left 0.3s ease;
+  /* Transition effect */
+  z-index: 1000;
+  /* Ensure sidebar is above other content */
 }
 
 .add-location-form.open {
-  left: 0; /* Slide sidebar into view */
+  left: 0;
+  /* Slide sidebar into view */
 }
 </style>
