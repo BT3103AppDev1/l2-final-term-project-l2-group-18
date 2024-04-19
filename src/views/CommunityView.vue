@@ -48,6 +48,8 @@ export default {
     handleItineraryClick(itinerary) {
       this.selectedItinerary = itinerary;
     },
+  mounted() {
+    document.body.style.backgroundColor = "#e7dcdc";
   }
 };
 </script>
