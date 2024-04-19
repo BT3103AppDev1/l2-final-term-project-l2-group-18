@@ -92,6 +92,8 @@
     width: 80px;
     padding-right: 15px;
     padding-left: 5px;
+    padding-bottom: -10px;
+    margin-bottom: -10px;
 
 }
 

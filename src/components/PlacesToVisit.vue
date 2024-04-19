@@ -450,15 +450,18 @@ export default {
 
 h1 {
   text-align: left;
-  font-size: 2rem ;
+  font-size: 1.5rem ;
   color: #333; /* Dark grey color for better contrast */
   margin-bottom: 0.5rem; /* Reduce space below the h1 */
 }
 
 h2 {
-  font-size: 1.5rem; /* Smaller font size for date range */
+  font-size: 1.2rem; /* Smaller font size for date range */
   color: #666; /* Lighter color for subheading */
   font-weight: normal; /* Less emphasis on the subheading */
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  text-align: left;
 }
 
 .share-button-container {
@@ -489,12 +492,6 @@ h2 {
   padding-left: 1rem;
   display: flex;
   align-items: center;
-}
-
-h2 {
-  text-align: left;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
 }
 
 .calendar-icon {
