@@ -55,6 +55,9 @@ export default {
       console.log("updated", country.name);
       this.selectedCountry = country.name;
     }
+  },
+  mounted() {
+    document.body.style.backgroundColor = "#e7dcdc";
   }
 };
 </script>
