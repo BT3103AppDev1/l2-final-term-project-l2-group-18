@@ -17,6 +17,15 @@
         v-if="selectedItinerary"
         :itineraryId="selectedItinerary.id"
       />
+      <CommunityList
+        v-if="selectedCountry"
+        :country="selectedCountry"
+        @show-itinerary="handleItineraryClick"
+      />
+      <PlacesToVisitGlobal
+        v-if="selectedItinerary"
+        :itineraryId="selectedItinerary.id"
+      />
     </div>
   </div>
 </template>
@@ -37,6 +46,7 @@ export default {
     return {
       selectedCountry: null,
       itineraries: [],
+      selectedItinerary: null,
       selectedItinerary: null
     };
   },
@@ -44,12 +54,7 @@ export default {
     updateSelectedCountry(country) {
       console.log("updated", country.name);
       this.selectedCountry = country.name;
-    },
-    handleItineraryClick(itinerary) {
-      this.selectedItinerary = itinerary;
-    },
-  mounted() {
-    document.body.style.backgroundColor = "#e7dcdc";
+    }
   }
 };
 </script>
