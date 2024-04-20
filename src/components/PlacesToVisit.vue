@@ -1,5 +1,9 @@
 <template>
-  <PlacesSearchBar @place-selected="handlePlaceSelection" />
+  <!-- <PlacesSearchBar @place-selected="handlePlaceSelection" /> -->
+  <div class="title-container">
+    <h1>Title: {{ this.title }}</h1>
+    <h2>Dates: {{ this.startDate }} - {{ this.endDate }}</h2>
+  </div>
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
@@ -29,10 +33,7 @@
     <div class="days-container" v-for="(day, index) in days" :key="index">
       <div class="days-title-container">
         <font-awesome-icon icon="calendar" class="fa-regular calendar-icon" :size="iconSize" />
-        <font-awesome-icon icon="calendar" class="fa-regular calendar-icon" :size="iconSize" />
         <h2>Day {{ day }}</h2>
-        <button v-if="index === days.length - 1 && days.length !== 1" class="delete-day-button"
-          @click="deleteDay(index)">
         <button v-if="index === days.length - 1 && days.length !== 1" class="delete-day-button"
           @click="deleteDay(index)">
           Delete Day
@@ -41,13 +42,9 @@
 
       <div class="location-container">
         <div class="location-details" v-for="item in filteredItineraryData(day)" :key="item">
-        <div class="location-details" v-for="item in filteredItineraryData(day)" :key="item">
           <div class="location-header">
             <h3>{{ item.location }}</h3>
             <div>
-              <span class="location-category" :style="{ backgroundColor: getCategoryColor(item.category) }">{{
-    item.category }}</span>
-              <button class="minus-button" @click="deleteLocation(item.dayid, item.locid)">
               <span class="location-category" :style="{ backgroundColor: getCategoryColor(item.category) }">{{
     item.category }}</span>
               <button class="minus-button" @click="deleteLocation(item.dayid, item.locid)">
@@ -66,9 +63,17 @@
       </div>
     </div>
 
-    <div class="add-location-form" :class="{ open: showAddLocationForm !== null }">
-      <AddLocationForm @closeForm="showAddLocationForm = null" @saveLocation="handleSaveForm"
-        v-if="showAddLocationForm !== null" :dayNumber="showAddLocationForm" />
+    <div
+      class="add-location-form"
+      :class="{ open: showAddLocationForm !== null }"
+    >
+      <AddLocationForm
+        @closeForm="showAddLocationForm = null"
+        @saveLocation="handleSaveForm"
+        v-if="showAddLocationForm !== null"
+        :dayNumber="showAddLocationForm"
+        :itineraryId="this.itineraryId"
+      />
     </div>
   </div>
 </template>
@@ -92,13 +97,11 @@ import {
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { faL } from "@fortawesome/free-solid-svg-icons";
-import { faL } from "@fortawesome/free-solid-svg-icons";
 const db = getFirestore(firebaseApp);
 
 export default {
   mounted() {
     document.body.style.backgroundColor = "#e7dcdc";
-    document.addEventListener("click", this.handleOutsideClick)
     document.addEventListener("click", this.handleOutsideClick)
     this.fetchData();
   },
@@ -106,7 +109,6 @@ export default {
   beforeDestroy() {
     // Reset the background color when the component is destroyed
     document.body.style.backgroundColor = "";
-    document.removeEventListener("click", this.handleOutsideClick)
     document.removeEventListener("click", this.handleOutsideClick)
   },
 
@@ -116,16 +118,18 @@ export default {
       iconSize: "xl",
       days: [],
       itineraryData: [],
+      title: "",
+      startDate: "",
+      endDate: "",
       showDropdown: false,
       sharingToUser: false, // To manage sharing to specific user
       username: "",
     };
   },
   props: {
-    itineraryId:String,
+    itineraryId: String,
   },
 
-  methods: {
   methods: {
     filteredItineraryData(dayNumber) {
       return this.itineraryData.filter((item) => item.day === dayNumber);
@@ -143,13 +147,29 @@ export default {
       );
 
       try {
+        // Fetch Title, Start date, End date
+        const itineraryDocRef = doc(
+          getFirestore(),
+          "global_user_itineraries",
+          this.itineraryId
+        );
+        const itineraryDocSnap = await getDoc(itineraryDocRef);
+        const headerData = itineraryDocSnap.data();
+        const options = { year: "numeric", month: "short", day: "2-digit" };
+        this.title = headerData.title;
+        this.startDate = new Date(
+          headerData.dateRange[0].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+        this.endDate = new Date(
+          headerData.dateRange[1].seconds * 1000
+        ).toLocaleDateString("en-GB", options);
+
         // Fetch all days for the given itinerary
         const daysSnapshot = await getDocs(daysRef);
 
         // Initialize empty arrays to hold structured itinerary data and days
         const structuredData = [];
         const days = [];
-        const locations = []; // Collect all locations to update the Vuex store
         const locations = []; // Collect all locations to update the Vuex store
 
         // Iterate through each day document
@@ -182,7 +202,6 @@ export default {
             // Push the modified data to the structuredData array
             structuredData.push(locWithIds);
             locations.push(locData);
-            locations.push(locData);
           }
           // Extract the day value from the document data
           const dayValue = dayDoc.data().day;
@@ -191,18 +210,12 @@ export default {
         // Sort days
         days.sort((a, b) => a - b);
         
-        
         // Set the fetched days to days
         this.days = days;
         console.log(structuredData);
         
-        
         // Set the fetched data to itineraryData
         this.itineraryData = structuredData;
-       
-        // Dispatch the Vuex action to update locations in the store
-        this.$store.dispatch('locations/updateLocations', locations);
-
        
         // Dispatch the Vuex action to update locations in the store
         this.$store.dispatch('locations/updateLocations', locations);
@@ -316,7 +329,6 @@ export default {
       } finally {
         this.fetchData();
         console.log("fetched data after deleting location")
-        console.log("fetched data after deleting location")
       }
     },
 
@@ -377,25 +389,35 @@ export default {
       const querySnapshot = await getDocs(query(usersRef, where("username", "==", this.username)));
 
       if (querySnapshot.empty) {
-        alert("No user found with that username. Please enter a valid username.");
+        alert("No user found with that username. Please enter a valid username!!");
         this.username = ''
         return;
       }
 
       // Iterate through each found user document
       querySnapshot.forEach(async (userDoc) => {
-        // Access or create the 'itineraries' sub-collection under each user found
-        console.log(2, userDoc.ref);
+        // Reference to the specific itinerary document under the user's 'itineraries' sub-collection
+        const itineraryDocRef = doc(userDoc.ref, "itineraries", this.itineraryId);
+        
+        // Get the document to check if it exists
+        const docSnap = await getDoc(itineraryDocRef);
 
-        // Add this.itineraryId to the user's 'itineraries' collection
-        await setDoc(userDoc.ref, {"itineraries":this.itineraryId});
+        if (docSnap.exists()) {
+          // Document exists, so the itinerary is already shared
+          alert(`This itinerary is already shared with ${userDoc.data().username}!`);
+          this.username = '';
+          return;
+        } else {          
+          // Document does not exist, share the itinerary
+          await setDoc(itineraryDocRef, {}); // Add an empty object or any data you want to store
+          alert(`Your itinerary has been shared with ${userDoc.data().username} successfully!`);
+        }
       });
 
       // Reset dropdown state
       this.sharingToUser = false;
       this.showDropdown = false;
       this.username = ''; // Reset the username input
-      alert("This Itinerary has been shared with {{this.username}} uccessfully!");
     }
   },
 
@@ -435,7 +457,6 @@ h2 {
 
 .share-button-container {
   margin-left: auto;
-  display: relative;
   display: relative;
   align-items: center;
 }
@@ -552,15 +573,9 @@ h3 {
   top: 4.3rem;
   left: -50%;
   /* Sidebar starts off-screen */
-  left: -50%;
-  /* Sidebar starts off-screen */
   width: 50%;
   height: 100%;
   background-color: #fff;
-  transition: left 0.3s ease;
-  /* Transition effect */
-  z-index: 1000;
-  /* Ensure sidebar is above other content */
   transition: left 0.3s ease;
   /* Transition effect */
   z-index: 1000;
@@ -657,5 +672,12 @@ h3 {
   background-color: #357ABD; /* A pleasant blue */
 }
 
+.title-container {
+  padding-left: 3rem;
+  margin-top: 0rem;
+  text-align: center; /* Center-align the text */
+  border-bottom: 1px solid #ccc; /* Add a subtle border */
+  padding-bottom: 2px;
+}
 
 </style>
