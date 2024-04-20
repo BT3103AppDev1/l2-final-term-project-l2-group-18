@@ -121,8 +121,13 @@ export default {
           "locations"
         );
 
+        // Fetch existing locations to determine the new order
+        const snapshot = await getDocs(locationRef);
+        const order = snapshot.size + 1;  // This is the new location's order index
+
         await addDoc(locationRef, {
           ...this.formData, //spread operator to include all form data
+          order: order, // Inserted Order field here
           day: this.dayNumber,
         });
 

@@ -41,12 +41,22 @@
       </div>
 
       <div class="location-container">
-        <div class="location-details" v-for="item in filteredItineraryData(day)" :key="item">
+        <div 
+        class="location-details" 
+        v-for="(item, index) in filteredItineraryData(day)" 
+        :key="item.locid"
+        draggable="true"
+        @dragstart="dragStart($event, index, day)"
+        @dragover.prevent
+        @drop="drop($event, index, day)"
+        >
+          <div class="location-pin"> <!-- New div for the order number and pin icon -->
+            <i class="fas fa-map-pin"></i> Stop {{ index + 1 }}
+          </div>
           <div class="location-header">
             <h3>{{ item.location }}</h3>
             <div>
-              <span class="location-category" :style="{ backgroundColor: getCategoryColor(item.category) }">{{
-    item.category }}</span>
+              <span class="location-category" :style="{ backgroundColor: getCategoryColor(item.category) }">{{item.category }}</span>
               <button class="minus-button" @click="deleteLocation(item.dayid, item.locid)">
                 -
               </button>
@@ -91,12 +101,14 @@ import {
   getDocs,
   getDoc,
   deleteDoc,
+  updateDoc,
   doc,
   query,
   where,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { faL } from "@fortawesome/free-solid-svg-icons";
+import draggable from "vuedraggable";
 const db = getFirestore(firebaseApp);
 
 export default {
@@ -124,15 +136,24 @@ export default {
       showDropdown: false,
       sharingToUser: false, // To manage sharing to specific user
       username: "",
+      draggingItem: null,
+      draggingDay: null,
     };
   },
   props: {
     itineraryId: String,
   },
 
-  methods: {
+  methods: {    
     filteredItineraryData(dayNumber) {
-      return this.itineraryData.filter((item) => item.day === dayNumber);
+      // Filter for specific day
+      const dayLocations = this.itineraryData.filter((item) => item.day === dayNumber);
+
+      // Sort the locations by the 'order' attribute
+      dayLocations.sort((a, b) => a.order - b.order);
+      
+      // Return the sorted locations
+      return dayLocations;
     },
 
     async fetchData() {
@@ -184,8 +205,10 @@ export default {
             "locations"
           );
           const locationsSnapshot = await getDocs(locationsRef);
+
           // Iterate through each day document
           for (const locDoc of locationsSnapshot.docs) {
+
             // Extract location data from each location document
             const locData = locDoc.data();
             // Construct the object with additional fields (dayid and locid)
@@ -198,6 +221,7 @@ export default {
               location: locData.location,
               latitude: locData.latitude,
               longitude: locData.longitude,
+              order: locData.order
             };
             // Push the modified data to the structuredData array
             structuredData.push(locWithIds);
@@ -212,11 +236,10 @@ export default {
         
         // Set the fetched days to days
         this.days = days;
-        console.log(structuredData);
         
         // Set the fetched data to itineraryData
         this.itineraryData = structuredData;
-       
+        
         // Dispatch the Vuex action to update locations in the store
         this.$store.dispatch('locations/updateLocations', locations);
 
@@ -225,12 +248,87 @@ export default {
       }
     },
 
+    dragStart(event, index, day) {
+      this.draggingItem = index;
+      this.draggingDay = day;
+      event.dataTransfer.effectAllowed = 'move';
+      console.log("Initial Drag", day, index);
+    },
+
+    drop(event, index, day) {
+      event.preventDefault(); // To ensure custom drop logic can execute
+      console.log("Final Drag", day, index);
+
+      const itemToMove = this.itineraryData.splice(this.draggingItem, 1)[0];  // Removes the dragged item from the array and store in variable
+      this.itineraryData.splice(index, 0, itemToMove);  // removes 0 item and adds itemToMove
+      this.updateItineraryData(day, index); // Update Firebase backend
+    },
+
+    async updateItineraryData(day, index) {
+      const db = getFirestore(firebaseApp);
+      const daysRef = collection(db, "global_user_itineraries", this.itineraryId, "days");
+
+      const queryConstraints = [];
+      if (this.draggingDay === day) { // If same day, just find 1 day
+        queryConstraints.push(where("day", "==", day));
+      } else {
+        return "MULTIPLE DAYS DRAG AND DROP NOT SUPPORTED YET"
+        //queryConstraints.push(where("day", "in", [this.draggingDay, day]));
+      }
+
+      // Fetch the day documents which are relevant
+      const querySnapshot = await getDocs(query(daysRef, ...queryConstraints));
+
+      querySnapshot.forEach(async (dayDoc) => {
+        const dayData = dayDoc.data();  // This gives you the day number
+        
+        if (this.draggingDay === dayData.day) {   // means querySnapshot only has 1 document
+          const locationsRef = collection(dayDoc.ref, "locations");
+          const locationsSnapshot = await getDocs(locationsRef);
+
+          const locationsArray = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          if (this.draggingItem < index) {
+            const oldLocation = locationsArray.sort((a,b) => b.order - a.order)
+            .filter(loc => loc.order >= this.draggingItem + 1 && loc.order <= index + 1)
+            .map(loc => {
+              if (loc.order === this.draggingItem + 1) {
+                loc.order = index + 1;
+              } else {
+                loc.order -= 1
+              }
+              return loc;
+            })
+          } else {  // if this.draggingItem > index
+            const oldLocation = locationsArray.sort((a,b) => a.order - b.order)
+            .filter(loc => loc.order <= this.draggingItem + 1 && loc.order >= index + 1)
+            .map(loc => {
+                if (loc.order === this.draggingItem + 1) {
+                  loc.order = index + 1;
+                } else {
+                  loc.order += 1
+                }
+                return loc;
+              })
+            }       
+            
+          console.log(locationsArray)
+          // Update the order of remaining locations in firebase
+          for (const loc of locationsArray) {
+            const locRef = doc(locationsRef, loc.id);
+            await updateDoc(locRef, { order: loc.order });
+          };
+          this.fetchData();
+        }
+      })
+    },
+
     async addNewDay() {
       this.days.push(this.days.length + 1); // mock data code, can remove once firebase
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
       console.log(this.days[this.days.length - 1]);
       const itineraryId = this.itineraryId;
       const maxDay = this.days[this.days.length - 1];
+
       try {
         // Construct the document path where the location data will be saved
         const daysRef = collection(
@@ -317,17 +415,38 @@ export default {
           "locations"
         );
 
-        // Get a reference to the location document
-        const locationDocRef = doc(locationsRef, locid);
+        // Fetch all locations for the current day to update their order
+        const allLocations = await getDocs(locationsRef);
+        const locationsArray = allLocations.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Find the order of the location to be deleted
+        const locationToDelete = locationsArray.find(loc => loc.id === locid);
+        const orderToDelete = locationToDelete.order;
+
+        // Filter out the location to delete and adjust the order of the rest
+        const updatedLocations = locationsArray
+          .filter(loc => loc.id !== locid)
+          .map(loc => {
+            if (loc.order > orderToDelete) { // Only decrement order for locations after the one to delete
+              loc.order -= 1;
+            }
+            return loc;
+          });
 
         // Delete the location document
-        await deleteDoc(locationDocRef);
+        await deleteDoc(doc(locationsRef, locid));
 
-        alert("Location deleted successfully!");
+        // Update the order of remaining locations in firebase
+        for (const loc of updatedLocations) {
+          const locRef = doc(locationsRef, loc.id);
+          await updateDoc(locRef, { order: loc.order });
+        };
+
+        alert("Location deleted successfully and order updated!");
       } catch (error) {
         console.error("Error deleting location:", error);
       } finally {
-        this.fetchData();
+        this.fetchData(); // Refresh the data to reflect the updated order
         console.log("fetched data after deleting location")
       }
     },
@@ -501,8 +620,20 @@ h2 {
 }
 
 .location-container {
-  padding-left: 2rem;
+  padding-left: 0.5rem;
   align-items: center;
+}
+
+.location-pin {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: #aa085e; /* Adjust as needed */
+  margin-right: 10px; /* Space between pin icon and location name */
+}
+
+.fa-map-pin {
+  margin-right: 8px; /* Space between the icon and the number */
 }
 
 .location-details {
@@ -679,5 +810,6 @@ h3 {
   border-bottom: 1px solid #ccc; /* Add a subtle border */
   padding-bottom: 2px;
 }
+
 
 </style>
