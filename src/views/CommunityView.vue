@@ -8,7 +8,15 @@
         <p>See where others love to go!</p>
       </div>
       <CommunitySearch @submit="updateSelectedCountry" />
-      <CommunityList v-if="selectedCountry" :country="selectedCountry"/>
+      <CommunityList
+        v-if="selectedCountry"
+        :country="selectedCountry"
+        @show-itinerary="handleItineraryClick"
+      />
+      <PlacesToVisitGlobal
+        v-if="selectedItinerary"
+        :itineraryId="selectedItinerary.id"
+      />
     </div>
   </div>
 </template>
@@ -28,17 +36,18 @@ export default {
     data() {
     return {
       selectedCountry: null,
-      itineraries: []
+      itineraries: [],
+      selectedItinerary: null
     };
   },
   methods: {
     updateSelectedCountry(country) {
       console.log("updated", country.name);
       this.selectedCountry = country.name;
-    }
-  },
-  mounted() {
-    document.body.style.backgroundColor = "#e7dcdc";
+    },
+    handleItineraryClick(itinerary) {
+      this.selectedItinerary = itinerary;
+    },
   }
 };
 </script>

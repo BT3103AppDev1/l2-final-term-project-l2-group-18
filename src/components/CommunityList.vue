@@ -12,6 +12,7 @@
         :name="itinerary.username"
         :votes="itinerary.votes"
         @vote="handleVote"
+        @click="showItinerary(itinerary)"
     />
     </div>
   </div>
@@ -35,6 +36,7 @@ import {
 } from "firebase/firestore";
 import { handleError } from "vue";
 import { getAuth } from 'firebase/auth';
+import PlacesToVisitGlobal from "./PlacesToVisitGlobal.vue";
 
 export default {
   components: {
@@ -47,6 +49,7 @@ export default {
   data() {
     return {
       itineraries: [],
+      selectedItinerary: null,
     };
   },
   watch: {
@@ -129,6 +132,9 @@ export default {
     if (this.country) {
       this.fetchItineraries(this.country);
     }
+  },
+  showItinerary(itinerary) {
+    this.$emit('show-itinerary', itinerary);
   },
 };
 </script>
