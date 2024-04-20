@@ -386,25 +386,59 @@ export default {
         return;
       }
 
-      const communityItinerariesRef = collection(db, "global_community_itineraries", this.destination, "Itineraries");
+      // Reference to the specific document in user itineraries you want to copy from.
+      const userItineraryRef = doc(db, "global_user_itineraries", this.itineraryId);
 
+      // Fetch the user's itinerary document.
+      const userItinerarySnap = await getDoc(userItineraryRef);
+
+      if (!userItinerarySnap.exists()) {
+        console.error("No user itinerary found with the provided ID.");
+        alert("No user itinerary found to share.");
+        return;
+      }
+
+      // Get data from the user's itinerary.
+      const userItineraryData = userItinerarySnap.data();
+
+      // Reference to the new document in community itineraries where you want to copy to.
+      // This ensures the same ID is used.
+      const communityItineraryRef = doc(db, "global_community_itineraries", this.destination, "Itineraries", this.itineraryId);
       try {
-        const docRef = await addDoc(communityItinerariesRef, {
+        // Copy the itinerary data to the community itineraries.
+        await setDoc(communityItineraryRef, {
+          ...userItineraryData,
           userId: userId,
-          destination: this.destination,
-          imageURL: this.imageURL,
-          title: this.title,
-          startDate: this.startDate,
-          endDate: this.endDate,
           votes: 0
         });
-        console.log(docRef.id);
-        const userVoteRef = doc(db, "global_community_itineraries", this.destination, "Itineraries", docRef.id, "userVotes", userId);
+
+        // Copy the 'userVotes' subcollection.
+        const userVoteRef = doc(communityItineraryRef, "userVotes", userId);
         await setDoc(userVoteRef, {
           voted: false
         });
 
-        alert("Itinerary shared to the community successfully!");
+        // Now copy each 'day' and its 'locations' from the user's itinerary.
+        const userDaysRef = collection(userItineraryRef, "days");
+        const daysSnapshot = await getDocs(userDaysRef);
+
+        for (const dayDoc of daysSnapshot.docs) {
+          const dayData = dayDoc.data();
+          const dayRef = doc(communityItineraryRef, "days", dayDoc.id);
+          await setDoc(dayRef, dayData);
+
+          // Copy locations for each day.
+          const userLocationsRef = collection(dayDoc.ref, "locations");
+          const locationsSnapshot = await getDocs(userLocationsRef);
+
+          for (const locationDoc of locationsSnapshot.docs) {
+            const locationData = locationDoc.data();
+            const locationRef = doc(dayRef, "locations", locationDoc.id);
+            await setDoc(locationRef, locationData);
+          }
+        }
+        alert("Itinerary shared with the community successfully!");
+
       } catch (error) {
         console.error("Error sharing itinerary to the community: ", error);
         alert("There was an error sharing the itinerary to the community.");
