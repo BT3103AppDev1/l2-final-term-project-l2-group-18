@@ -600,7 +600,7 @@ h3 {
 .dropdown-menu {
   background-color: #ffffff;;
   border-radius: 8px;
-  padding: 5px;
+  padding: 1px;
   width: 240px;
   z-index: 100;
   position: absolute;

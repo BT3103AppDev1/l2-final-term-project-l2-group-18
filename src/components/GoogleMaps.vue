@@ -1,6 +1,6 @@
 <template>
     <div class="map-container" ref="map"></div>
-
+    <div id="custom-info-window" class="custom-info-window"></div>
 </template>
 
 <script>
@@ -27,10 +27,26 @@ export default {
 
     async mounted() {
         this.loadMapScript();
+
+        document.addEventListener("click", this.handleClickOutside);
+    },
+
+    beforeDestroy() {
+        document.removeEventListener("click", this.handleClickOutside)
     },
 
     methods: {
         // ...mapActions('locations', ['fetchLocations']),
+
+        handleClickOutside(event) {
+            let infoWindowElement = document.getElementById('custom-info-window');
+            if (infoWindowElement && !infoWindowElement.contains(event.target) && !this.$refs.map.contains(event.target)) {
+                this.hideInfoWindow(); // Hide the info window
+                if (this.tempMarker) {
+                    this.tempMarker.setMap(null); // Remove previous marker
+                }
+            }
+        },
 
         loadMapScript() {
             // Check if Google Maps API Script is already loaded in the global scope to avoid loading multiple times
@@ -66,13 +82,30 @@ export default {
 
             // Set up a click listener on the map
             this.map.addListener("click", (e) => {
-                this.fetchPlaceInfo(e.latLng);
+
+                // Add a temporary marker
+                if (this.tempMarker) {
+                    this.tempMarker.setMap(null); // Remove previous marker
+                }
+
+                this.tempMarker = new google.maps.Marker({
+                    position: e.latLng,
+                    map: this.map,
+                    animation: google.maps.Animation.DROP,
+                    icon: {
+                        url: "../src/assets/Location_Pin_HTLV.png",
+                        scaledSize: new google.maps.Size(60, 60),
+                        anchor: new google.maps.Point(20, 40)
+                    }
+                })
+
+                this.fetchPlaceInfo(e.latLng, true);
             });
 
             this.createMarkers(); // Initial marker creation
         },
 
-        fetchPlaceInfo(latLng) {
+        fetchPlaceInfo(latLng, shouldHideIfEmpty = false) {
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
             
             // Set up Request Object
@@ -88,10 +121,19 @@ export default {
                     if (validPlace) {
                         this.getPlaceDetails(validPlace.place_id);   // `getPlaceDetails` is a new function defined below
                     } else {
-                        console.error("Failed to fetch place details:". status);
+                        if (shouldHideIfEmpty) {
+                            this.hideInfoWindow(); // Ensure this method is defined to hide the window
+                        }
                     }
                 }
             });
+        },
+
+        hideInfoWindow() {
+            let infoWindowElement = document.getElementById('custom-info-window');
+            if (infoWindowElement) {
+                infoWindowElement.style.display = 'none';
+            }
         },
 
         async getPlaceDetails(placeId) {  // placeId is a unique identifier in the Google Places database
@@ -111,32 +153,27 @@ export default {
         showInfoWindow(place) {
             console.log(place);
             // Start building the content string with HTML elements to display place details
-            let contentString = `<div class='info-window'>
-                <h2>${place.name}</h2> 
-                <p><strong>Rating:</strong> ${place.rating || 'No rating available'}</p>  
-                <p><strong>Total Ratings:</strong> ${place.user_ratings_total || 'No ratings count available'}</p>  
-                <p><strong>Address:</strong> ${place.formatted_address}</p>  
-                ${place.website ? `<p><strong>Website:</strong> <a href="${place.website}" target="_blank">${place.website}</a></p>` : ''}  
-                ${place.formatted_phone_number ? `<p><strong>Phone Number:</strong> ${place.formatted_phone_number}</p>` : ''} 
+
+            let ratingsDisplay = place.rating && place.user_ratings_total ? `${place.rating} (${place.user_ratings_total})` : '';
+
+            let contentString = `
+                <div class='info-window'>
+                    <span class='close-btn' style="position: absolute; top: 5px; right: 35px; cursor: pointer; font-size: 24px; color: #333;">&times;</span>
+                    <h2 style = "margin-top:2px; font-size: 22px"><i class="fas fa-landmark" style="color: green; margin-right: 10px; padding: 5px"></i>${place.name}</h2> 
+                    <ul class='info-list' style = "list-style-type: none">
+                        ${ratingsDisplay ? `<li><i class="fas fa-star" style="color: #007bff; margin-right: 10px; margin-left: -2px;"></i><strong>Ratings:</strong> ${ratingsDisplay}</li>` : ''}
+                        <li><i class="fas fa-map-marker-alt" style="color: #007bff; margin-right: 10px;"></i><strong> Address:</strong> ${place.formatted_address}</li>  
+                        ${place.website ? `<li> <i class="fas fa-globe" style="color: #007bff; margin-right: 10px;"></i><strong>Website:</strong> <a href="${place.website}" target="_blank">${place.website}</a></li>` : ''}  
+                        ${place.formatted_phone_number ? `<li> <i class="fas fa-phone-alt" style="color: #007bff; margin-right: 10px;"></i><strong>Phone Number:</strong> ${place.formatted_phone_number}</li>` : ''} 
+                    </ul>
                 </div>`;
 
-            // Create a new InfoWindow instance with the content
-            const infowindow = new google.maps.InfoWindow({
-                content: contentString,
-                maxWidth: 350 
-            });
+            const infoWindowElement = document.getElementById('custom-info-window');
+            infoWindowElement.innerHTML = contentString;
+            infoWindowElement.style.display = 'block'; // Show the info window
 
-            // Set the InfoWindow position to the location of the place
-            infowindow.setPosition(place.geometry.location);
-
-            // Open the InfoWindow on the map
-            infowindow.open(this.map);
-
-            // Optional: Close previous InfoWindow when a new one is opened
-            if (this.currentInfoWindow) {
-                this.currentInfoWindow.close();
-            }
-            this.currentInfoWindow = infowindow;  // Save the current InfoWindow to potentially close it later
+            let closeButton = infoWindowElement.querySelector('.close-btn');
+            closeButton.onclick = () => {this.hideInfoWindow();};
         },
 
         reinitializeMap() {
@@ -173,6 +210,12 @@ export default {
                     map: this.map,
                     position: position,
                     title: location.location,
+                    icon: {
+                        url: "../src/assets/Location_Pin_HTLV.png",
+                        scaledSize: new google.maps.Size(60, 60),
+                        anchor: new google.maps.Point(20, 40)
+                    }
+                    
                 });
 
                 // Optionally, add an info window for each marker
@@ -223,5 +266,18 @@ export default {
     width: 100%;
     /* Full width */
 
+}
+
+.custom-info-window {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fafafa;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    display: none; 
+    text-align: left;
 }
 </style>
