@@ -17,15 +17,6 @@
         v-if="selectedItinerary"
         :itineraryId="selectedItinerary.id"
       />
-      <CommunityList
-        v-if="selectedCountry"
-        :country="selectedCountry"
-        @show-itinerary="handleItineraryClick"
-      />
-      <PlacesToVisitGlobal
-        v-if="selectedItinerary"
-        :itineraryId="selectedItinerary.id"
-      />
     </div>
   </div>
 </template>
@@ -46,7 +37,6 @@ export default {
     return {
       selectedCountry: null,
       itineraries: [],
-      selectedItinerary: null,
       selectedItinerary: null
     };
   },
