@@ -2,7 +2,7 @@
   <NavBar /> 
   <div class = "content-container"> 
     <div class = "places">
-      <PlacesToVisitGlobal @place-selected="handlePlaceSelection" :itineraryId="itineraryId"/>
+      <PlacesToVisitGlobal :itineraryId="itineraryId"/>
     </div>
     <div class = "maps">
       <GoogleMaps :selectedPlace= "selectedPlace"/>
@@ -39,7 +39,7 @@ export default {
 .content-container {
   display: flex;
   width: 100vw; 
-  height: calc(100vh - 9vh); /* Since navbar occupies 9vh */
+  height: calc(100vh - 70px); /* Since navbar occupies 9vh */
 }
 
 .places, .maps {

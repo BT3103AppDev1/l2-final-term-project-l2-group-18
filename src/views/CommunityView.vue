@@ -11,11 +11,6 @@
       <CommunityList
         v-if="selectedCountry"
         :country="selectedCountry"
-        @show-itinerary="handleItineraryClick"
-      />
-      <PlacesToVisitGlobal
-        v-if="selectedItinerary"
-        :itineraryId="selectedItinerary.id"
       />
     </div>
   </div>

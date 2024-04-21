@@ -12,7 +12,6 @@
         :name="itinerary.username"
         :votes="itinerary.votes"
         @vote="handleVote"
-        @click="showItinerary(itinerary)"
     />
     </div>
   </div>
@@ -22,7 +21,6 @@
 import CommunityCard from "./CommunityCard.vue";
 import { mapGetters, mapActions } from "vuex";
 import { updateDoc, increment } from 'firebase/firestore';
-
 import {
   runTransaction,
   doc,
@@ -36,6 +34,7 @@ import {
 } from "firebase/firestore";
 import { handleError } from "vue";
 import { getAuth } from 'firebase/auth';
+import { useRouter } from 'vue-router';
 import PlacesToVisitGlobal from "./PlacesToVisitGlobal.vue";
 
 export default {

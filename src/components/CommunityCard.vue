@@ -1,5 +1,5 @@
 <template>
-  <div class="itinerary-card">
+  <div class="itinerary-card" @click="navigateToItinerary">
     <img class="itinerary-pic" :src="itineraryPic" :alt="title" />
     <div class="card-content">
       <h3 class="title">{{ title }}</h3>
@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import PlacesToVisitVue from './PlacesToVisit.vue';
 export default {
   name: 'CommunityCard',
   props: {
@@ -61,7 +62,10 @@ export default {
         userId: this.userId,
         isUpvote: isUpvote
       });
-    }
+    },
+    navigateToItinerary() {
+      this.$router.push({ name: 'GlobalItineraries', params: { itineraryId: this.itineraryId } });
+    },
   }
 };
 </script>
