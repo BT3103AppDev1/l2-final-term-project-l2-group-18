@@ -28,7 +28,20 @@
       </div>
 
       <div class="location-container">
-        <div class="location-details" v-for="item in filteredItineraryData(day)" :key="item">
+        <div 
+        class="location-details" 
+        v-for="(item, index) in filteredItineraryData(day)" 
+        :key="item.locid"
+        draggable="true"
+        @dragstart="dragStart($event, index, day)"
+        @dragover="dragOver($event, index)"
+        @drop="drop($event, index, day)"
+        @dragend="dragEnd($event)"
+        @dragleave="dragLeave($event)"
+        >
+          <div class="location-pin"> <!-- New div for the order number and pin icon -->
+            <i class="fas fa-map-pin"></i> Stop {{ index + 1 }}
+          </div>
           <div class="location-header">
             <h3>{{ item.location }}</h3>
             <div>
@@ -290,12 +303,26 @@ h2 {
   align-items: center;
 }
 
+.location-pin {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: #aa085e; /* Adjust as needed */
+  margin-right: 10px; /* Space between pin icon and location name */
+}
+
+.fa-map-pin {
+  margin-right: 8px; /* Space between the icon and the number */
+}
+
 .location-details {
   background-color: rgba(128, 128, 128, 0.25);
   border-radius: 10px;
   text-align: left;
   padding: 1rem;
   margin-bottom: 1rem;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .location-header {
