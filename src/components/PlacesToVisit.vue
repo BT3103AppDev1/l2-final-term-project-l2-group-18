@@ -65,6 +65,14 @@
             </div>
           </div>
           <span class="location-description">{{ item.description }}</span>
+
+          <div v-if="travelTimes[day] && travelTimes[day][index]" class="travel-time" >
+            <div id="travel_stop_text">To Stop {{index + 2}}:</div>
+            <div class="travel-info-group" id = "dist-loc-group"><i class="fas fa-road travel-time-icon"></i><span>{{ travelTimes[day][index].distance }}</span></div>
+            <div class="travel-info-group" id = "car-group"><i class="fas fa-car travel-time-icon"></i><span>{{ travelTimes[day][index].durationDriving }}</span></div>
+            <div class="travel-info-group" id = "walk-group"><i class="fas fa-walking travel-time-icon"></i><span>{{ travelTimes[day][index].durationWalking }}</span></div>
+            <a :href="travelTimes[day][index].directionsLink" target="_blank" class="directions-link"><i class="fas fa-directions directions-icon-only"></i></a>
+          </div>
         </div>
         <div class="add-location-container">
           <button class="plus-button" @click="showAddLocationForm = index + 1">
@@ -133,6 +141,7 @@ export default {
       iconSize: "xl",
       days: [],
       itineraryData: [],
+      travelTimes: {}, // Stores travel times for each day
       title: "",
       destination: "",
       startDate: "",
@@ -160,12 +169,65 @@ export default {
 
       // Sort the locations by the 'order' attribute
       dayLocations.sort((a, b) => a.order - b.order);
-      
+
       // Return the sorted locations
       return dayLocations;
     },
 
+    async fetchTravelTimesForDay(dayNumber) {
+      const locations = this.filteredItineraryData(dayNumber);
+      let times = [];
+
+      for (let i = 0; i < locations.length - 1; i++) {
+        const origin = locations[i];
+        const destination = locations[i + 1];
+        const time = await this.getTravelTime(origin, destination);
+        times.push(time);
+      }
+
+      this.travelTimes[dayNumber] = times;
+    },
+
+    async getTravelTime(origin, destination) {  // USED A PROXY here as will get CORS issue so need to modify vite.config.js
+
+      // I set to consider current traffic conditions as well
+      const fetchDirections = async (mode) => {
+        const directionsUrl = `/api/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=${mode}&departure_time=now&key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8`;
+      
+        try {
+          const result = await fetch(directionsUrl);
+          const data = await result.json();
+          if (data.routes.length > 0) {
+            const route = data.routes[0];
+            const leg = route.legs[0];
+            return {
+              distance: leg.distance.text,
+              duration: leg.duration.text, // This includes traffic delays
+              // directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to fetch directions for mode ${mode}:`, error);
+          return { distance: 'N/A', duration: 'N/A' }; // Return "Not Available" if the API call fails
+        }
+      };
+
+      // Fetch directions for both driving and walking
+      const driving = await fetchDirections('driving');
+      const walking = await fetchDirections('walking');
+
+      return {
+        distance: driving.distance, // Assume distance is the same for both modes
+        durationDriving: driving.duration,
+        durationWalking: walking.duration,
+        directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
+      };
+    },
+
     async fetchData() {
+      // Reset travelTimes
+      this.travelTimes = {};
+
       const db = getFirestore(firebaseApp);
       // Assumes itineraryId is passed as a prop or can be otherwise obtained
       const itineraryId = this.itineraryId;
@@ -250,6 +312,10 @@ export default {
         
         // Set the fetched data to itineraryData
         this.itineraryData = structuredData;
+
+        this.days.forEach(dayNumber => {
+          this.fetchTravelTimesForDay(dayNumber);
+        });
         
         // Dispatch the Vuex action to update locations in the store
         this.$store.dispatch('locations/updateLocations', locations);
@@ -871,6 +937,69 @@ h3 {
   border: 1px solid #666; /* Add a border to highlight */
 }
 
+.travel-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(231, 220, 220, 0.9); /* Light gray with transparency */
+  background-image: linear-gradient(45deg, rgba(201, 232, 225, 0.2) 25%, transparent 25%, transparent 50%, rgba(201, 232, 225, 0.2) 50%, rgba(201, 232, 225, 0.2) 75%, transparent 75%, transparent); /* Adding stripes */
+  background-size: 50px 50px; /* Size of the stripes */
+  color: #333;
+  font-size: 0.85rem;
+  padding: 8px;
+  padding-bottom: 5px;
+  border-radius: 10px;
+  padding-top: 15px ;
+  padding-bottom: 15px ;
+  margin-top: 15px ;
+  cursor: auto;
+  margin-bottom: -32px;
+  margin-left: -17px;
+  margin-right: -17px;
+  border: 1px dashed #FF5A5F;
+}
 
+.travel-info-group {
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+}
+
+.travel-time-icon {
+  width: 18px; 
+  margin-right: 5px; 
+  padding: 5px;
+  align-items: center;
+}
+
+.directions-link {
+  background-color: #5a9ae3; /* Thematic blue */
+  color: white;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  align-items: center;
+}
+
+.directions-link:hover {
+  background-color: #357ABD; /* Darker blue on hover */
+}
+
+.fa {
+  align-self: center;
+}
+
+#dist-loc-group, #car-group, #walk-group {
+  margin-right: 25px;
+}
+
+#travel_stop_text {
+  margin-right: 15px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  align-items: center;
+}
 
 </style>
