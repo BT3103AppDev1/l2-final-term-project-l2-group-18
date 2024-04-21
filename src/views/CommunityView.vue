@@ -8,7 +8,10 @@
         <p>See where others love to go!</p>
       </div>
       <CommunitySearch @submit="updateSelectedCountry" />
-      <CommunityList v-if="selectedCountry" :country="selectedCountry"/>
+      <CommunityList
+        v-if="selectedCountry"
+        :country="selectedCountry"
+      />
     </div>
   </div>
 </template>
@@ -28,7 +31,8 @@ export default {
     data() {
     return {
       selectedCountry: null,
-      itineraries: []
+      itineraries: [],
+      selectedItinerary: null
     };
   },
   methods: {

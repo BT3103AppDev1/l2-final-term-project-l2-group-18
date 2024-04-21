@@ -9,6 +9,7 @@ import LandingView from "../views/LandingView.vue";
 import AboutView from "../views/AboutView.vue";
 import ProfileView from "../views/ProfileView.vue";
 import MyItinerariesView from "@/views/MyItinerariesView.vue";
+import GlobalItinerariesView from "@/views/GlobalItinerariesView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -63,7 +64,13 @@ const router = createRouter({
       path: "/profile",
       name: "Profile",
       component: ProfileView,
-    }
+    },
+    {
+      path: "/global-itineraries/:itineraryId",
+      name: "GlobalItineraries",
+      component: GlobalItinerariesView,
+      props: true,
+    },
   ],
 });
 

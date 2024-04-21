@@ -97,6 +97,7 @@ import {
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { faL } from "@fortawesome/free-solid-svg-icons";
+
 const db = getFirestore(firebaseApp);
 
 export default {
@@ -119,6 +120,7 @@ export default {
       days: [],
       itineraryData: [],
       title: "",
+      destination: "",
       startDate: "",
       endDate: "",
       showDropdown: false,
@@ -131,6 +133,10 @@ export default {
   },
 
   methods: {
+    getCurrentUserId() {
+      const auth = getAuth();
+      return auth.currentUser ? auth.currentUser.uid : null;
+    },
     filteredItineraryData(dayNumber) {
       return this.itineraryData.filter((item) => item.day === dayNumber);
     },
@@ -157,6 +163,8 @@ export default {
         const headerData = itineraryDocSnap.data();
         const options = { year: "numeric", month: "short", day: "2-digit" };
         this.title = headerData.title;
+        this.destination = headerData.destination;
+        this.imageURL = headerData.imageURL;
         this.startDate = new Date(
           headerData.dateRange[0].seconds * 1000
         ).toLocaleDateString("en-GB", options);
@@ -369,8 +377,49 @@ export default {
       this.sharingToUser = false;
     },
 
-    shareToCommunity() { // TO BE EDITED BY SIRUI <3
-      alert('Shared to Community!');
+    async shareToCommunity() {
+      const userId = this.getCurrentUserId();
+      const db = getFirestore();
+      const usersRef = collection(db, "users");
+      const usersSnapshot = await getDocs(usersRef);
+      const userItineraryRef = doc(db, "global_user_itineraries", this.itineraryId);
+      const userItinerarySnap = await getDoc(userItineraryRef);
+      const userItineraryData = userItinerarySnap.data();
+      const communityItineraryRef = doc(db, "global_community_itineraries", this.destination, "Itineraries", this.itineraryId);
+      try {
+        await setDoc(communityItineraryRef, {
+          ...userItineraryData,
+          userId: userId,
+          votes: 0
+        });
+        for (const userDoc of usersSnapshot.docs) {
+          const userId = userDoc.id;
+          const userVoteRef = doc(communityItineraryRef, "userVotes", userId);
+          await setDoc(userVoteRef, {
+            voted: false
+          });
+        }
+        const userDaysRef = collection(userItineraryRef, "days");
+        const daysSnapshot = await getDocs(userDaysRef);
+
+        for (const dayDoc of daysSnapshot.docs) {
+          const dayData = dayDoc.data();
+          const dayRef = doc(communityItineraryRef, "days", dayDoc.id);
+          await setDoc(dayRef, dayData);
+          const userLocationsRef = collection(dayDoc.ref, "locations");
+          const locationsSnapshot = await getDocs(userLocationsRef);
+
+          for (const locationDoc of locationsSnapshot.docs) {
+            const locationData = locationDoc.data();
+            const locationRef = doc(dayRef, "locations", locationDoc.id);
+            await setDoc(locationRef, locationData);
+          }
+        }
+        alert("Itinerary shared with the community successfully!");
+      } catch (error) {
+        console.error("Error sharing itinerary to the community: ", error);
+        alert("There was an error sharing the itinerary to the community.");
+      }
       this.showDropdown = false;
     },
 
