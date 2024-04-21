@@ -47,8 +47,10 @@
         :key="item.locid"
         draggable="true"
         @dragstart="dragStart($event, index, day)"
-        @dragover.prevent
+        @dragover="dragOver($event, index)"
         @drop="drop($event, index, day)"
+        @dragend="dragEnd($event)"
+        @dragleave="dragLeave($event)"
         >
           <div class="location-pin"> <!-- New div for the order number and pin icon -->
             <i class="fas fa-map-pin"></i> Stop {{ index + 1 }}
@@ -252,11 +254,27 @@ export default {
       this.draggingItem = index;
       this.draggingDay = day;
       event.dataTransfer.effectAllowed = 'move';
+      event.target.classList.add('dragging'); // Add dragging class
       console.log("Initial Drag", day, index);
+    },
+
+    dragOver(event, index) {
+      event.preventDefault(); // Necessary to allow dropping
+      event.target.classList.add('over'); // Add class when an item is dragged over another
+    },
+
+    dragLeave(event) {
+      event.target.classList.remove('over'); // Remove class when the dragging item leaves the element
+    },
+
+    dragEnd(event) {
+      const elements = document.querySelectorAll('.location-details');
+      elements.forEach(element => element.classList.remove('dragging'));
     },
 
     drop(event, index, day) {
       event.preventDefault(); // To ensure custom drop logic can execute
+      event.target.classList.remove('over'); // Remove class on drop
       console.log("Final Drag", day, index);
 
       const itemToMove = this.itineraryData.splice(this.draggingItem, 1)[0];  // Removes the dragged item from the array and store in variable
@@ -264,62 +282,41 @@ export default {
       this.updateItineraryData(day, index); // Update Firebase backend
     },
 
-    async updateItineraryData(day, index) {
-      const db = getFirestore(firebaseApp);
-      const daysRef = collection(db, "global_user_itineraries", this.itineraryId, "days");
+    async updateItineraryData(day, index) {  // Current logic support reordering within same day only
+      if (this.draggingDay === day && this.draggingItem != index) {
+        const db = getFirestore(firebaseApp);
+        const daysRef = collection(db, "global_user_itineraries", this.itineraryId, "days");
 
-      const queryConstraints = [];
-      if (this.draggingDay === day) { // If same day, just find 1 day
-        queryConstraints.push(where("day", "==", day));
-      } else {
-        return "MULTIPLE DAYS DRAG AND DROP NOT SUPPORTED YET"
-        //queryConstraints.push(where("day", "in", [this.draggingDay, day]));
-      }
+        // Fetch the day document
+        const querySnapshot = await getDocs(query(daysRef, where("day", "==", day)));
 
-      // Fetch the day documents which are relevant
-      const querySnapshot = await getDocs(query(daysRef, ...queryConstraints));
-
-      querySnapshot.forEach(async (dayDoc) => {
-        const dayData = dayDoc.data();  // This gives you the day number
-        
-        if (this.draggingDay === dayData.day) {   // means querySnapshot only has 1 document
+        if (!querySnapshot.empty) {
+          const dayDoc = querySnapshot.docs[0]; 
           const locationsRef = collection(dayDoc.ref, "locations");
           const locationsSnapshot = await getDocs(locationsRef);
 
-          const locationsArray = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          if (this.draggingItem < index) {
-            const oldLocation = locationsArray.sort((a,b) => b.order - a.order)
-            .filter(loc => loc.order >= this.draggingItem + 1 && loc.order <= index + 1)
-            .map(loc => {
-              if (loc.order === this.draggingItem + 1) {
-                loc.order = index + 1;
-              } else {
-                loc.order -= 1
-              }
-              return loc;
-            })
-          } else {  // if this.draggingItem > index
-            const oldLocation = locationsArray.sort((a,b) => a.order - b.order)
-            .filter(loc => loc.order <= this.draggingItem + 1 && loc.order >= index + 1)
-            .map(loc => {
-                if (loc.order === this.draggingItem + 1) {
-                  loc.order = index + 1;
-                } else {
-                  loc.order += 1
-                }
-                return loc;
-              })
-            }       
-            
-          console.log(locationsArray)
-          // Update the order of remaining locations in firebase
-          for (const loc of locationsArray) {
-            const locRef = doc(locationsRef, loc.id);
-            await updateDoc(locRef, { order: loc.order });
-          };
-          this.fetchData();
-        }
-      })
+          let locationsArray = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          locationsArray.sort((a, b) => a.order - b.order); // Sort once before modifications
+
+          const itemToMove = locationsArray.splice(this.draggingItem, 1)[0];  // Removes dragged item from array and store in variable
+          locationsArray.splice(index, 0, itemToMove);  // Inserts dragged item back 
+
+          locationsArray = locationsArray.map((loc, idx) => ({ ...loc, order: idx + 1 }));  // Reassigns order number
+
+          try { 
+            for (const loc of locationsArray) {
+              const locRef = doc(locationsRef, loc.id);
+              await updateDoc(locRef, { order: loc.order });
+            };
+          } catch (error) {
+            console.error("Error updating order:", error);
+          } finally {
+            this.fetchData();
+          }
+        }  
+      } else {
+        console.log("IT IS THE SAME DAY OR Multiple Days Drag and Drop not supported yet")
+      }
     },
 
     async addNewDay() {
@@ -642,6 +639,12 @@ h2 {
   text-align: left;
   padding: 1rem;
   margin-bottom: 1rem;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.location-details.over {
+  border-top: 2px solid #ff5b5b; /* Show a line at the top of the drop target */
 }
 
 .location-header {
@@ -810,6 +813,14 @@ h3 {
   border-bottom: 1px solid #ccc; /* Add a subtle border */
   padding-bottom: 2px;
 }
+
+.dragging {
+  opacity: 0.75; /* Make the dragging item slightly transparent */
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Add shadow for depth */
+  transform: scale(1.05); /* Slightly increase the size */
+  border: 1px solid #666; /* Add a border to highlight */
+}
+
 
 
 </style>
