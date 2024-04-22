@@ -94,8 +94,8 @@ export default {
                     animation: google.maps.Animation.DROP,
                     icon: {
                         url: "../src/assets/Location_Pin_HTLV.png",
-                        scaledSize: new google.maps.Size(60, 60),
-                        anchor: new google.maps.Point(20, 40)
+                        scaledSize: new google.maps.Size(30, 30),
+                        // anchor: new google.maps.Point(20, 40)
                     }
                 })
 
@@ -107,7 +107,7 @@ export default {
 
         fetchPlaceInfo(latLng, shouldHideIfEmpty = false) {
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
-            
+
             // Set up Request Object
             const request = {
                 location: latLng,
@@ -173,7 +173,7 @@ export default {
             infoWindowElement.style.display = 'block'; // Show the info window
 
             let closeButton = infoWindowElement.querySelector('.close-btn');
-            closeButton.onclick = () => {this.hideInfoWindow();};
+            closeButton.onclick = () => { this.hideInfoWindow(); };
         },
 
         reinitializeMap() {
@@ -212,27 +212,31 @@ export default {
                     title: location.location,
                     icon: {
                         url: "../src/assets/Location_Pin_HTLV.png",
-                        scaledSize: new google.maps.Size(60, 60),
-                        anchor: new google.maps.Point(20, 40)
+                        scaledSize: new google.maps.Size(30, 30),
+                        // anchor: new google.maps.Point(20, 40)
                     }
-                    
+
                 });
 
                 // Optionally, add an info window for each marker
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `<h3>${location.location}</h3><p>${location.description}</p>`
-                });
+                // const infoWindow = new google.maps.InfoWindow({
+                //     content: `<h3>${location.location}</h3><p>${location.description}</p>`
+                // });
 
                 marker.addListener('click', () => {
-                    infoWindow.open(this.map, marker);
+                    if (location.placeId) {
+                        this.getPlaceDetails(location.placeId); // Using the stored placeId
+                    }
                 });
 
                 // Save the marker to the array
                 this.markers.push(marker);
                 bounds.extend(position);
             });
+
             console.log("markers after creation")
             console.log(this.markers)
+
             if (this.markers.length > 0) {
                 this.map.fitBounds(bounds);
             } else {
@@ -277,7 +281,7 @@ export default {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 10px;
-    display: none; 
+    display: none;
     text-align: left;
 }
 </style>

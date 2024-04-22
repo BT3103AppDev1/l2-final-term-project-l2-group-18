@@ -2,26 +2,13 @@
   <button class="close-button" @click="closeForm()">X</button>
   <form @submit.prevent="saveLocation">
     <label for="location">Select Location</label>
-    <PlacesSearchBar
-      ref="placesSearchBar"
-      @place-selected="handlePlaceSelection"
-    />
+    <PlacesSearchBar ref="placesSearchBar" @place-selected="handlePlaceSelection" />
 
     <!-- <input class="location" v-model="formData.location" type="text" placeholder="Enter Location Title" required /> -->
     <label for="description">Description</label>
-    <textarea
-      class="description"
-      v-model="formData.description"
-      placeholder="Enter Description"
-      required
-    ></textarea>
+    <textarea class="description" v-model="formData.description" placeholder="Enter Description" required></textarea>
     <label for="category">Category</label>
-    <select
-      name="category"
-      class="category"
-      v-model="formData.category"
-      required
-    >
+    <select name="category" class="category" v-model="formData.category" required>
       <option value="" disabled selected>Select Category</option>
       <option value="Food">Food</option>
       <option value="Bar">Bar</option>
@@ -72,6 +59,7 @@ export default {
         latitude: null,
         longitude: null,
         country: "",
+        placeId: "",
       },
       userId: null, //To store user's ID
     };
@@ -129,6 +117,8 @@ export default {
           ...this.formData, //spread operator to include all form data
           order: order, // Inserted Order field here
           day: this.dayNumber,
+          placeId: this.formData.placeId, // placeId for Places API 
+
         });
 
         window.alert("Location added successfully to the day!");
@@ -170,6 +160,7 @@ export default {
       this.formData.latitude = place.geometry.location.lat();
       this.formData.longitude = place.geometry.location.lng();
       this.formData.country = country;
+      this.formData.placeId = place.place_id;
 
       console.log("formData after place selection:", this.formData);
     },
