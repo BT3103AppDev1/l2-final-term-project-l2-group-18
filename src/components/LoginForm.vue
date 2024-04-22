@@ -24,7 +24,7 @@
         required
       />
 
-      <p v-if="showError" id="error">⚠️Username or Password is incorrect</p>
+      <p v-if="showError" id="error">⚠️Email or Password is incorrect</p>
 
       <a href="/forgot-password" class="forgot-password">
       Forgot password?
