@@ -18,7 +18,8 @@
         <input v-model="email" type = "email" placeholder = "email@example.com" required/>
         <input v-model="password" type="password" placeholder="Password" required />
         <input v-model="retypePassword" type = "password" placeholder="Retype Password" required/>
-
+        <div v-if="createAccountError" class="error-message" v-html="createAccountError">
+        </div>
         <button type="submit" class="create-account-button">Create Account</button>
       </form>
 
@@ -26,11 +27,6 @@
         Already have an account? 
         <a href="/login" class = "login">Login</a>
       </div>
-
-      <!-- <div class="additional-links">
-        <a href="/help">Need help?</a>
-        <a href="/usage">Usage</a>
-      </div> -->
     </div>
 </template>
   
@@ -54,12 +50,21 @@ export default {
         ...mapActions('user', ['createAccount', 'signInWithGoogle', 'fetchUserData']),
         async submitCreateAccount() {
             if (!this.username || !this.email || !this.password || !this.retypePassword) {
-                this.createAccountError = 'All fields are required.';
+                this.createAccountError = '⚠️All fields are required.';
                 return;
             }
 
             if (this.password !== this.retypePassword) {
-                this.createAccountError = 'Passwords do not match.'
+                this.createAccountError = '⚠️Passwords do not match.'
+                return;
+            }
+
+            if (!this.isValidPassword(this.password)) {
+                this.createAccountError = '⚠️Password does not meet the required criteria: <br>' +
+                                            '- Must be at least 8 characters long.<br>' +
+                                            '- Must include at least one uppercase letter.<br>' +
+                                            '- Must include at least one lowercase letter.<br>' +
+                                            '- Must include at least one number (0-9).<br>';
                 return;
             }
 
@@ -88,20 +93,10 @@ export default {
                 console.error("Google Sign In Error", error);
             }
         },
-        // async addUserToFirestore(user) {
-        //     const db = getFirestore();
-        //     try {
-        //         await setDoc(doc(db, "users", user.uid), {
-        //             username: this.username,
-        //             email: this.email,
-        //         }
-        //     );
-        //     console.log("User added to Firestore");
-        //     } catch (error) {
-        //         console.log("Error adding user to Firestore:", error);
-        //         this.createAccountError = error.message;
-        //     }
-        // }
+        isValidPassword(password) {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,}$/;
+            return passwordRegex.test(password);
+        },
     },
 };
 </script>
@@ -210,14 +205,14 @@ export default {
     color: black;
     }
 
-    /* .additional-links {
-    margin-top: 1rem;
+    .error-message {
+    color: red; /* Error text color */
+    background-color: #ffe0e0; /* Light red background color */
+    padding: 10px; /* Some padding around the text */
+    border-radius: 5px; /* Rounded corners */
+    margin-bottom: 15px; /* Space below the error message */
+    text-align: left;
+    width:80%;
     }
-
-    .additional-links a {
-    margin-right: 1rem;
-    color: #666;
-    text-decoration: none;
-    } */
 
 </style>
