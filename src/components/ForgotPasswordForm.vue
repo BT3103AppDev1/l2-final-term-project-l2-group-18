@@ -32,11 +32,11 @@ export default {
     name: 'ForgetPasswordForm',
     data() {
         return {
-        email: '',git c
-        resetError:'',
-        emailSent: false,
-        countdown: 10,
-        };
+            email: '',
+            resetError:'',
+            emailSent: false,
+            countdown: 10,
+        }
     },
     methods: {
         async reset() {
