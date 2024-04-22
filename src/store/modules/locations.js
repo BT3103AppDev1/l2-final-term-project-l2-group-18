@@ -2,6 +2,7 @@ const locationsModule = {
   namespaced: true,
   state: {
     locations: [],
+    selectedLocations: null,
   },
   mutations: {
     CLEAR_LOCATIONS(state) {
@@ -10,6 +11,10 @@ const locationsModule = {
     SET_LOCATIONS(state, locations_payload) {
         state.locations = [...locations_payload];
     },
+    SET_SELECTED_LOCATION(state, location) {
+      console.log("Setting selected location:", location);
+      state.selectedLocation = location;
+    },
   },
   actions: {
     // instead of mutating the state, actions commit mutations
@@ -17,7 +22,10 @@ const locationsModule = {
     updateLocations({ commit }, locations) {
         commit("CLEAR_LOCATIONS");
         commit("SET_LOCATIONS", locations);
-
+    },
+    selectLocation({ commit }, location) {
+      console.log("SET_SELECTED_LOCATION committed")
+      commit("SET_SELECTED_LOCATION", location);
     },
   },
   getters: {
@@ -25,6 +33,11 @@ const locationsModule = {
         console.log("in allLocations, printing locations in store")
         console.log(state.locations)
       return state.locations;
+    },
+
+    selectedLocation(state) {
+      console.log("Selected location in getter:", state.selectedLocation);
+      return state.selectedLocation;
     },
   },
 };

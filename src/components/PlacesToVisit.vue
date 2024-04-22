@@ -51,6 +51,7 @@
         @drop="drop($event, index, day)"
         @dragend="dragEnd($event)"
         @dragleave="dragLeave($event)"
+        @click="locationClicked(item)"
         >
           <div class="location-pin"> <!-- New div for the order number and pin icon -->
             <i class="fas fa-map-pin"></i> Stop {{ index + 1 }}
@@ -308,7 +309,8 @@ export default {
               location: locData.location,
               latitude: locData.latitude,
               longitude: locData.longitude,
-              order: locData.order
+              order: locData.order,
+              placeId: locData.placeId,
             };
             // Push the modified data to the structuredData array
             structuredData.push(locWithIds);
@@ -644,6 +646,11 @@ export default {
       this.showDropdown = false;
       this.sharingToUser = false;
     },
+
+    locationClicked(location) {
+      this.$store.dispatch('locations/selectLocation', location);
+      console.log(location, " dispatched")
+  },
 
     async shareToCommunity() {
       const userId = this.getCurrentUserId();

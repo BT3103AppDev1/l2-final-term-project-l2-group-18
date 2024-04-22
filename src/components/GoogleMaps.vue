@@ -24,7 +24,8 @@ export default {
 
     computed: {
         // Map getters to get the locations from the store
-        ...mapGetters('locations', ['allLocations']),
+        ...mapGetters('locations', ['allLocations', 'selectedLocation']),
+
     },
 
     async mounted() {
@@ -125,7 +126,7 @@ export default {
 
                 this.fetchPlaceInfo(e.latLng, true);
             });
-            
+
             if (createMarkers) {
                 this.createMarkers(); // Initial marker creation
             }
@@ -222,7 +223,7 @@ export default {
                 origin: { lat: originLat, lng: originLng },
                 destination: { lat: destLat, lng: destLng },
                 travelMode: google.maps.TravelMode.DRIVING
-            }, function(response, status) {
+            }, function (response, status) {
                 if (status === 'OK') {
                     this.clearMarkers();
                     console.log("CHECK MARKERS", this.markers);
@@ -314,6 +315,16 @@ export default {
                 }
             },
         },
+        selectedLocation: {
+            deep: true,
+            immediate: true,
+            handler(newLocation) {
+                console.log("Selected Location Changed:", newLocation);
+                if (newLocation && newLocation.placeId) {
+                    this.getPlaceDetails(newLocation.placeId);
+                }
+            },
+        },
     },
 }
 
@@ -340,10 +351,15 @@ export default {
     border-radius: 10px;
     display: none;
     text-align: left;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2); /* Soft shadow for depth */
-    font-family: 'Arial', sans-serif; /* Ensuring consistent typography */
-    font-size: 0.9rem; /* Slightly smaller font size for better reading */
-    color: #333; /* Darker text for better readability */
-    line-height: 1.4; /* Improved line spacing */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    /* Soft shadow for depth */
+    font-family: 'Arial', sans-serif;
+    /* Ensuring consistent typography */
+    font-size: 0.9rem;
+    /* Slightly smaller font size for better reading */
+    color: #333;
+    /* Darker text for better readability */
+    line-height: 1.4;
+    /* Improved line spacing */
 }
 </style>
