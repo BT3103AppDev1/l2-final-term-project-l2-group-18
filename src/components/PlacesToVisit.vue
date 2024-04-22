@@ -12,7 +12,7 @@
         :size="iconSize"
         @click="toggleDropdownEditTitle"
       />
-      <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop>
+      <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop :style="{ width: edittingDateRange ? '330px' : '250px' }">
         <div v-if="!edittingTitle && !edittingDateRange">
           <div @click="editTitle" class="edit_buttons">
             <font-awesome-icon icon="file" class="edit_icons" /> Edit Title
@@ -23,8 +23,8 @@
           </div>
         </div>
         <div v-else-if="edittingTitle">
-          <div id="edit_text">Choose new title:</div>
-          <div class="input_group">
+          <div id="edit_text">Choose New Title:</div>
+          <div class="input_group_1">
             <input
               type="text"
               v-model="new_title"
@@ -38,18 +38,18 @@
           </div>
         </div>
         <div v-else-if="edittingDateRange">
-          <div class="date-group with-border">
-            <span class="label">Choose new dates</span>
-            <Datepicker
-              v-model="new_dateRange"
-              format="dd/MM/yyyy"
-              placeholder="Pick a Date"
-              range
-            />
+          <div id="edit_dates">Choose new dates</div>
+          <div class="input_group_2">
+            <Datepicker id = "dates_input"
+                v-model="new_dateRange"
+                format="dd/MM/yyyy"
+                placeholder="Pick a Date"
+                range
+              />
+            <button @click="changeDateRange(new_dateRange)" id="confirm_button">
+              Confirm
+            </button>
           </div>
-          <button @click="changeDateRange(new_dateRange)" id="confirm_button">
-            Confirm
-          </button>
         </div>
       </div>
     </div>
@@ -68,11 +68,11 @@
         <div v-if="showDropdown" class="dropdown-menu" @click.stop>
           <div v-if="!sharingToUser">
             <div @click="enableShareToUser" class="share_buttons">
-              <font-awesome-icon icon="users" class="share_icons" /> Share with
+              <font-awesome-icon icon="users" class="share_icons" id="user-share-icon"/> Share with
               other Users
             </div>
             <div @click="shareToCommunity" class="share_buttons">
-              <font-awesome-icon icon="globe" class="share_icons" /> Share with
+              <font-awesome-icon icon="globe" class="share_icons" id="community-share-icon"/> Share with
               Community
             </div>
           </div>
@@ -184,15 +184,15 @@
           >
             <div id="travel_stop_text">To Stop {{ index + 2 }}:</div>
             <div class="travel-info-group" id="dist-loc-group">
-              <i class="fas fa-road travel-time-icon"></i
+              <i class="fas fa-road travel-time-icon" id="road_icon_travel"></i
               ><span>{{ travelTimes[day][index].distance }}</span>
             </div>
             <div class="travel-info-group" id="car-group">
-              <i class="fas fa-car travel-time-icon"></i
+              <i class="fas fa-car travel-time-icon" id="car_icon_travel"></i
               ><span>{{ travelTimes[day][index].durationDriving }}</span>
             </div>
             <div class="travel-info-group" id="walk-group">
-              <i class="fas fa-walking travel-time-icon"></i
+              <i class="fas fa-walking travel-time-icon" id="walk_icon_travel"></i
               ><span>{{ travelTimes[day][index].durationWalking }}</span>
             </div>
             <a
@@ -835,12 +835,11 @@ export default {
     toggleDropdown(event) {
       event.stopPropagation();
       this.showDropdown = !this.showDropdown;
-      console.log("Share Dropdown status: ", this.showDropdown);
-    },
 
-    handleOutsideClick() {
-      this.showDropdown = false;
-      this.sharingToUser = false;
+      if (this.sharingToUser = true) {
+        this.sharingToUser = !this.sharingToUser;
+      }
+      console.log("Share Dropdown status: ", this.showDropdown);
     },
 
     locationClicked(location) {
@@ -979,6 +978,12 @@ export default {
     toggleDropdownEditTitle(event) {
       event.stopPropagation();
       this.showDropdownEditTitle = !this.showDropdownEditTitle;
+      if (this.edittingTitle = true) {
+        this.edittingTitle = false;
+      }
+      if (this.edittingDateRange = true) {
+        this.edittingDateRange = false;
+      }
       console.log("Edit Title Dropdown status: ", this.showDropdownEditTitle);
     },
 
@@ -986,6 +991,8 @@ export default {
       this.showDropdownEditTitle = false;
       this.edittingTitle = false;
       this.edittingDateRange = false;
+      this.showDropdown = false;
+      this.sharingToUser = false;
     },
 
     editTitle(event) {
@@ -1116,6 +1123,7 @@ h2 {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .days-container {
@@ -1130,6 +1138,7 @@ h2 {
 
 .calendar-icon {
   margin-right: 1rem;
+  color: #FF7F50;
 }
 
 .delete-day-button {
@@ -1141,6 +1150,12 @@ h2 {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.new-day-button:hover, .delete-day-button:hover {
+  transform: scale(1.05);
+  background-color: #e53e3e; /* Adjust the color to fit the theme */
 }
 
 .location-container {
@@ -1344,6 +1359,14 @@ h3 {
   background-color: #357abd; /* A pleasant blue */
 }
 
+#user-share-icon {
+  color: #9f7305
+}
+
+#community-share-icon {
+  color: #430ca9
+}
+
 .dragging {
   opacity: 0.75; /* Make the dragging item slightly transparent */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Add shadow for depth */
@@ -1395,8 +1418,20 @@ h3 {
   align-items: center;
 }
 
+#road_icon_travel {
+  color: #765c0c;
+}
+
+#walk_icon_travel {
+  color: #ff6347;
+}
+
+#car_icon_travel {
+  color: #4a90e2;
+}
+
 .directions-link {
-  background-color: #5a9ae3; /* Thematic blue */
+  background-color: #4CAF50; 
   color: white;
   text-decoration: none;
   padding: 4px 8px;
@@ -1406,7 +1441,7 @@ h3 {
 }
 
 .directions-link:hover {
-  background-color: #357abd; /* Darker blue on hover */
+  background-color: #388E3C; 
 }
 
 .fa {
@@ -1451,8 +1486,8 @@ h3 {
 .dropdown-edit-menu {
   background-color: #ffffff;
   border-radius: 8px;
-  padding: 1px;
-  width: 240px;
+  padding: 0.5px;
+  width: 330px;
   z-index: 100;
   position: absolute;
   transform: translateX(-90%);
@@ -1461,7 +1496,7 @@ h3 {
 }
 
 .dropdown-edit-menu div {
-  padding: 5px;
+  padding: 3px;
   cursor: pointer;
   font-size: 14px;
   color: #333;
@@ -1485,6 +1520,14 @@ h3 {
   margin-right: 5px;
 }
 
+.input_group_1, .input_group_2  {
+  display: flex;
+  align-items: center; /* Align vertically */
+  width: 100%; /* Ensure the group takes full width */
+  padding-bottom: 2px; /* Spacing from the label above */
+  margin-bottom: 0px;
+}
+
 #new_title_input {
   flex-grow: 1;
   padding: 8px 12px;
@@ -1492,6 +1535,7 @@ h3 {
   border-radius: 4px 0 0 4px; /* Rounded corners on the left side only */
   margin-right: -2px; /* Overlap border with button */
   position: 50%;
+  display: flex;
 }
 
 #edit_text {
@@ -1502,7 +1546,7 @@ h3 {
 }
 
 #confirm_button {
-  padding: 8px 12px;
+  padding: 9px 12px;
   background-color: #4a90e2; /* A pleasant blue */
   color: white;
   border: 1px solid #ccc;
@@ -1515,19 +1559,26 @@ h3 {
   background-color: #357abd; /* A pleasant blue */
 }
 
-.date-group .vue-datetimepicker-input {
-  width: 95%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+#edit_dates {
+  border-bottom: none;
+  padding: 0px ;
+  font-family: "Arial", sans-serif; /* Use a standard font for clarity */
+  cursor: auto;
+  width: 100%;
+  margin-bottom: -5px;
 }
 
-.date-group.with-border {
-  position: relative;
+#dates_input {
+  flex-grow: 1; /* Ensure it expands to fill space */
+  padding: 2px 0px;
+  border-radius: 4px; /* Uniform border-radius */
+  border-bottom: 0px;
+  margin-right: 10px; /* Add some space between the input and the button */
 }
 
-.date-group.with-border::after {
-  display: none;
+.vue-datepicker-ui .datepicker-date {
+  font-size: 10px !important; /* As an example of using !important */
 }
+
+
 </style>
