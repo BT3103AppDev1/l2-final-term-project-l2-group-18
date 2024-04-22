@@ -1,5 +1,6 @@
 import { createStore } from 'vuex';
 import user from './modules/user';
+import locations from './modules/locations'
 import VuexPersist from 'vuex-persist'
 
 const vuexPersist = new VuexPersist({
@@ -9,7 +10,8 @@ const vuexPersist = new VuexPersist({
 
 const store = createStore({
     modules: {
-        user
+        user,
+        locations,
     },
     plugins: [vuexPersist.plugin]
 });

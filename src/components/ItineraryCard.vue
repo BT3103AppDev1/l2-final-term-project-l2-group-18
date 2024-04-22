@@ -1,67 +1,84 @@
 <template>
-    <div class = "card">
-        <img :src="itinerary.image" alt="" class= "card-image">
-        <div clas="card-info">
-            <h2 class="card-title">{{ itinerary.title }}</h2>
-            <p class ="card-dates">{{  itinerary.dates }}</p>
-        </div>
+  <div class="itinerary-details" @click="navigateToItinerary">
+    <img class="itinerary-pic" :src="itineraryPic" :alt="title" />
+    <div class="card-content">
+      <h3>{{ title }}</h3>
+      <div class="itinerary-info">
+        <h3 class="card-title">{{ destination }}</h3>
+        <p class="card-dates">{{ startDate }} - {{ endDate }}</p>
+      </div> 
     </div>
+  </div>
 </template>
 
 <script>
-    export default {
-        props: {
-            itinerary: {
-                type: Object,
-                required: true
-            }
-        },
-        computed: {
-            dateStart() {
-                return this.formatDate(this.itinerary.dateStart);
-            },
-            dateEnd() {
-                return this.formatDate(this.itinerary.dateEnd)
-            }
-        },
-        methods: {
-            formatDate(date) {
-                const options = { year: 'numeric', month: 'short', day: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
-            }
-        }
+import ItinerariesView from '@/views/ItinerariesView.vue';
+
+export default {
+  props: {
+    id: String,
+    title: String,
+    destination: String,
+    itineraryPic: String,
+    selected: Boolean,
+    startDate: String,
+    endDate: String,
+  },
+  computed: {
+    isSelected() {
+      return this.selected;
+    },
+  },
+  methods: {
+    navigateToItinerary() {
+      this.$router.push({name: 'Itineraries', params: {itineraryId: this.id}} );
     }
+  }
+};
 </script>
 
 <style scoped>
-.itinerary-card {
-  display: flex;
-  flex-direction: column;
-  width: 250px; 
+.itinerary-details {
+  width: 300px;
+  min-height: 350px;
+  border: 1px solid #ccc;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   margin: 10px;
-}
-
-.itinerary-image {
-  width: 100%;
-  height: 150px; 
-  object-fit: cover;
-}
-
-.itinerary-details {
-  padding: 15px;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.itinerary-title {
+.itinerary-details:hover {
+  transform: scale(1.01);
+  opacity: 0.80;
+}
+
+.itinerary-info {
+  padding: 1px;
+  text-align: center;
+}
+
+.card-title {
+  margin: 10px 0;
   font-size: 1.2em;
-  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
 }
 
-.itinerary-dates {
-  font-size: 0.9em;
-  color: #666;
+.card-dates {
+  margin: 8px 0 0;
+  font-weight:400;
+  font-size: 16px;
+}
+
+.itinerary-pic {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
 }
 </style>

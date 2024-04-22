@@ -6,43 +6,44 @@
         </router-link> 
         </div>
     
-        <div class = "nav_links">
-            <router-link to = "/home" id= "home_tab" class = "tab">Home</router-link> 
-            <router-link to = "/itineraries" id= "itineraries_tab" class = "tab">My Itineraries</router-link> 
-            <router-link to = "/itineraries" id= "community_tab" class = "tab">Community</router-link> 
-            <router-link to = "/itineraries" id= "about_tab" class = "tab">About</router-link> 
-        </div>
-        <div id = "search_bar_container"> 
-            <form id = "search_bar_form">
-                <input type="text" id = "search_bar_input" placeholder="Where to next?"> 
-                <button type = "submit" id = "submit_button">
-                    <img src = "../assets/search_icon.png" alt = "search">
-                </button>
-            </form>
-            
+
+        <div class="nav_links">
+            <router-link :to="{ name: 'Home' }" class="tab" :class="{ 'active': $route.name === 'Home' }">Home</router-link>
+            <router-link :to="{ name: 'MyItineraries' }" class="tab" :class="{ 'active': isActiveRoute() }">My Itineraries</router-link>
+            <router-link :to="{ name: 'Community' }" class="tab" :class="{ 'active': $route.name === 'Community' }">Community</router-link>
+            <router-link :to="{ name: 'About' }" class="tab" :class="{ 'active': $route.name === 'About' }">About</router-link>
         </div>
 
         <div id = "profile_rect">
-        <router-link to = "/itineraries" id= "profile_logo">
-            <img class = "profile_logo"  :src="userPIC" alt = "Profile Picture"> 
-        </router-link> 
+            <img class = "profile_logo"  :src="userPIC" alt = "Profile Picture" @click="toggleDropdown"> 
         </div>
-        <UploadPic @image-uploaded="update_pic($event)" /> 
-        <SignOutButton />
+        <div v-if= "showDropdown" class = "dropdown">
+            <router-link to="/profile" class = "profile_view"> <font-awesome-icon icon="user" /> View Profile</router-link>
+            <SignOutButton id="signout"/>
+        </div>
     </div>
 </template>
   
 <script>
   import { RouterLink, RouterView } from "vue-router";
   import SignOutButton from "./SignoutButton.vue";  
-  import UploadPic from "./UploadPic.vue";
   import { mapGetters, mapActions} from "vuex";
 
   export default {
     name: 'NavBar',
     components: {
-        SignOutButton,
-        UploadPic
+        SignOutButton
+    },
+    mounted() {
+        document.addEventListener("click", this.closeDropdown)
+    },
+    beforeDestroy() {
+        document.removeEventListener("click", this.closeDropdown)
+    },
+    data() {
+        return {
+            showDropdown: false
+        };
     },
     computed: {
         ...mapGetters('user', ['userPIC'])
@@ -56,117 +57,98 @@
             } catch (error) {
                 console.error("Error updating image:", error);
             }
+        },
+        toggleDropdown(event) {
+            event.stopPropagation(); // Stop click event from propagating
+            this.showDropdown = !this.showDropdown;
+            console.log("Dropdown status: ", this.showDropdown);
+        },
+        closeDropdown() {
+            if (this.showDropdown){
+                this.showDropdown = false;
+            }
+        },
+        isActiveRoute() {
+            // Check if the current route is 'MyItineraries' or starts with 'Itineraries'
+            return this.$route.name === 'MyItineraries' || this.$route.name === 'Itineraries';
         }
     }
-  };
-  </script>
-  
+};
+</script>
+
 <style scoped>
 .nav_bar_rectangle {
     display: flex;
     justify-content:flex-start; 
     align-items: center;
     width: 100%;
-    height: 9vh;
-    border-bottom: 2px solid black;
+    height: 70px;
+    border-bottom: 2px solid rgb(204, 199, 199);
     background-color: white;
-    overflow: hidden;
 }
 
 #main_logo_rect {
     display: relative;
     width: 80px;
-    overflow: hidden;
     padding-right: 15px;
-    padding-left: 15px;
+    padding-left: 5px;
+    padding-bottom: -10px;
+    margin-bottom: -10px;
 
 }
+
+#main_logo_rect img {
+    transition: transform 0.3s ease; /* Smooth transition for scaling */
+
+}
+
+#main_logo_rect:hover img {
+    transform: scale(1.05); /* Increase the size slightly on hover */
+    transform: rotate(15deg);
+}
+
 .main_logo {
     cursor: pointer;
-    width: 80px;
+    width: 65px;
     height: auto;
-}
-
-#main_logo_rect:hover {
-    background-color: #FFF35D;
+    image-rendering: optimizeQuality;
 }
 
 .nav_links{
-    font-size: 28px;
+    font-size: 25px;
     font-weight: 500;
     display: flex;
-    width: 900px;
-    justify-content: space-between;
+    flex: 1;
+    justify-content: flex-start;
+    align-items: center;
     cursor: pointer;
+    padding: 20px;
 }
 
 .tab {
     cursor: pointer;
     text-decoration: none;
-    color: #FF5A5F;
-    padding: 90px 20px;
+    color: #f4abb0;
+    padding: 90px 40px;
     text-align: center;
-    width: 25%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tab:hover {
-    background-color: #FFF35D;
     color:#FF2C3B;
-}
-
-#search_bar_container {
-    position: relative;
-    display: flex;
-    flex-grow: 1;
-}
-
-#search_bar_form {
-    position: relative;
-    display: flex;
-    flex-grow: 1;
-    padding-left: 10px;
-}
-
-#search_bar_input {
-    flex-grow: 1;
-    font-style: italic;
-    border: 1px solid;
-    border-radius: 25px;
-    padding: 10px 40px 5px 15px;
-    background-color: rgb(232, 225, 225);
-    color: #7f7272;
-    font-size: large;
-    width:auto;
-}
-
-#search_bar_input:hover {
-    border: 2px solid #FF5A5F; /* Change border color */
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
-}
-
-#submit_button {
-    border: none;
-    background-color: transparent;
-    padding: 0;
-    cursor: pointer;
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-#submit_button img {
-    width: 20px;
-    height: 20px;
+    text-decoration: underline;
 }
 
 #profile_rect {
-    width: 80px;
-    height: 80px;
-    overflow: hidden;
+    position: relative;
+    width: 60px;
+    height: 60px;
     margin-left: auto;
-    padding: 2px;
-    padding-left: 4px;
+
+    padding-left: 10px;
+    padding-right: 25px;
 }
 
 .profile_logo {
@@ -175,14 +157,72 @@
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid #8dc7bd; /* f5bec2 */
 }
 
 .profile_logo:hover {
-    border: 2px solid #FF5A5F; /* Change border color */
+    border: 3px solid #FF5A5F; /* Change border color */
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
 }
 
-#itineraries_tab {
-    color: #347d36;
+.profile_view {
+    margin-left: 15px;
+    background-color: #e0e0e0;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: auto;
+    height: fit-content;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 13px;
+    padding: 3px;
+    text-decoration: none;
+    text-align: center;
 }
+
+#signout {
+    border-top: 5px;
+}
+
+.dropdown {
+    position: absolute;
+    top: 72px; /* Should be the same as the height of #profile_rect */
+    right: 0;
+    z-index: 1000; /* High z-index to ensure it's on top of other content */
+    width: 150px; /* Adjust width as needed */
+
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px; /* Add some padding inside the dropdown */
+    padding-left: 0px;
+
+    background-color: #fff; /* Clean white background */
+    border: 1px solid #ccc; /* Subtle border */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for 3D effect */
+    border-radius: 4px; /* Rounded corners */
+    
+    font-family: 'Arial', sans-serif; /* Use a standard font for clarity */
+    text-align: left; /* Align text to the left for better readability */
+    font-size: 14px; /* Suitable font size for dropdown items */
+    color: #333; /* Darker text for better readability */
+    line-height: 1.2;
+}
+
+
+.dropdown a:hover, .dropdown div:hover {
+    background-color: #17b41c; /* Slightly darker green on hover */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Add shadow effect */
+    color: black;
+}
+
+
+.active {
+    font-weight: bold; /* Makes the active tab bold */
+    color: #FF5A5F; /* Optional: change color to make it more noticeable */
+}
+
+
+
 </style>

@@ -4,7 +4,12 @@ import HomeView from "../views/HomeView.vue";
 import SignUpView from "../views/SignUpView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ItinerariesView from "../views/ItinerariesView.vue";
+import CommunityView from "../views/CommunityView.vue";
 import LandingView from "../views/LandingView.vue";
+import AboutView from "../views/AboutView.vue";
+import ProfileView from "../views/ProfileView.vue";
+import MyItinerariesView from "@/views/MyItinerariesView.vue";
+import GlobalItinerariesView from "@/views/GlobalItinerariesView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -35,9 +40,36 @@ const router = createRouter({
       component: ForgotPasswordView,
     },
     {
-      path: "/itineraries",
+      path: "/my-itineraries",
+      name: "MyItineraries",
+      component: MyItinerariesView,
+    },
+    {
+      path: "/itineraries/:itineraryId",
       name: "Itineraries",
       component: ItinerariesView,
+      props:true,
+    },
+    {
+      path: "/community",
+      name: "Community",
+      component: CommunityView,
+    },
+    {
+      path: "/about",
+      name: "About",
+      component: AboutView,
+    },    
+    {
+      path: "/profile",
+      name: "Profile",
+      component: ProfileView,
+    },
+    {
+      path: "/global-itineraries/:itineraryId",
+      name: "GlobalItineraries",
+      component: GlobalItinerariesView,
+      props: true,
     },
   ],
 });

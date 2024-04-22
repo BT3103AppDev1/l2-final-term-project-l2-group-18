@@ -3,11 +3,13 @@
     <h2>Log in to your HTLV account</h2>
 
     <form @submit.prevent="submitLogin">
-      <button @click="submitSignInWithGoogle" class="google-sign-in-button">
+    <button @click="submitSignInWithGoogle" class="google-sign-in-button">
       <img src = "../assets/google_logo.png" id = "google_logo">
       Continue with Google
       </button>
+    </form>
 
+    <form @submit.prevent="submitLogin">
       <div class="or_block">
         <hr class="line" />
         <h4>or</h4>
@@ -85,7 +87,7 @@ export default {
         const user_uid = await this.signInWithGoogle();
         console.log("Google sign in successful");
         await this.fetchUserData(user_uid);
-        this.$router.push("/itineraries");
+        this.$router.push("/home");
         console.log(this.userUID);
         console.log(this.userData.data());
       } catch (error) {
