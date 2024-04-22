@@ -63,7 +63,7 @@ import user from '@/store/modules/user';
           const docRef = await addDoc(globalItinerariesRef, this.trip);
           await setDoc(doc(getFirestore(), "users", userId , "itineraries", docRef.id), {});
           console.log('Document added with ID:', docRef.id);
-          this.$router.push({name: 'Itineraries', params: {itineraryId: docRef.id}} );
+          this.$router.push({name: 'Itineraries', params: {itineraryId: docRef.id, destination: this.trip.destination}} );
         } catch (error) {
           console.error("Error processing form submission:", error);
         }

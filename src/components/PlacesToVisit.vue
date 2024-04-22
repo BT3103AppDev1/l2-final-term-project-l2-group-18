@@ -160,7 +160,7 @@ export default {
     itineraryId: String,
   },
 
-  emits: ['route-requested'],
+  emits: ['route-requested', "destination-updated"],
 
   methods: {
     getCurrentUserId() {
@@ -263,6 +263,7 @@ export default {
         const options = { year: "numeric", month: "short", day: "2-digit" };
         this.title = headerData.title;
         this.destination = headerData.destination;
+        this.$emit('destination-updated', this.destination); // Emit to Parent
         this.imageURL = headerData.imageURL;
         this.startDate = new Date(
           headerData.dateRange[0].seconds * 1000

@@ -12,6 +12,7 @@ export default {
     props: {
         selectedPlace: Object,
         itineraryId: String,
+        destination: String,  // Accept destination as a prop
     },
     data() {
         return {
@@ -83,12 +84,25 @@ export default {
         },
 
         initMap(createMarkers = true) {
-            const centerMap = { lat: 1.3408578, lng: 103.8054434 }; // Center the map on Singapore by default
+            const defaultLocation = { lat: 1.3408578, lng: 103.8054434 }; // Center the map on Singapore by default if Geolocation fails
             const mapOptions = {
-                center: centerMap,
+                center: defaultLocation,
                 zoom: 12,
             };
+
             this.map = new google.maps.Map(this.$refs.map, mapOptions);
+
+            if (this.destination) {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ address: this.destination }, (results, status) => {
+                    if (status === 'OK' && results.length > 0) {
+                        const location = results[0].geometry.location;
+                        this.map.setCenter(location);
+                    } else {
+                        console.error('Geocode was not successful:', status);
+                    }
+                });
+            }
 
             // Set up a click listener on the map
             this.map.addListener("click", (e) => {
