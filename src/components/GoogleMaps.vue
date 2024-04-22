@@ -17,6 +17,7 @@ export default {
         return {
             map: null,
             markers: [],
+            directionsRenderer: null, // Add this to manage the route renderer
         };
     },
 
@@ -26,7 +27,7 @@ export default {
     },
 
     async mounted() {
-        this.loadMapScript();
+        await this.loadMapScript();
 
         document.addEventListener("click", this.handleClickOutside);
     },
@@ -40,10 +41,19 @@ export default {
 
         handleClickOutside(event) {
             let infoWindowElement = document.getElementById('custom-info-window');
-            if (infoWindowElement && !infoWindowElement.contains(event.target) && !this.$refs.map.contains(event.target)) {
+            let insideTravelTime = event.target.closest('.travel-time');
+
+            // Ensure the map reference is not null before checking containment
+            if (infoWindowElement && !infoWindowElement.contains(event.target) && this.$refs.map && !this.$refs.map.contains(event.target)) {
                 this.hideInfoWindow(); // Hide the info window
                 if (this.tempMarker) {
                     this.tempMarker.setMap(null); // Remove previous marker
+                }
+            }
+            if (!insideTravelTime && this.directionsRenderer) {
+                if (this.directionsRenderer) {
+                    this.directionsRenderer.setMap(null); // Optionally clear the route display
+                    this.directionsRenderer = null; // Remove the renderer instance if not needed
                 }
             }
         },
@@ -59,7 +69,7 @@ export default {
             const script = document.createElement('script');
 
             // CHANGE API KEY ACCORDINGLY
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8&loading=async&libraries=places&callback=initMap`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCEIJoWm0qw_YiyrWisG2F_b96Ca20wrR4&loading=async&libraries=places&callback=initMap`;
             script.async = true;
             script.defer = true;
 
@@ -72,7 +82,7 @@ export default {
             document.head.appendChild(script);
         },
 
-        initMap() {
+        initMap(createMarkers = true) {
             const centerMap = { lat: 1.3408578, lng: 103.8054434 }; // Center the map on Singapore by default
             const mapOptions = {
                 center: centerMap,
@@ -94,20 +104,22 @@ export default {
                     animation: google.maps.Animation.DROP,
                     icon: {
                         url: "../src/assets/Location_Pin_HTLV.png",
-                        scaledSize: new google.maps.Size(60, 60),
-                        anchor: new google.maps.Point(20, 40)
+                        scaledSize: new google.maps.Size(30, 30),
+                        // anchor: new google.maps.Point(20, 40)
                     }
                 })
 
                 this.fetchPlaceInfo(e.latLng, true);
             });
-
-            this.createMarkers(); // Initial marker creation
+            
+            if (createMarkers) {
+                this.createMarkers(); // Initial marker creation
+            }
         },
 
         fetchPlaceInfo(latLng, shouldHideIfEmpty = false) {
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
-            
+
             // Set up Request Object
             const request = {
                 location: latLng,
@@ -173,7 +185,38 @@ export default {
             infoWindowElement.style.display = 'block'; // Show the info window
 
             let closeButton = infoWindowElement.querySelector('.close-btn');
-            closeButton.onclick = () => {this.hideInfoWindow();};
+            closeButton.onclick = () => { this.hideInfoWindow(); };
+        },
+
+        displayRoute(originLat, originLng, destLat, destLng) {
+            if (!this.map) return; // Ensure the map is loaded
+
+            const directionsService = new google.maps.DirectionsService();  // Initialize Directions Service
+
+            if (!this.directionsRenderer) {
+                this.directionsRenderer = new google.maps.DirectionsRenderer({
+                    map: this.map,
+                    polylineOptions: {
+                        strokeColor: "#FF5A5F", // Example: Red color for the route
+                        strokeWeight: 6,       // Line thickness
+                        strokeOpacity: 0.8,
+                    },
+                });
+            }
+
+            directionsService.route({
+                origin: { lat: originLat, lng: originLng },
+                destination: { lat: destLat, lng: destLng },
+                travelMode: google.maps.TravelMode.DRIVING
+            }, function(response, status) {
+                if (status === 'OK') {
+                    this.clearMarkers();
+                    console.log("CHECK MARKERS", this.markers);
+                    this.directionsRenderer.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            }.bind(this));
         },
 
         reinitializeMap() {
@@ -212,27 +255,31 @@ export default {
                     title: location.location,
                     icon: {
                         url: "../src/assets/Location_Pin_HTLV.png",
-                        scaledSize: new google.maps.Size(60, 60),
-                        anchor: new google.maps.Point(20, 40)
+                        scaledSize: new google.maps.Size(30, 30),
+                        // anchor: new google.maps.Point(20, 40)
                     }
-                    
+
                 });
 
                 // Optionally, add an info window for each marker
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `<h3>${location.location}</h3><p>${location.description}</p>`
-                });
+                // const infoWindow = new google.maps.InfoWindow({
+                //     content: `<h3>${location.location}</h3><p>${location.description}</p>`
+                // });
 
                 marker.addListener('click', () => {
-                    infoWindow.open(this.map, marker);
+                    if (location.placeId) {
+                        this.getPlaceDetails(location.placeId); // Using the stored placeId
+                    }
                 });
 
                 // Save the marker to the array
                 this.markers.push(marker);
                 bounds.extend(position);
             });
+
             console.log("markers after creation")
             console.log(this.markers)
+
             if (this.markers.length > 0) {
                 this.map.fitBounds(bounds);
             } else {
@@ -277,7 +324,12 @@ export default {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 10px;
-    display: none; 
+    display: none;
     text-align: left;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2); /* Soft shadow for depth */
+    font-family: 'Arial', sans-serif; /* Ensuring consistent typography */
+    font-size: 0.9rem; /* Slightly smaller font size for better reading */
+    color: #333; /* Darker text for better readability */
+    line-height: 1.4; /* Improved line spacing */
 }
 </style>

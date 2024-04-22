@@ -172,6 +172,14 @@
           <div
             v-if="travelTimes[day] && travelTimes[day][index]"
             class="travel-time"
+            @click="
+              emitRoute(
+                travelTimes[day][index].originLat,
+                travelTimes[day][index].originLng,
+                travelTimes[day][index].DestinationLat,
+                travelTimes[day][index].DestinationLng
+              )
+            "
           >
             <div id="travel_stop_text">To Stop {{ index + 2 }}:</div>
             <div class="travel-info-group" id="dist-loc-group">
@@ -266,6 +274,8 @@ export default {
       smallIconSize: "s",
       days: [],
       itineraryData: [],
+      sourceDayArray: [],
+      targetDayArray: [],
       travelTimes: {}, // Stores travel times for each day
       title: "",
       destination: "",
@@ -288,6 +298,8 @@ export default {
   props: {
     itineraryId: String,
   },
+
+  emits: ["route-requested"],
 
   methods: {
     getCurrentUserId() {
@@ -356,7 +368,15 @@ export default {
         durationDriving: driving.duration,
         durationWalking: walking.duration,
         directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
+        originLat: origin.latitude,
+        originLng: origin.longitude,
+        DestinationLat: destination.latitude,
+        DestinationLng: destination.longitude,
       };
+    },
+
+    emitRoute(originLat, originLng, destLat, destLng) {
+      this.$emit("route-requested", { originLat, originLng, destLat, destLng });
     },
 
     async fetchData() {
@@ -485,14 +505,30 @@ export default {
       event.target.classList.remove("over"); // Remove class on drop
       console.log("Final Drag", day, index);
 
-      const itemToMove = this.itineraryData.splice(this.draggingItem, 1)[0]; // Removes the dragged item from the array and store in variable
-      this.itineraryData.splice(index, 0, itemToMove); // removes 0 item and adds itemToMove
+      // Get items in origin where the day is equals to origin day
+      this.sourceDayArray = this.itineraryData.filter(
+        (item) => item.day === this.draggingDay
+      );
+
+      // Removes the dragged item from the sourceDayarray and store in variable
+      const itemToMove = this.sourceDayArray.splice(this.draggingItem, 1)[0];
+
+      if (this.draggingDay !== day) {
+        // Checks if it is a multi day drag and drop
+        itemToMove.day = day; // Update the item's day to the target day
+        this.targetDayArray = this.itineraryData.filter(
+          (item) => item.day === day
+        );
+        this.targetDayArray.splice(index, 0, itemToMove); // removes 0 item and adds itemToMove to targetday array
+      } else {
+        this.sourceDayArray.splice(index, 0, itemToMove); // removes 0 item and adds itemToMove
+      }
       this.updateItineraryData(day, index); // Update Firebase backend
     },
 
     async updateItineraryData(day, index) {
-      // Current logic support reordering within same day only
       if (this.draggingDay === day && this.draggingItem != index) {
+        // SAME DAY REARRANGING
         const db = getFirestore(firebaseApp);
         const daysRef = collection(
           db,
@@ -536,10 +572,96 @@ export default {
             this.fetchData();
           }
         }
-      } else {
-        console.log(
-          "IT IS THE SAME DAY OR Multiple Days Drag and Drop not supported yet"
+      } else if (this.draggingDay !== day) {
+        // MULTI DAY REARRANGING
+        const db = getFirestore(firebaseApp);
+        const daysRef = collection(
+          db,
+          "global_user_itineraries",
+          this.itineraryId,
+          "days"
         );
+
+        // Fetch the Origin day document
+        const sourceDayDoc = await getDocs(
+          query(daysRef, where("day", "==", this.draggingDay))
+        );
+        // Fetch the Destination day document
+        const targetDayDoc = await getDocs(
+          query(daysRef, where("day", "==", day))
+        );
+
+        if (!sourceDayDoc.empty && !targetDayDoc.empty) {
+          const sourceDayRef = sourceDayDoc.docs[0].ref;
+          const targetDayRef = targetDayDoc.docs[0].ref;
+
+          // Locations reference for both days
+          const sourceLocationsRef = collection(sourceDayRef, "locations");
+          const targetLocationsRef = collection(targetDayRef, "locations");
+
+          // Fetch locations from both days
+          const [sourceLocations, targetLocations] = await Promise.all([
+            getDocs(sourceLocationsRef),
+            getDocs(targetLocationsRef),
+          ]);
+
+          let sourceLocationsArray = sourceLocations.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          sourceLocationsArray.sort((a, b) => a.order - b.order); // Sort once before modifications
+
+          const itemToMove = sourceLocationsArray.splice(
+            this.draggingItem,
+            1
+          )[0]; // Removes dragged item from array and store in variable
+          if (itemToMove) {
+            // Delete the document from the source location in firebase
+            await deleteDoc(doc(sourceLocationsRef, itemToMove.id));
+          }
+
+          // Add the item to the target array and set a new order
+          itemToMove.order = index;
+          itemToMove.day = day;
+          const { id, ...itemData } = itemToMove;
+          const newItemRef = doc(targetLocationsRef, itemToMove.id); // Use the original item's ID
+          await setDoc(newItemRef, itemData);
+
+          sourceLocationsArray = sourceLocationsArray.map((loc, idx) => ({
+            ...loc,
+            order: idx + 1,
+          })); // Reassigns order number
+
+          let targetLocationsArray = targetLocations.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          targetLocationsArray.sort((a, b) => a.order - b.order); // Sort once before modifications
+
+          targetLocationsArray.splice(index, 0, itemToMove); // Inserts dragged item into new list
+
+          targetLocationsArray = targetLocationsArray.map((loc, idx) => ({
+            ...loc,
+            order: idx + 1,
+          })); // Reassigns order number
+
+          try {
+            for (const loc of sourceLocationsArray) {
+              const locRef = doc(sourceLocationsRef, loc.id);
+              await updateDoc(locRef, { order: loc.order });
+            }
+            for (const loc of targetLocationsArray) {
+              const locRef = doc(targetLocationsRef, loc.id);
+              await updateDoc(locRef, { order: loc.order });
+            }
+          } catch (error) {
+            console.error("Error updating order:", error);
+          } finally {
+            this.fetchData();
+          }
+        }
+      } else {
+        console.log("IT IS THE SAME DAY");
       }
     },
 
@@ -730,6 +852,18 @@ export default {
       );
       const userItinerarySnap = await getDoc(userItineraryRef);
       const userItineraryData = userItinerarySnap.data();
+      const destinationRef = doc(
+        db,
+        "global_community_itineraries",
+        this.destination
+      );
+      const destinationSnap = await getDoc(destinationRef);
+
+      // If the destination does not exist, initialize it.
+      if (!destinationSnap.exists()) {
+        await setDoc(destinationRef, { imageURL: userItineraryData.imageURL });
+      }
+
       const communityItineraryRef = doc(
         db,
         "global_community_itineraries",
@@ -1029,7 +1163,7 @@ h2 {
 }
 
 .location-details.over {
-  border-top: 2px solid #ff5b5b; /* Show a line at the top of the drop target */
+  border-top: 10px solid #ff5b5b; /* Show a line at the top of the drop target */
 }
 
 .location-header {
