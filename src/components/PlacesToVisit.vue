@@ -66,7 +66,8 @@
           </div>
           <span class="location-description">{{ item.description }}</span>
 
-          <div v-if="travelTimes[day] && travelTimes[day][index]" class="travel-time" >
+          <div v-if="travelTimes[day] && travelTimes[day][index]" class="travel-time" 
+          @click="emitRoute(travelTimes[day][index].originLat, travelTimes[day][index].originLng, travelTimes[day][index].DestinationLat, travelTimes[day][index].DestinationLng)">
             <div id="travel_stop_text">To Stop {{index + 2}}:</div>
             <div class="travel-info-group" id = "dist-loc-group"><i class="fas fa-road travel-time-icon"></i><span>{{ travelTimes[day][index].distance }}</span></div>
             <div class="travel-info-group" id = "car-group"><i class="fas fa-car travel-time-icon"></i><span>{{ travelTimes[day][index].durationDriving }}</span></div>
@@ -157,6 +158,8 @@ export default {
     itineraryId: String,
   },
 
+  emits: ['route-requested'],
+
   methods: {
     getCurrentUserId() {
       const auth = getAuth();
@@ -221,7 +224,15 @@ export default {
         durationDriving: driving.duration,
         durationWalking: walking.duration,
         directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
+        originLat: origin.latitude,
+        originLng: origin.longitude,
+        DestinationLat: destination.latitude,
+        DestinationLng: destination.longitude
       };
+    },
+
+    emitRoute(originLat, originLng, destLat, destLng) {
+      this.$emit('route-requested', {originLat, originLng, destLat, destLng});
     },
 
     async fetchData() {
