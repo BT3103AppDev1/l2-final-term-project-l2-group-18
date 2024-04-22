@@ -6,10 +6,10 @@ const locationsModule = {
   },
   mutations: {
     CLEAR_LOCATIONS(state) {
-        state.locations = [];
+      state.locations = [];
     },
     SET_LOCATIONS(state, locations_payload) {
-        state.locations = [...locations_payload];
+      state.locations = [...locations_payload];
     },
     SET_SELECTED_LOCATION(state, location) {
       console.log("Setting selected location:", location);
@@ -20,18 +20,20 @@ const locationsModule = {
     // instead of mutating the state, actions commit mutations
     // async operations, API calls, calculations etc... before commiting mutations that modify the state
     updateLocations({ commit }, locations) {
-        commit("CLEAR_LOCATIONS");
-        commit("SET_LOCATIONS", locations);
+      commit("CLEAR_LOCATIONS");
+      commit("SET_LOCATIONS", locations);
     },
     selectLocation({ commit }, location) {
-      console.log("SET_SELECTED_LOCATION committed")
-      commit("SET_SELECTED_LOCATION", location);
+      commit("SET_SELECTED_LOCATION", null);
+      setTimeout(() => {
+        commit("SET_SELECTED_LOCATION", location);
+      }, 0); // setTimeout with 0 delay is similar to Vue.nextTick()
     },
   },
   getters: {
     allLocations(state) {
-        console.log("in allLocations, printing locations in store")
-        console.log(state.locations)
+      console.log("in allLocations, printing locations in store");
+      console.log(state.locations);
       return state.locations;
     },
 
