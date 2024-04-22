@@ -1,9 +1,60 @@
 <template>
-  <!-- <PlacesSearchBar @place-selected="handlePlaceSelection" /> -->
   <div class="title-container">
-    <h1>Title: {{ this.title }}</h1>
-    <h2>Dates: {{ this.startDate }} - {{ this.endDate }}</h2>
+    <div class="title-text-container">
+      <h1>Title: {{ this.title }}</h1>
+      <h2>Dates: {{ this.startDate }} - {{ this.endDate }}</h2>
+    </div>
+
+    <div class="edit-title-button-container">
+      <font-awesome-icon
+        icon="edit"
+        class="edit-icon"
+        :size="iconSize"
+        @click="toggleDropdownEditTitle"
+      />
+      <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop>
+        <div v-if="!edittingTitle && !edittingDateRange">
+          <div @click="editTitle" class="edit_buttons">
+            <font-awesome-icon icon="file" class="edit_icons" /> Edit Title
+          </div>
+          <div @click="editDateRange" class="edit_buttons">
+            <font-awesome-icon icon="calendar" class="edit_icons" /> Edit Date
+            Range
+          </div>
+        </div>
+        <div v-else-if="edittingTitle">
+          <div id="edit_text">Choose new title:</div>
+          <div class="input_group">
+            <input
+              type="text"
+              v-model="new_title"
+              placeholder="Enter Title"
+              @keyup.enter="changeTitle(new_title)"
+              id="new_title_input"
+            />
+            <button @click="changeTitle(new_title)" id="confirm_button">
+              Confirm
+            </button>
+          </div>
+        </div>
+        <div v-else-if="edittingDateRange">
+          <div class="date-group with-border">
+            <span class="label">Choose new dates</span>
+            <Datepicker
+              v-model="new_dateRange"
+              format="dd/MM/yyyy"
+              placeholder="Pick a Date"
+              range
+            />
+          </div>
+          <button @click="changeDateRange(new_dateRange)" id="confirm_button">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
+
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
@@ -16,14 +67,28 @@
         />
         <div v-if="showDropdown" class="dropdown-menu" @click.stop>
           <div v-if="!sharingToUser">
-            <div @click="enableShareToUser" class="share_buttons"> <font-awesome-icon icon="users" class="share_icons" /> Share with other Users</div>
-            <div @click="shareToCommunity" class="share_buttons"> <font-awesome-icon icon="globe" class="share_icons" /> Share with Community</div>
+            <div @click="enableShareToUser" class="share_buttons">
+              <font-awesome-icon icon="users" class="share_icons" /> Share with
+              other Users
+            </div>
+            <div @click="shareToCommunity" class="share_buttons">
+              <font-awesome-icon icon="globe" class="share_icons" /> Share with
+              Community
+            </div>
           </div>
           <div v-else>
             <div id="share_users_text">Share with:</div>
             <div class="input_group">
-              <input type="text" v-model="username" placeholder="Enter username" @keyup.enter="shareToSpecificUser" id="username_input">
-              <button @click="shareToSpecificUser" id="shareWithUsers_button">Share</button>
+              <input
+                type="text"
+                v-model="username"
+                placeholder="Enter username"
+                @keyup.enter="shareToSpecificUser"
+                id="username_input"
+              />
+              <button @click="shareToSpecificUser" id="shareWithUsers_button">
+                Share
+              </button>
             </div>
           </div>
         </div>
@@ -32,46 +97,101 @@
     </div>
     <div class="days-container" v-for="(day, index) in days" :key="index">
       <div class="days-title-container">
-        <font-awesome-icon icon="calendar" class="fa-regular calendar-icon" :size="iconSize" />
+        <font-awesome-icon
+          icon="calendar"
+          class="fa-regular calendar-icon"
+          :size="iconSize"
+        />
         <h2>Day {{ day }}</h2>
-        <button v-if="index === days.length - 1 && days.length !== 1" class="delete-day-button"
-          @click="deleteDay(index)">
+        <button
+          v-if="index === days.length - 1 && days.length !== 1"
+          class="delete-day-button"
+          @click="deleteDay(index)"
+        >
           Delete Day
         </button>
       </div>
 
       <div class="location-container">
-        <div 
-        class="location-details" 
-        v-for="(item, index) in filteredItineraryData(day)" 
-        :key="item.locid"
-        draggable="true"
-        @dragstart="dragStart($event, index, day)"
-        @dragover="dragOver($event, index)"
-        @drop="drop($event, index, day)"
-        @dragend="dragEnd($event)"
-        @dragleave="dragLeave($event)"
+        <div
+          class="add-location-form"
+          :class="{
+            open: showChangeLocationForm,
+          }"
         >
-          <div class="location-pin"> <!-- New div for the order number and pin icon -->
+          <ChangeLocationForm
+            @closeForm="showChangeLocationForm = false"
+            @saveLocation="handleChangeDetailsForm"
+            v-if="showChangeLocationForm"
+            :item="this.selectedLocation"
+            :itineraryId="this.itineraryId"
+          />
+        </div>
+        <div
+          class="location-details"
+          v-for="(item, index) in filteredItineraryData(day)"
+          :key="item.locid"
+          draggable="true"
+          @dragstart="dragStart($event, index, day)"
+          @dragover="dragOver($event, index)"
+          @drop="drop($event, index, day)"
+          @dragend="dragEnd($event)"
+          @dragleave="dragLeave($event)"
+        >
+          <div class="location-pin">
+            <!-- New div for the order number and pin icon -->
             <i class="fas fa-map-pin"></i> Stop {{ index + 1 }}
           </div>
           <div class="location-header">
             <h3>{{ item.location }}</h3>
             <div>
-              <span class="location-category" :style="{ backgroundColor: getCategoryColor(item.category) }">{{item.category }}</span>
-              <button class="minus-button" @click="deleteLocation(item.dayid, item.locid)">
-                -
-              </button>
+              <span
+                class="location-category"
+                :style="{ backgroundColor: getCategoryColor(item.category) }"
+                >{{ item.category }}</span
+              >
+              <font-awesome-icon
+                icon="pencil"
+                class="pencil-icon"
+                :size="smallIconSize"
+                @click="
+                  this.selectedLocation = item;
+                  showChangeLocationForm = true;
+                "
+              />
+              <font-awesome-icon
+                icon="trash"
+                class="trash-icon"
+                :size="smallIconSize"
+                @click="deleteLocation(item.dayid, item.locid)"
+              />
             </div>
           </div>
           <span class="location-description">{{ item.description }}</span>
 
-          <div v-if="travelTimes[day] && travelTimes[day][index]" class="travel-time" >
-            <div id="travel_stop_text">To Stop {{index + 2}}:</div>
-            <div class="travel-info-group" id = "dist-loc-group"><i class="fas fa-road travel-time-icon"></i><span>{{ travelTimes[day][index].distance }}</span></div>
-            <div class="travel-info-group" id = "car-group"><i class="fas fa-car travel-time-icon"></i><span>{{ travelTimes[day][index].durationDriving }}</span></div>
-            <div class="travel-info-group" id = "walk-group"><i class="fas fa-walking travel-time-icon"></i><span>{{ travelTimes[day][index].durationWalking }}</span></div>
-            <a :href="travelTimes[day][index].directionsLink" target="_blank" class="directions-link"><i class="fas fa-directions directions-icon-only"></i></a>
+          <div
+            v-if="travelTimes[day] && travelTimes[day][index]"
+            class="travel-time"
+          >
+            <div id="travel_stop_text">To Stop {{ index + 2 }}:</div>
+            <div class="travel-info-group" id="dist-loc-group">
+              <i class="fas fa-road travel-time-icon"></i
+              ><span>{{ travelTimes[day][index].distance }}</span>
+            </div>
+            <div class="travel-info-group" id="car-group">
+              <i class="fas fa-car travel-time-icon"></i
+              ><span>{{ travelTimes[day][index].durationDriving }}</span>
+            </div>
+            <div class="travel-info-group" id="walk-group">
+              <i class="fas fa-walking travel-time-icon"></i
+              ><span>{{ travelTimes[day][index].durationWalking }}</span>
+            </div>
+            <a
+              :href="travelTimes[day][index].directionsLink"
+              target="_blank"
+              class="directions-link"
+              ><i class="fas fa-directions directions-icon-only"></i
+            ></a>
           </div>
         </div>
         <div class="add-location-container">
@@ -99,7 +219,9 @@
 </template>
 
 <script>
+import Datepicker from "@vuepic/vue-datepicker";
 import AddLocationForm from "./AddLocationForm.vue";
+import ChangeLocationForm from "./ChangeLocationForm.vue";
 import PlacesSearchBar from "./PlacesSearchBar.vue";
 import { ref, onMounted } from "vue";
 import { firebaseApp, auth } from "../firebaseConfig";
@@ -125,20 +247,23 @@ const db = getFirestore(firebaseApp);
 export default {
   mounted() {
     document.body.style.backgroundColor = "#e7dcdc";
-    document.addEventListener("click", this.handleOutsideClick)
+    document.addEventListener("click", this.handleOutsideClick);
     this.fetchData();
   },
 
   beforeDestroy() {
     // Reset the background color when the component is destroyed
     document.body.style.backgroundColor = "";
-    document.removeEventListener("click", this.handleOutsideClick)
+    document.removeEventListener("click", this.handleOutsideClick);
   },
 
   data() {
     return {
       showAddLocationForm: null,
+      showChangeLocationForm: false,
+      selectedLocation: {},
       iconSize: "xl",
+      smallIconSize: "s",
       days: [],
       itineraryData: [],
       travelTimes: {}, // Stores travel times for each day
@@ -151,6 +276,13 @@ export default {
       username: "",
       draggingItem: null,
       draggingDay: null,
+      showDropdownEditTitle: false,
+      edittingTitle: false,
+      edittingDateRange: false,
+      edittingDescription: false,
+      new_title: "",
+      new_dateRange: [new Date(), new Date()],
+      new_description: "",
     };
   },
   props: {
@@ -165,7 +297,9 @@ export default {
 
     filteredItineraryData(dayNumber) {
       // Filter for specific day
-      const dayLocations = this.itineraryData.filter((item) => item.day === dayNumber);
+      const dayLocations = this.itineraryData.filter(
+        (item) => item.day === dayNumber
+      );
 
       // Sort the locations by the 'order' attribute
       dayLocations.sort((a, b) => a.order - b.order);
@@ -188,12 +322,13 @@ export default {
       this.travelTimes[dayNumber] = times;
     },
 
-    async getTravelTime(origin, destination) {  // USED A PROXY here as will get CORS issue so need to modify vite.config.js
+    async getTravelTime(origin, destination) {
+      // USED A PROXY here as will get CORS issue so need to modify vite.config.js
 
       // I set to consider current traffic conditions as well
       const fetchDirections = async (mode) => {
         const directionsUrl = `/api/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=${mode}&departure_time=now&key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8`;
-      
+
         try {
           const result = await fetch(directionsUrl);
           const data = await result.json();
@@ -208,13 +343,13 @@ export default {
           }
         } catch (error) {
           console.error(`Failed to fetch directions for mode ${mode}:`, error);
-          return { distance: 'N/A', duration: 'N/A' }; // Return "Not Available" if the API call fails
+          return { distance: "N/A", duration: "N/A" }; // Return "Not Available" if the API call fails
         }
       };
 
       // Fetch directions for both driving and walking
-      const driving = await fetchDirections('driving');
-      const walking = await fetchDirections('walking');
+      const driving = await fetchDirections("driving");
+      const walking = await fetchDirections("walking");
 
       return {
         distance: driving.distance, // Assume distance is the same for both modes
@@ -281,7 +416,6 @@ export default {
 
           // Iterate through each day document
           for (const locDoc of locationsSnapshot.docs) {
-
             // Extract location data from each location document
             const locData = locDoc.data();
             // Construct the object with additional fields (dayid and locid)
@@ -294,7 +428,7 @@ export default {
               location: locData.location,
               latitude: locData.latitude,
               longitude: locData.longitude,
-              order: locData.order
+              order: locData.order,
             };
             // Push the modified data to the structuredData array
             structuredData.push(locWithIds);
@@ -306,20 +440,19 @@ export default {
         }
         // Sort days
         days.sort((a, b) => a - b);
-        
+
         // Set the fetched days to days
         this.days = days;
-        
+
         // Set the fetched data to itineraryData
         this.itineraryData = structuredData;
 
-        this.days.forEach(dayNumber => {
+        this.days.forEach((dayNumber) => {
           this.fetchTravelTimesForDay(dayNumber);
         });
-        
-        // Dispatch the Vuex action to update locations in the store
-        this.$store.dispatch('locations/updateLocations', locations);
 
+        // Dispatch the Vuex action to update locations in the store
+        this.$store.dispatch("locations/updateLocations", locations);
       } catch (error) {
         console.error("Error fetching itinerary data: ", error);
       }
@@ -328,69 +461,85 @@ export default {
     dragStart(event, index, day) {
       this.draggingItem = index;
       this.draggingDay = day;
-      event.dataTransfer.effectAllowed = 'move';
-      event.target.classList.add('dragging'); // Add dragging class
+      event.dataTransfer.effectAllowed = "move";
+      event.target.classList.add("dragging"); // Add dragging class
       console.log("Initial Drag", day, index);
     },
 
     dragOver(event, index) {
       event.preventDefault(); // Necessary to allow dropping
-      event.target.classList.add('over'); // Add class when an item is dragged over another
+      event.target.classList.add("over"); // Add class when an item is dragged over another
     },
 
     dragLeave(event) {
-      event.target.classList.remove('over'); // Remove class when the dragging item leaves the element
+      event.target.classList.remove("over"); // Remove class when the dragging item leaves the element
     },
 
     dragEnd(event) {
-      const elements = document.querySelectorAll('.location-details');
-      elements.forEach(element => element.classList.remove('dragging'));
+      const elements = document.querySelectorAll(".location-details");
+      elements.forEach((element) => element.classList.remove("dragging"));
     },
 
     drop(event, index, day) {
       event.preventDefault(); // To ensure custom drop logic can execute
-      event.target.classList.remove('over'); // Remove class on drop
+      event.target.classList.remove("over"); // Remove class on drop
       console.log("Final Drag", day, index);
 
-      const itemToMove = this.itineraryData.splice(this.draggingItem, 1)[0];  // Removes the dragged item from the array and store in variable
-      this.itineraryData.splice(index, 0, itemToMove);  // removes 0 item and adds itemToMove
+      const itemToMove = this.itineraryData.splice(this.draggingItem, 1)[0]; // Removes the dragged item from the array and store in variable
+      this.itineraryData.splice(index, 0, itemToMove); // removes 0 item and adds itemToMove
       this.updateItineraryData(day, index); // Update Firebase backend
     },
 
-    async updateItineraryData(day, index) {  // Current logic support reordering within same day only
+    async updateItineraryData(day, index) {
+      // Current logic support reordering within same day only
       if (this.draggingDay === day && this.draggingItem != index) {
         const db = getFirestore(firebaseApp);
-        const daysRef = collection(db, "global_user_itineraries", this.itineraryId, "days");
+        const daysRef = collection(
+          db,
+          "global_user_itineraries",
+          this.itineraryId,
+          "days"
+        );
 
         // Fetch the day document
-        const querySnapshot = await getDocs(query(daysRef, where("day", "==", day)));
+        const querySnapshot = await getDocs(
+          query(daysRef, where("day", "==", day))
+        );
 
         if (!querySnapshot.empty) {
-          const dayDoc = querySnapshot.docs[0]; 
+          const dayDoc = querySnapshot.docs[0];
           const locationsRef = collection(dayDoc.ref, "locations");
           const locationsSnapshot = await getDocs(locationsRef);
 
-          let locationsArray = locationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          let locationsArray = locationsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
           locationsArray.sort((a, b) => a.order - b.order); // Sort once before modifications
 
-          const itemToMove = locationsArray.splice(this.draggingItem, 1)[0];  // Removes dragged item from array and store in variable
-          locationsArray.splice(index, 0, itemToMove);  // Inserts dragged item back 
+          const itemToMove = locationsArray.splice(this.draggingItem, 1)[0]; // Removes dragged item from array and store in variable
+          locationsArray.splice(index, 0, itemToMove); // Inserts dragged item back
 
-          locationsArray = locationsArray.map((loc, idx) => ({ ...loc, order: idx + 1 }));  // Reassigns order number
+          locationsArray = locationsArray.map((loc, idx) => ({
+            ...loc,
+            order: idx + 1,
+          })); // Reassigns order number
 
-          try { 
+          try {
             for (const loc of locationsArray) {
               const locRef = doc(locationsRef, loc.id);
               await updateDoc(locRef, { order: loc.order });
-            };
+            }
           } catch (error) {
             console.error("Error updating order:", error);
           } finally {
             this.fetchData();
           }
-        }  
+        }
       } else {
-        console.log("IT IS THE SAME DAY OR Multiple Days Drag and Drop not supported yet")
+        console.log(
+          "IT IS THE SAME DAY OR Multiple Days Drag and Drop not supported yet"
+        );
       }
     },
 
@@ -489,17 +638,21 @@ export default {
 
         // Fetch all locations for the current day to update their order
         const allLocations = await getDocs(locationsRef);
-        const locationsArray = allLocations.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const locationsArray = allLocations.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
         // Find the order of the location to be deleted
-        const locationToDelete = locationsArray.find(loc => loc.id === locid);
+        const locationToDelete = locationsArray.find((loc) => loc.id === locid);
         const orderToDelete = locationToDelete.order;
 
         // Filter out the location to delete and adjust the order of the rest
         const updatedLocations = locationsArray
-          .filter(loc => loc.id !== locid)
-          .map(loc => {
-            if (loc.order > orderToDelete) { // Only decrement order for locations after the one to delete
+          .filter((loc) => loc.id !== locid)
+          .map((loc) => {
+            if (loc.order > orderToDelete) {
+              // Only decrement order for locations after the one to delete
               loc.order -= 1;
             }
             return loc;
@@ -512,14 +665,14 @@ export default {
         for (const loc of updatedLocations) {
           const locRef = doc(locationsRef, loc.id);
           await updateDoc(locRef, { order: loc.order });
-        };
+        }
 
         alert("Location deleted successfully and order updated!");
       } catch (error) {
         console.error("Error deleting location:", error);
       } finally {
         this.fetchData(); // Refresh the data to reflect the updated order
-        console.log("fetched data after deleting location")
+        console.log("fetched data after deleting location");
       }
     },
 
@@ -549,10 +702,15 @@ export default {
       this.fetchData();
     },
 
+    handleChangeDetailsForm(locid) {
+      this.showChangeLocationForm = false;
+      this.fetchData();
+    },
+
     toggleDropdown(event) {
       event.stopPropagation();
       this.showDropdown = !this.showDropdown;
-      console.log("Share Dropdown status: ", this.showDropdown)
+      console.log("Share Dropdown status: ", this.showDropdown);
     },
 
     handleOutsideClick() {
@@ -565,21 +723,31 @@ export default {
       const db = getFirestore();
       const usersRef = collection(db, "users");
       const usersSnapshot = await getDocs(usersRef);
-      const userItineraryRef = doc(db, "global_user_itineraries", this.itineraryId);
+      const userItineraryRef = doc(
+        db,
+        "global_user_itineraries",
+        this.itineraryId
+      );
       const userItinerarySnap = await getDoc(userItineraryRef);
       const userItineraryData = userItinerarySnap.data();
-      const communityItineraryRef = doc(db, "global_community_itineraries", this.destination, "Itineraries", this.itineraryId);
+      const communityItineraryRef = doc(
+        db,
+        "global_community_itineraries",
+        this.destination,
+        "Itineraries",
+        this.itineraryId
+      );
       try {
         await setDoc(communityItineraryRef, {
           ...userItineraryData,
           userId: userId,
-          votes: 0
+          votes: 0,
         });
         for (const userDoc of usersSnapshot.docs) {
           const userId = userDoc.id;
           const userVoteRef = doc(communityItineraryRef, "userVotes", userId);
           await setDoc(userVoteRef, {
-            voted: false
+            voted: false,
           });
         }
         const userDaysRef = collection(userItineraryRef, "days");
@@ -618,44 +786,149 @@ export default {
       }
 
       const usersRef = collection(db, "users");
-      const querySnapshot = await getDocs(query(usersRef, where("username", "==", this.username)));
+      const querySnapshot = await getDocs(
+        query(usersRef, where("username", "==", this.username))
+      );
 
       if (querySnapshot.empty) {
-        alert("No user found with that username. Please enter a valid username!!");
-        this.username = ''
+        alert(
+          "No user found with that username. Please enter a valid username!!"
+        );
+        this.username = "";
         return;
       }
 
       // Iterate through each found user document
       querySnapshot.forEach(async (userDoc) => {
         // Reference to the specific itinerary document under the user's 'itineraries' sub-collection
-        const itineraryDocRef = doc(userDoc.ref, "itineraries", this.itineraryId);
-        
+        const itineraryDocRef = doc(
+          userDoc.ref,
+          "itineraries",
+          this.itineraryId
+        );
+
         // Get the document to check if it exists
         const docSnap = await getDoc(itineraryDocRef);
 
         if (docSnap.exists()) {
           // Document exists, so the itinerary is already shared
-          alert(`This itinerary is already shared with ${userDoc.data().username}!`);
-          this.username = '';
+          alert(
+            `This itinerary is already shared with ${userDoc.data().username}!`
+          );
+          this.username = "";
           return;
-        } else {          
+        } else {
           // Document does not exist, share the itinerary
           await setDoc(itineraryDocRef, {}); // Add an empty object or any data you want to store
-          alert(`Your itinerary has been shared with ${userDoc.data().username} successfully!`);
+          alert(
+            `Your itinerary has been shared with ${
+              userDoc.data().username
+            } successfully!`
+          );
         }
       });
 
       // Reset dropdown state
       this.sharingToUser = false;
       this.showDropdown = false;
-      this.username = ''; // Reset the username input
-    }
+      this.username = ""; // Reset the username input
+    },
+
+    toggleDropdownEditTitle(event) {
+      event.stopPropagation();
+      this.showDropdownEditTitle = !this.showDropdownEditTitle;
+      console.log("Edit Title Dropdown status: ", this.showDropdownEditTitle);
+    },
+
+    handleOutsideClick() {
+      this.showDropdownEditTitle = false;
+      this.edittingTitle = false;
+      this.edittingDateRange = false;
+    },
+
+    editTitle(event) {
+      event.stopPropagation();
+      this.edittingTitle = true;
+    },
+
+    editDateRange(event) {
+      event.stopPropagation();
+      this.edittingDateRange = true;
+    },
+
+    async changeTitle(new_title) {
+      const global_user_itineraries_ref = collection(
+        db,
+        "global_user_itineraries"
+      );
+      const itineraryDoc = doc(global_user_itineraries_ref, this.itineraryId);
+
+      try {
+        updateDoc(itineraryDoc, { title: new_title }).then(() => {
+          console.log("Title updated successfully!");
+          window.alert("Title updated successfully!");
+          this.fetchData();
+        });
+      } catch (error) {
+        console.error("Error updating title:", error);
+      }
+    },
+
+    async changeDateRange(new_dateRange) {
+      const global_user_itineraries_ref = collection(
+        db,
+        "global_user_itineraries"
+      );
+      const itineraryDoc = doc(global_user_itineraries_ref, this.itineraryId);
+
+      try {
+        updateDoc(itineraryDoc, { dateRange: new_dateRange }).then(() => {
+          console.log("Date Range updated successfully!");
+          window.alert("Date Range updated successfully!");
+          this.fetchData();
+        });
+      } catch (error) {
+        console.error("Error updating Date Range:", error);
+      }
+    },
+
+    toggleEdittingDescription(event) {
+      event.stopPropagation();
+      this.edittingDescription = !this.edittingDescription;
+      console.log("Edit Description status: ", this.showDropdownEditTitle);
+    },
+
+    async changeDescription(dayid, locid, new_description_input) {
+      const itineraryId = this.itineraryId;
+      const locationsRef = collection(
+        db,
+        "global_user_itineraries",
+        itineraryId,
+        "days",
+        dayid,
+        "locations"
+      );
+      const locationDoc = doc(locationsRef, locid);
+
+      try {
+        updateDoc(locationDoc, { description: new_description_input }).then(
+          () => {
+            console.log("Description updated successfully!");
+            window.alert("Description updated successfully!");
+            this.fetchData();
+          }
+        );
+      } catch (error) {
+        console.error("Error updating description:", error);
+      }
+    },
   },
 
   components: {
     AddLocationForm,
+    ChangeLocationForm,
     PlacesSearchBar,
+    Datepicker,
   },
 };
 </script>
@@ -673,7 +946,7 @@ export default {
 
 h1 {
   text-align: left;
-  font-size: 1.5rem ;
+  font-size: 1.5rem;
   color: #333; /* Dark grey color for better contrast */
   margin-bottom: 0.5rem; /* Reduce space below the h1 */
 }
@@ -691,10 +964,6 @@ h2 {
   margin-left: auto;
   display: relative;
   align-items: center;
-}
-
-.share-icon {
-  margin-right: 1rem;
 }
 
 .new-day-button {
@@ -785,15 +1054,26 @@ h3 {
   color: white;
 }
 
-.minus-button {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #808080;
-  color: #fff;
-  border: none;
+.trash-icon {
   cursor: pointer;
+  margin-top: 0.5rem;
   margin-left: 0.5rem;
+  color: #646464;
+}
+
+.trash-icon:hover {
+  color: #0d6efd;
+}
+
+.pencil-icon {
+  cursor: pointer;
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+  color: #646464;
+}
+
+.pencil-icon:hover {
+  color: #0d6efd;
 }
 
 .add-location-container {
@@ -838,24 +1118,25 @@ h3 {
 }
 
 .share-icon {
-    cursor: pointer;
-    margin-left: 10px;  
-    color: #646464; 
+  cursor: pointer;
+  margin-left: 10px;
+  color: #646464;
+  margin-right: 1rem;
 }
 
 .share-icon:hover {
-    color: #0d6efd;  
+  color: #0d6efd;
 }
 
 .dropdown-menu {
-  background-color: #ffffff;;
+  background-color: #ffffff;
   border-radius: 8px;
   padding: 1px;
   width: 240px;
   z-index: 100;
   position: absolute;
   transform: translateX(-87%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-menu div {
@@ -864,7 +1145,7 @@ h3 {
   font-size: 14px;
   color: #333;
   border-bottom: 1px solid #d5cece; /* Separator */
-  font-family: 'Arial', sans-serif; /* Use a standard font for clarity */
+  font-family: "Arial", sans-serif; /* Use a standard font for clarity */
 }
 
 /* Remove border from the last div */
@@ -879,8 +1160,8 @@ h3 {
 }
 
 .share_icons {
-    cursor: pointer;
-    margin-right: 5px;  
+  cursor: pointer;
+  margin-right: 5px;
 }
 
 .input-group {
@@ -900,17 +1181,16 @@ h3 {
   position: 50%;
 }
 
-
 #share_users_text {
   border-bottom: none;
   padding: 0px;
-  font-family: 'Arial', sans-serif; /* Use a standard font for clarity */
-  cursor:auto;
+  font-family: "Arial", sans-serif; /* Use a standard font for clarity */
+  cursor: auto;
 }
 
 #shareWithUsers_button {
   padding: 8px 12px;
-  background-color: #4A90E2; /* A pleasant blue */
+  background-color: #4a90e2; /* A pleasant blue */
   color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -919,20 +1199,12 @@ h3 {
 }
 
 #shareWithUsers_button:hover {
-  background-color: #357ABD; /* A pleasant blue */
-}
-
-.title-container {
-  padding-left: 3rem;
-  margin-top: 0rem;
-  text-align: center; /* Center-align the text */
-  border-bottom: 1px solid #ccc; /* Add a subtle border */
-  padding-bottom: 2px;
+  background-color: #357abd; /* A pleasant blue */
 }
 
 .dragging {
   opacity: 0.75; /* Make the dragging item slightly transparent */
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Add shadow for depth */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Add shadow for depth */
   transform: scale(1.05); /* Slightly increase the size */
   border: 1px solid #666; /* Add a border to highlight */
 }
@@ -942,32 +1214,41 @@ h3 {
   align-items: center;
   justify-content: center;
   background-color: rgba(231, 220, 220, 0.9); /* Light gray with transparency */
-  background-image: linear-gradient(45deg, rgba(201, 232, 225, 0.2) 25%, transparent 25%, transparent 50%, rgba(201, 232, 225, 0.2) 50%, rgba(201, 232, 225, 0.2) 75%, transparent 75%, transparent); /* Adding stripes */
+  background-image: linear-gradient(
+    45deg,
+    rgba(201, 232, 225, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(201, 232, 225, 0.2) 50%,
+    rgba(201, 232, 225, 0.2) 75%,
+    transparent 75%,
+    transparent
+  ); /* Adding stripes */
   background-size: 50px 50px; /* Size of the stripes */
   color: #333;
   font-size: 0.85rem;
   padding: 8px;
   padding-bottom: 5px;
   border-radius: 10px;
-  padding-top: 15px ;
-  padding-bottom: 15px ;
-  margin-top: 15px ;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  margin-top: 15px;
   cursor: auto;
   margin-bottom: -32px;
   margin-left: -17px;
   margin-right: -17px;
-  border: 1px dashed #FF5A5F;
+  border: 1px dashed #ff5a5f;
 }
 
 .travel-info-group {
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
 }
 
 .travel-time-icon {
-  width: 18px; 
-  margin-right: 5px; 
+  width: 18px;
+  margin-right: 5px;
   padding: 5px;
   align-items: center;
 }
@@ -983,14 +1264,16 @@ h3 {
 }
 
 .directions-link:hover {
-  background-color: #357ABD; /* Darker blue on hover */
+  background-color: #357abd; /* Darker blue on hover */
 }
 
 .fa {
   align-self: center;
 }
 
-#dist-loc-group, #car-group, #walk-group {
+#dist-loc-group,
+#car-group,
+#walk-group {
   margin-right: 25px;
 }
 
@@ -1002,4 +1285,107 @@ h3 {
   align-items: center;
 }
 
+.title-container {
+  padding-left: 3rem;
+  padding-right: 2rem;
+  margin-top: 0rem;
+  text-align: center; /* Center-align the text */
+  border-bottom: 1px solid #ccc; /* Add a subtle border */
+  padding-bottom: 2px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.edit-icon {
+  cursor: pointer;
+  margin-top: 0.5rem;
+  color: #646464;
+}
+
+.edit-icon:hover {
+  color: #0d6efd;
+}
+
+.dropdown-edit-menu {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1px;
+  width: 240px;
+  z-index: 100;
+  position: absolute;
+  transform: translateX(-90%);
+  margin-top: 0.3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-edit-menu div {
+  padding: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 1px solid #d5cece; /* Separator */
+  font-family: "Arial", sans-serif; /* Use a standard font for clarity */
+}
+
+/* Remove border from the last div */
+.dropdown-edit-menu div:last-child {
+  border-bottom: none;
+}
+
+.edit_buttons:hover {
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 5px;
+}
+
+.edit_icons {
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+#new_title_input {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px; /* Rounded corners on the left side only */
+  margin-right: -2px; /* Overlap border with button */
+  position: 50%;
+}
+
+#edit_text {
+  border-bottom: none;
+  padding: 0px;
+  font-family: "Arial", sans-serif; /* Use a standard font for clarity */
+  cursor: auto;
+}
+
+#confirm_button {
+  padding: 8px 12px;
+  background-color: #4a90e2; /* A pleasant blue */
+  color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: -10px;
+  cursor: pointer;
+}
+
+#confirm_button:hover {
+  background-color: #357abd; /* A pleasant blue */
+}
+
+.date-group .vue-datetimepicker-input {
+  width: 95%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.date-group.with-border {
+  position: relative;
+}
+
+.date-group.with-border::after {
+  display: none;
+}
 </style>
