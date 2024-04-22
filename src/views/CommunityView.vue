@@ -12,6 +12,7 @@
         v-if="selectedCountry"
         :country="selectedCountry"
       />
+      <FixedCommunity />
     </div>
   </div>
 </template>
@@ -20,13 +21,15 @@
 import NavBar from "../components/NavBar.vue";
 import CommunitySearch from "../components/CommunitySearch.vue";
 import CommunityList from "../components/CommunityList.vue";
+import FixedCommunity from "../components/FixedCommunity.vue";
 
 export default {
   name: "CommunityView",
   components: {
     NavBar,
     CommunitySearch,
-    CommunityList
+    CommunityList,
+    FixedCommunity
   },
     data() {
     return {
