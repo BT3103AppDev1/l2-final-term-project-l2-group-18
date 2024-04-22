@@ -579,6 +579,14 @@ export default {
       const userItineraryRef = doc(db, "global_user_itineraries", this.itineraryId);
       const userItinerarySnap = await getDoc(userItineraryRef);
       const userItineraryData = userItinerarySnap.data();
+      const destinationRef = doc(db, "global_community_itineraries", this.destination);
+      const destinationSnap = await getDoc(destinationRef);
+
+      // If the destination does not exist, initialize it.
+      if (!destinationSnap.exists()) {
+        await setDoc(destinationRef, { imageURL: userItineraryData.imageURL});
+      }
+      
       const communityItineraryRef = doc(db, "global_community_itineraries", this.destination, "Itineraries", this.itineraryId);
       try {
         await setDoc(communityItineraryRef, {
