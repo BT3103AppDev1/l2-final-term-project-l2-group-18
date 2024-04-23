@@ -1,6 +1,6 @@
 <template>
     <NavBar />
-      <div class="home-page">
+      <div class="my-itineraries-page">
         <h2>Your Itineraries</h2>
         <ItineraryList type="personal"/>
         <SearchLocation />
@@ -26,10 +26,12 @@
   </script>
     
   <style scoped>
-    .home-page {
+    .my-itineraries-page {
       text-align: center;
       margin-top: 50px;
-      
+      width: 75%;
+      margin-left: auto;
+      margin-right: auto;
     }
     
     .button {

@@ -25,6 +25,7 @@ import FixedCommunity from "../components/FixedCommunity.vue";
 
 export default {
   name: "CommunityView",
+  props: ["selectedCountryProp"],
   components: {
     NavBar,
     CommunitySearch,
@@ -33,7 +34,7 @@ export default {
   },
     data() {
     return {
-      selectedCountry: null,
+      selectedCountry: this.selectedCountryProp ? this.selectedCountryProp : null,
       itineraries: [],
       selectedItinerary: null
     };
@@ -45,6 +46,7 @@ export default {
     }
   },
   mounted() {
+    console.log("selectedCountryProp received:", this.selectedCountryProp);
     document.body.style.backgroundColor = "#e7dcdc";
   }
 };

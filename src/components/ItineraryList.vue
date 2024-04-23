@@ -98,13 +98,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
 }
 
 .cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: left;
   gap: 20px;
 }
 </style>
