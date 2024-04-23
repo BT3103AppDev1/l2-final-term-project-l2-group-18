@@ -470,9 +470,8 @@ export default {
         const directionsUrl = `/api/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=${mode}&departure_time=now&key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8`;
 
         try {
-          console.log(directionsUrl)
           const result = await fetch(directionsUrl);
-          console.log(result)
+
           const data = await result.json();
           console.log(data)
           if (data.routes.length > 0) {
