@@ -12,6 +12,7 @@
         :name="itinerary.username"
         :votes="itinerary.votes"
         @vote="handleVote"
+        class="zoom-effect"
     />
     </div>
   </div>
@@ -151,5 +152,14 @@ export default {
   flex-wrap: wrap;
   justify-content: center;
   gap: 20px;
+}
+
+.zoom-effect {
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.zoom-effect:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
 }
 </style>

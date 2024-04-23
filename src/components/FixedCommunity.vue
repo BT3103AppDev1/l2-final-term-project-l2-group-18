@@ -1,7 +1,7 @@
 <template>
   <div class="itinerary-container">
     <div v-for="(itinerary, index) in fetchedItineraries" :key="index" class="itinerary-wrapper">
-      <CommunityList :type="'Community'" :country="itinerary.destination" />
+      <CommunityList :type="'Community'" :country="itinerary.destination" class="zoom-effect" />
     </div>
   </div>
 </template>
@@ -65,5 +65,14 @@ export default {
 
 .itinerary-wrapper {
   margin: 10px;
+}
+
+.zoom-effect {
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.zoom-effect:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
 }
 </style>

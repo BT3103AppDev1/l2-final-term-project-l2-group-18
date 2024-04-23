@@ -252,6 +252,7 @@ import {
   doc,
   query,
   where,
+  onSnapshot,
   writeBatch
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -264,7 +265,7 @@ export default {
   mounted() {
     document.body.style.backgroundColor = "#e7dcdc";
     document.addEventListener("click", this.handleOutsideClick);
-    this.fetchData();
+    this.setupRealTimeListener();
   },
 
   beforeDestroy() {
@@ -490,22 +491,27 @@ export default {
       const driving = await fetchDirections("driving");
       const walking = await fetchDirections("walking");
 
-      return {
-        distance: driving.distance, // Assume distance is the same for both modes
-        durationDriving: driving.duration,
-        durationWalking: walking.duration,
-        directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
-        originLat: origin.latitude,
-        originLng: origin.longitude,
-        DestinationLat: destination.latitude,
-        DestinationLng: destination.longitude,
-      };
+      if (driving && walking) {
+        return {
+          distance: driving.distance, // Assume distance is the same for both modes
+          durationDriving: driving.duration,
+          durationWalking: walking.duration,
+          directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
+          originLat: origin.latitude,
+          originLng: origin.longitude,
+          DestinationLat: destination.latitude,
+          DestinationLng: destination.longitude,
+        };
+      } else {
+        return  { distance: "N/A", durationDriving: "N/A", durationWalking: "N/A"};
+      }
     },
 
     emitRoute(originLat, originLng, destLat, destLng) {
       this.$emit("route-requested", { originLat, originLng, destLat, destLng });
     },
 
+    // Deprecated
     async fetchData() {
       // Reset travelTimes
       this.travelTimes = {};
@@ -605,6 +611,54 @@ export default {
       } catch (error) {
         console.error("Error fetching itinerary data: ", error);
       }
+    },
+
+    setupRealTimeListener() {
+      const itineraryId = this.itineraryId;
+      const db = getFirestore(firebaseApp);
+
+      // Listening to changes in the itinerary header
+      const itineraryDocRef = doc(db, "global_user_itineraries", itineraryId);
+      onSnapshot(itineraryDocRef, (doc) => {
+        const data = doc.data();
+        const options = { year: "numeric", month: "short", day: "2-digit" };
+        this.title = data.title;
+        this.destination = data.destination;
+        this.$emit('destination-updated', this.destination);
+        this.imageURL = data.imageURL;
+        this.startDate = new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB", options);
+        this.endDate = new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB", options);
+      });
+
+      // Listening to changes in the days and locations
+      const daysRef = collection(db, "global_user_itineraries", itineraryId, "days");
+      onSnapshot(daysRef, (snapshot) => {
+        let newDays = [];
+        snapshot.forEach((dayDoc) => {
+          const dayNumber = dayDoc.data().day;
+          newDays.push(dayNumber);
+
+          // Listen to changes in locations under each day
+          const locationsRef = collection(db, "global_user_itineraries", itineraryId, "days", dayDoc.id, "locations");
+          onSnapshot(locationsRef, (locSnapshot) => {
+            let locations = this.itineraryData.filter(loc => loc.dayid !== dayDoc.id); // Clear previous day's locations
+            locSnapshot.forEach((locDoc) => {
+              const locData = locDoc.data();
+              locations.push({
+                ...locData,
+                dayid: dayDoc.id,
+                locid: locDoc.id,
+                latitude: locData.latitude,
+                longitude: locData.longitude,
+                order: locData.order
+              });
+            });
+            this.itineraryData = locations;
+            this.fetchTravelTimesForDay(dayNumber); // Double check if functioning
+          });
+        });
+        this.days = newDays.sort((a, b) => a - b);
+      });
     },
 
     dragStart(event, index, day) {
