@@ -53,7 +53,7 @@ export default {
             }
             if (!insideTravelTime && this.directionsRenderer) {
                 if (this.directionsRenderer) {
-                    this.directionsRenderer.setMap(null); // Optionally clear the route display
+                    this.directionsRenderer.setMap(null); // Clear the route display
                     this.directionsRenderer = null; // Remove the renderer instance if not needed
                 }
             }
@@ -119,9 +119,10 @@ export default {
                     icon: {
                         url: "../src/assets/Location_Pin_HTLV.png",
                         scaledSize: new google.maps.Size(30, 30),
-                        // anchor: new google.maps.Point(20, 40)
                     }
                 })
+
+                console.log("TEST", this.tempMarker)
 
                 this.fetchPlaceInfo(e.latLng, true);
             });
@@ -132,6 +133,7 @@ export default {
         },
 
         fetchPlaceInfo(latLng, shouldHideIfEmpty = false) {
+            console.log("RUNNING FETCHPLACEINFO")
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
 
             // Set up Request Object
@@ -163,6 +165,7 @@ export default {
         },
 
         async getPlaceDetails(placeId) {  // placeId is a unique identifier in the Google Places database
+            console.log("RUNNING getPLACEDETAILS")
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
 
             // Requests for detailed information
@@ -172,34 +175,44 @@ export default {
             }, (place, status) => {   // The second argument here: (place, status) is the callback function that handles the response
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
                     const marker = this.markers.find(m => m.placeId === placeId);
-                    marker.setAnimation(google.maps.Animation.BOUNCE);
-                    setTimeout(() => {
-                        marker.setAnimation(null);
-                    }, 2100);
                     if (marker) {
-                        // Center the map on the marker
+                        // Pan the map to the center of the marker
                         this.map.panTo(marker.getPosition());
+                        setTimeout(() => {
+                            this.map.setZoom(15);  // Adjust zoom level as needed
+                        }, 400);  // Delay in milliseconds
+
+                        marker.setAnimation(google.maps.Animation.BOUNCE);
+                        setTimeout(() => {
+                            marker.setAnimation(null);
+                        }, 2100);
+                        this.showInfoWindow(place, marker.day, marker.stop);
+                    } else {
+                        this.showInfoWindow(place);  
                     }
-                    setTimeout(() => {
-                        this.map.setZoom(15);  // Adjust zoom level as needed
-                    }, 400);  // Delay in milliseconds
-                    this.showInfoWindow(place, marker.day, marker.stop);  // If successful, proceeds to display information in an info window. The showInfoWindow is a function defined below. 
+
+
+
+                    
 
                 }
             });
         },
 
-        showInfoWindow(place, day, stop) {
+        showInfoWindow(place, day = 0, stop = 0) {
             console.log(place);
             // Start building the content string with HTML elements to display place details
 
             let ratingsDisplay = place.rating && place.user_ratings_total ? `${place.rating} (${place.user_ratings_total})` : '';
 
+            let headerContent = (day !== 0 || stop !== 0) ? `Day ${day}: Stop ${stop}` : ''; // Only show Day and Stop if they are not zero
+
             let contentString = `
                 <div class='info-window'>
-                    <span class='close-btn' style="position: absolute; top: 5px; right: 35px; cursor: pointer; font-size: 24px; color: #333;">&times;</span>
-                    <div class='info-window-header' style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 10px; margin-top: 8px">
-                        <i class="fas fa-map-marker-alt" style="color: #FF6347; margin-left: 5px; margin-right: 5px;"></i> Day ${day}: Stop ${stop}</div>
+                    <span class='close-btn' style="position: absolute; top: 5px; right: 40px; width : 25px ; height: 25px; text-align: center; display: inline-block; line-height: 25px; align-items: center;
+                    cursor: pointer; font-size: 15px; color: #333; background-color: #DC143C ; color: white ; border-radius: 50%" ;>&times;</span>
+                    ${headerContent && `<div class='info-window-header' style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 10px; margin-top: 8px">
+                        <i class="fas fa-map-marker-alt" style="color: #FF6347; margin-left: 5px; margin-right: 5px;"></i> ${headerContent}</div>`}
                     <h2 style = "margin-top:2px; font-size: 22px"><i class="fas fa-landmark" style="color: green; margin-right: 10px; padding: 5px"></i>${place.name}</h2> 
                     <ul class='info-list' style = "list-style-type: none">
                         ${ratingsDisplay ? `<li><i class="fas fa-star" style="color: #007bff; margin-right: 10px; margin-left: -2px;"></i><strong>Ratings:</strong> ${ratingsDisplay}</li>` : ''}
@@ -298,7 +311,7 @@ export default {
                 //     content: `<h3>${location.location}</h3><p>${location.description}</p>`
                 // });
 
-                marker.addListener('click', () => {
+                marker.addListener('click', (event) => {
                     if (location.placeId) {
                         this.getPlaceDetails(location.placeId); // Using the stored placeId
                     }
