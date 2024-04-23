@@ -264,6 +264,7 @@ const db = getFirestore(firebaseApp);
 
 export default {
   mounted() {
+    this.fetchData(); // Restored
     document.body.style.backgroundColor = "#e7dcdc";
     document.addEventListener("click", this.handleOutsideClick);
     this.setupRealTimeListener();
@@ -468,11 +469,9 @@ export default {
 
       const fetchDirections = async (mode) => {
         const directionsUrl = `/api/directions?originLat=${origin.latitude}&originLng=${origin.longitude}&destLat=${destination.latitude}&destLng=${destination.longitude}&mode=${mode}`;
-        console.log("URL", directionsUrl)
 
         try {
           const result = await axios.get(directionsUrl);
-          console.log("RESULT", result)
           const data = result.data;
           if (data.routes.length > 0) {
             const route = data.routes[0];

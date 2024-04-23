@@ -70,6 +70,18 @@ export default {
                 return;
             }
 
+            if (this.destination) {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ address: this.destination }, (results, status) => {
+                    if (status === 'OK' && results.length > 0) {
+                        const location = results[0].geometry.location;
+                        this.map.setCenter(location);
+                    } else {
+                        console.error('Geocode was not successful:', status);
+                    }
+                });
+            }
+
             // Create a script element to load the Google Maps API
             const script = document.createElement('script');
 
@@ -87,26 +99,44 @@ export default {
             document.head.appendChild(script);
         },
 
-        initMap(createMarkers = true) {
+        initMap() {
             const defaultLocation = { lat: 1.3408578, lng: 103.8054434 }; // Center the map on Singapore by default if Geolocation fails
+            const defaultZoom = 12; // Default zoom level
+
             const mapOptions = {
                 center: defaultLocation,
-                zoom: 12,
+                zoom: defaultZoom,
+                minZoom: 5, // Prevents zooming out too much
             };
 
             this.map = new google.maps.Map(this.$refs.map, mapOptions);
+
+            console.log(this.destination)
 
             if (this.destination) {
                 const geocoder = new google.maps.Geocoder();
                 geocoder.geocode({ address: this.destination }, (results, status) => {
                     if (status === 'OK' && results.length > 0) {
                         const location = results[0].geometry.location;
-                        this.map.setCenter(location);
+                        const addressType = results[0].types[0]; // Get the most specific type of the location
+                        const viewport = result.geometry.viewport;
+
+                        console.log("OK", location)
+
+                        // Use the viewport to set the bounds
+                        this.map.fitBounds(viewport);
+
+                        // Adjust zoom manually if needed
+                        if (result.types.includes('country')) {
+                            this.map.setZoom(Math.min(this.map.getZoom(), 8)); // Prevent too close zoom on large countries
+                        }
                     } else {
                         console.error('Geocode was not successful:', status);
                     }
                 });
             }
+
+            this.createMarkers(); // Initial marker creation
 
             // Set up a click listener on the map
             this.map.addListener("click", (e) => {
@@ -130,10 +160,6 @@ export default {
 
                 this.fetchPlaceInfo(e.latLng, true);
             });
-
-            if (createMarkers) {
-                this.createMarkers(); // Initial marker creation
-            }
         },
 
         fetchPlaceInfo(latLng, shouldHideIfEmpty = false) {
@@ -253,8 +279,6 @@ export default {
                 travelMode: google.maps.TravelMode.DRIVING
             }, function (response, status) {
                 if (status === 'OK') {
-                    this.clearMarkers();
-                    console.log("CHECK MARKERS", this.markers);
                     this.directionsRenderer.setDirections(response);
                 } else {
                     window.alert('Directions request failed due to ' + status);
@@ -290,8 +314,9 @@ export default {
             this.clearMarkers();
 
             const bounds = new google.maps.LatLngBounds();
+
             this.allLocations.forEach(location => {
-                const position = { lat: location.latitude, lng: location.longitude };
+                const position = new google.maps.LatLng(location.latitude, location.longitude);
                 const marker = new google.maps.Marker({
                     map: this.map,
                     position: position,
@@ -318,6 +343,8 @@ export default {
                     }, 2100);
                 });
 
+                console.log("POSITION", location)
+
 
                 // Save the marker to the array
                 this.markers.push(marker);
@@ -327,12 +354,13 @@ export default {
 
             console.log("markers after creation")
 
+            // Adjust the map to show all the markers
             if (this.markers.length > 0) {
-                this.map.fitBounds(bounds);
-            } else {
-                this.map.setCenter({ lat: 1.3408578, lng: 103.8054434 }); // Default center
-                this.map.setZoom(12); // Default zoom
-            }
+                this.map.fitBounds(bounds); // Automatically adjusts both zoom and center of the map
+            } 
+            if (this.markers.length === 1) {
+                this.map.setZoom = 5; // Automatically adjusts both zoom and center of the map
+            } 
         },
         showFormTempMarker(latLng, name, placeId) {
             console.log("In showFormTempMarker")
