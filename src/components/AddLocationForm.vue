@@ -79,6 +79,7 @@ export default {
   methods: {
     closeForm() {
       this.$emit("closeForm");
+      this.$store.dispatch('locations/clearTempLocation'); // Clear temp marker when form is closed
     },
 
     async saveLocation() {
@@ -124,8 +125,10 @@ export default {
         window.alert("Location added successfully to the day!");
 
         this.$emit("saveLocation");
+        this.$store.dispatch('locations/clearTempLocation'); // Clear temp marker when location is saved
         // Reset form data
-        this.formData = { location: "", description: "", category: "" };
+        // this.formData = { location: "", description: "", category: "" };
+        this.resetForm();
       } catch (error) {
         console.error("Error adding location: ", error);
       }

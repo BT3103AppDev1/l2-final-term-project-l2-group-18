@@ -41,6 +41,10 @@ const locationsModule = {
     updateTempLocation({ commit }, location) {
       commit("SET_TEMP_LOCATION", location);
     },
+
+    clearTempLocation({ commit }) {
+      commit("SET_TEMP_LOCATION", null);
+    },
   },
 
   getters: {
@@ -54,7 +58,7 @@ const locationsModule = {
       console.log("Selected location in getter:", state.selectedLocation);
       return state.selectedLocation;
     },
-    
+
     tempLocation(state) {
       return state.tempLocation;
     },
