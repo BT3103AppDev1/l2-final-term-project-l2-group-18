@@ -44,6 +44,7 @@ export default {
 
 .places, .maps {
   flex: 1;
+  position: relative;
 }
 
 .places {
