@@ -322,7 +322,7 @@ export default {
                     position: position,
                     title: location.location,
                     icon: {
-                        url: "../src/assets/Location_Pin_HTLV.png",
+                        url: "/Location_Pin_HTLV.png",
                         scaledSize: new google.maps.Size(30, 30),
                         // anchor: new google.maps.Point(20, 40)
                     },
@@ -373,7 +373,7 @@ export default {
                 title: name,
                 animation: google.maps.Animation.DROP,
                 icon: {
-                    url: "../src/assets/Location_Pin_HTLV.png",
+                    url: "/Location_Pin_HTLV.png",
                     scaledSize: new google.maps.Size(30, 30),
                 }
             });
