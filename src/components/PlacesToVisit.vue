@@ -12,7 +12,7 @@
         :size="iconSize"
         @click="toggleDropdownEditTitle"
       />
-      <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop :style="{ width: edittingDateRange ? '330px' : '250px' }">
+      <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop :style="{ width: edittingDateRange ? '350px' : (edittingTitle ? '300px' : '180px') }">
         <div v-if="!edittingTitle && !edittingDateRange">
           <div @click="editTitle" class="edit_buttons">
             <font-awesome-icon icon="file" class="edit_icons" /> Edit Title
@@ -23,7 +23,7 @@
           </div>
         </div>
         <div v-else-if="edittingTitle">
-          <div id="edit_text">Choose New Title:</div>
+          <div id="edit_text">Enter New Title:</div>
           <div class="input_group_1">
             <input
               type="text"

@@ -172,6 +172,11 @@ export default {
             }, (place, status) => {   // The second argument here: (place, status) is the callback function that handles the response
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
                     this.showInfoWindow(place);  // If successful, proceeds to display information in an info window. The showInfoWindow is a function defined below. 
+                    const marker = this.markers.find(m => m.placeId === placeId);
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                    setTimeout(() => {
+                        marker.setAnimation(null);
+                    }, 2100);
                 }
             });
         },
@@ -271,7 +276,8 @@ export default {
                         url: "../src/assets/Location_Pin_HTLV.png",
                         scaledSize: new google.maps.Size(30, 30),
                         // anchor: new google.maps.Point(20, 40)
-                    }
+                    },
+                    placeId: location.placeId
 
                 });
 
@@ -284,19 +290,21 @@ export default {
                     if (location.placeId) {
                         this.getPlaceDetails(location.placeId); // Using the stored placeId
                     }
+
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                    setTimeout(() => {
+                        marker.setAnimation(null);
+                    }, 2100);
                 });
-                marker.setAnimation(google.maps.Animation.BOUNCE);
-                setTimeout(() => {
-                    marker.setAnimation(null);
-                }, 2100);
+
 
                 // Save the marker to the array
                 this.markers.push(marker);
                 bounds.extend(position);
+
             });
 
             console.log("markers after creation")
-            console.log(this.markers)
 
             if (this.markers.length > 0) {
                 this.map.fitBounds(bounds);
