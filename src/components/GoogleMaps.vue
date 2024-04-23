@@ -45,7 +45,9 @@ export default {
             let insideTravelTime = event.target.closest('.travel-time');
 
             // Ensure the map reference is not null before checking containment
-            if (infoWindowElement && !infoWindowElement.contains(event.target) && this.$refs.map && !this.$refs.map.contains(event.target)) {
+            if (infoWindowElement && !infoWindowElement.contains(event.target) &&
+                this.$refs.map && !this.$refs.map.contains(event.target) &&
+                (!this.formTempMarker || !this.formTempMarker.getIcon().contains(event.target))) {
                 this.hideInfoWindow(); // Hide the info window
                 if (this.tempMarker) {
                     this.tempMarker.setMap(null); // Remove previous marker
@@ -363,10 +365,10 @@ export default {
                 this.map.setZoom(15); // Suitable zoom level to focus on the selected location
 
                 // Optionally place a temporary marker
-                if (this.tempMarker) {
-                    this.tempMarker.setMap(null); // Remove existing temporary marker
+                if (this.formTempMarker) {
+                    this.formTempMarker.setMap(null); // Remove existing temporary marker
                 }
-                this.tempMarker = new google.maps.Marker({
+                this.formTempMarker = new google.maps.Marker({
                     position: latLng,
                     map: this.map,
                     title: newLocation.name,
@@ -378,12 +380,12 @@ export default {
                 });
 
                 // Open info window if needed
-                this.tempMarker.addListener('click', () => {
+                this.formTempMarker.addListener('click', () => {
                     const contentString = `<div><strong>${newLocation.name}</strong></div>`;
                     const infowindow = new google.maps.InfoWindow({
                         content: contentString,
                     });
-                    infowindow.open(this.map, this.tempMarker);
+                    infowindow.open(this.map, this.formTempMarker);
                 });
             }
         },
