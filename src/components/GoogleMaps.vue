@@ -151,7 +151,7 @@ export default {
                     map: this.map,
                     animation: google.maps.Animation.DROP,
                     icon: {
-                        url: "../src/assets/Location_Pin_HTLV.png",
+                        url: "/Location_Pin_HTLV.png",
                         scaledSize: new google.maps.Size(30, 30),
                     }
                 })
