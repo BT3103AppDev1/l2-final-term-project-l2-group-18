@@ -305,11 +305,6 @@ export default {
 
                 });
 
-                // Optionally, add an info window for each marker
-                // const infoWindow = new google.maps.InfoWindow({
-                //     content: `<h3>${location.location}</h3><p>${location.description}</p>`
-                // });
-
                 marker.addListener('click', (event) => {
                     if (location.placeId) {
                         this.getPlaceDetails(location.placeId); // Using the stored placeId
@@ -352,6 +347,9 @@ export default {
                 }
             });
 
+            this.map.panTo(latLng);
+            this.map.setZoom(15);
+
             this.fetchPlaceInfo(latLng, true, (placeDetails) => {
                 if (placeDetails) {
                     let contentString = `
@@ -373,7 +371,6 @@ export default {
                     infowindow.open(this.map, this.formTempMarker);
                 }
             });
-
         },
 
         clearFormTempMarker() {
