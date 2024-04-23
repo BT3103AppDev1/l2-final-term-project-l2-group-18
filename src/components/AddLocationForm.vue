@@ -93,6 +93,7 @@ export default {
   methods: {
     closeForm() {
       this.$emit("closeForm");
+      this.$store.dispatch('locations/clearTempLocation'); // Clear temp marker when form is closed
     },
 
     async saveLocation() {
@@ -137,8 +138,10 @@ export default {
         window.alert("Location added successfully to the day!");
 
         this.$emit("saveLocation");
+        this.$store.dispatch('locations/clearTempLocation'); // Clear temp marker when location is saved
         // Reset form data
-        this.formData = { location: "", description: "", category: "" };
+        // this.formData = { location: "", description: "", category: "" };
+        this.resetForm();
       } catch (error) {
         console.error("Error adding location: ", error);
       }
@@ -176,9 +179,18 @@ export default {
       this.formData.placeId = place.place_id;
 
       console.log("formData after place selection:", this.formData);
+
+      // Extract relevant place data and dispatch to store
+      const locationData = {
+        name: place.name,
+        latitude: place.geometry.location.lat(),
+        longitude: place.geometry.location.lng(),
+        placeId: place.place_id,
+      };
+      this.$store.dispatch('locations/updateTempLocation', locationData);
     },
   },
-};
+}
 </script>
 
 <style scoped>

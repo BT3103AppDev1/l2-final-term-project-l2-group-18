@@ -24,7 +24,7 @@ export default {
 
     computed: {
         // Map getters to get the locations from the store
-        ...mapGetters('locations', ['allLocations']),
+        ...mapGetters('locations', ['allLocations', 'selectedLocation', 'tempLocation']),
     },
 
     async mounted() {
@@ -45,7 +45,11 @@ export default {
             let insideTravelTime = event.target.closest('.travel-time');
 
             // Ensure the map reference is not null before checking containment
-            if (infoWindowElement && !infoWindowElement.contains(event.target) && this.$refs.map && !this.$refs.map.contains(event.target)) {
+            if (infoWindowElement && !infoWindowElement.contains(event.target) &&
+                this.$refs.map && !this.$refs.map.contains(event.target)) {
+                // &&
+                // (!this.formTempMarker || !this.formTempMarker.getIcon().contains(event.target))) 
+
                 this.hideInfoWindow(); // Hide the info window
                 if (this.tempMarker) {
                     this.tempMarker.setMap(null); // Remove previous marker
@@ -53,7 +57,7 @@ export default {
             }
             if (!insideTravelTime && this.directionsRenderer) {
                 if (this.directionsRenderer) {
-                    this.directionsRenderer.setMap(null); // Optionally clear the route display
+                    this.directionsRenderer.setMap(null); // Clear the route display
                     this.directionsRenderer = null; // Remove the renderer instance if not needed
                 }
             }
@@ -119,19 +123,21 @@ export default {
                     icon: {
                         url: "../src/assets/Location_Pin_HTLV.png",
                         scaledSize: new google.maps.Size(30, 30),
-                        // anchor: new google.maps.Point(20, 40)
                     }
                 })
 
+                console.log("TEST", this.tempMarker)
+
                 this.fetchPlaceInfo(e.latLng, true);
             });
-            
+
             if (createMarkers) {
                 this.createMarkers(); // Initial marker creation
             }
         },
 
         fetchPlaceInfo(latLng, shouldHideIfEmpty = false) {
+            console.log("RUNNING FETCHPLACEINFO")
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
 
             // Set up Request Object
@@ -163,6 +169,7 @@ export default {
         },
 
         async getPlaceDetails(placeId) {  // placeId is a unique identifier in the Google Places database
+            console.log("RUNNING getPLACEDETAILS")
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
 
             // Requests for detailed information
@@ -171,20 +178,40 @@ export default {
                 fields: ['name', 'rating', "user_ratings_total", 'formatted_address', 'website', 'formatted_phone_number', "geometry"]
             }, (place, status) => {   // The second argument here: (place, status) is the callback function that handles the response
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    this.showInfoWindow(place);  // If successful, proceeds to display information in an info window. The showInfoWindow is a function defined below. 
+                    const marker = this.markers.find(m => m.placeId === placeId);
+                    if (marker) {
+                        // Pan the map to the center of the marker
+                        this.map.panTo(marker.getPosition());
+                        setTimeout(() => {
+                            this.map.setZoom(15);  // Adjust zoom level as needed
+                        }, 400);  // Delay in milliseconds
+
+                        marker.setAnimation(google.maps.Animation.BOUNCE);
+                        setTimeout(() => {
+                            marker.setAnimation(null);
+                        }, 2100);
+                        this.showInfoWindow(place, marker.day, marker.stop);
+                    } else {
+                        this.showInfoWindow(place);
+                    }
                 }
             });
         },
 
-        showInfoWindow(place) {
+        showInfoWindow(place, day = 0, stop = 0) {
             console.log(place);
             // Start building the content string with HTML elements to display place details
 
             let ratingsDisplay = place.rating && place.user_ratings_total ? `${place.rating} (${place.user_ratings_total})` : '';
 
+            let headerContent = (day !== 0 || stop !== 0) ? `Day ${day}: Stop ${stop}` : ''; // Only show Day and Stop if they are not zero
+
             let contentString = `
                 <div class='info-window'>
-                    <span class='close-btn' style="position: absolute; top: 5px; right: 35px; cursor: pointer; font-size: 24px; color: #333;">&times;</span>
+                    <span class='close-btn' style="position: absolute; top: 5px; right: 40px; width : 25px ; height: 25px; text-align: center; display: inline-block; line-height: 25px; align-items: center;
+                    cursor: pointer; font-size: 15px; color: #333; background-color: #DC143C ; color: white ; border-radius: 50%" ;>&times;</span>
+                    ${headerContent && `<div class='info-window-header' style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 10px; margin-top: 8px">
+                        <i class="fas fa-map-marker-alt" style="color: #FF6347; margin-left: 5px; margin-right: 5px;"></i> ${headerContent}</div>`}
                     <h2 style = "margin-top:2px; font-size: 22px"><i class="fas fa-landmark" style="color: green; margin-right: 10px; padding: 5px"></i>${place.name}</h2> 
                     <ul class='info-list' style = "list-style-type: none">
                         ${ratingsDisplay ? `<li><i class="fas fa-star" style="color: #007bff; margin-right: 10px; margin-left: -2px;"></i><strong>Ratings:</strong> ${ratingsDisplay}</li>` : ''}
@@ -222,7 +249,7 @@ export default {
                 origin: { lat: originLat, lng: originLng },
                 destination: { lat: destLat, lng: destLng },
                 travelMode: google.maps.TravelMode.DRIVING
-            }, function(response, status) {
+            }, function (response, status) {
                 if (status === 'OK') {
                     this.clearMarkers();
                     console.log("CHECK MARKERS", this.markers);
@@ -271,34 +298,85 @@ export default {
                         url: "../src/assets/Location_Pin_HTLV.png",
                         scaledSize: new google.maps.Size(30, 30),
                         // anchor: new google.maps.Point(20, 40)
-                    }
+                    },
+                    placeId: location.placeId,
+                    day: location.day,
+                    stop: location.order
 
                 });
 
-                // Optionally, add an info window for each marker
-                // const infoWindow = new google.maps.InfoWindow({
-                //     content: `<h3>${location.location}</h3><p>${location.description}</p>`
-                // });
-
-                marker.addListener('click', () => {
+                marker.addListener('click', (event) => {
                     if (location.placeId) {
                         this.getPlaceDetails(location.placeId); // Using the stored placeId
                     }
+
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                    setTimeout(() => {
+                        marker.setAnimation(null);
+                    }, 2100);
                 });
+
 
                 // Save the marker to the array
                 this.markers.push(marker);
                 bounds.extend(position);
+
             });
 
             console.log("markers after creation")
-            console.log(this.markers)
 
             if (this.markers.length > 0) {
                 this.map.fitBounds(bounds);
             } else {
                 this.map.setCenter({ lat: 1.3408578, lng: 103.8054434 }); // Default center
                 this.map.setZoom(12); // Default zoom
+            }
+        },
+        showFormTempMarker(latLng, name) {
+            if (this.formTempMarker) {
+                this.formTempMarker.setMap(null); // Remove existing temporary marker if it exists
+            }
+            this.formTempMarker = new google.maps.Marker({
+                position: latLng,
+                map: this.map,
+                title: name,
+                animation: google.maps.Animation.DROP,
+                icon: {
+                    url: "../src/assets/Location_Pin_HTLV.png",
+                    scaledSize: new google.maps.Size(30, 30),
+                }
+            });
+
+            this.map.panTo(latLng);
+            this.map.setZoom(15);
+
+            this.fetchPlaceInfo(latLng, true, (placeDetails) => {
+                if (placeDetails) {
+                    let contentString = `
+                    <div class='info-window'>
+                        <span class='close-btn' style="position: absolute; top: 5px; right: 40px; width : 25px ; height: 25px; text-align: center; display: inline-block; line-height: 25px; align-items: center;
+                        cursor: pointer; font-size: 15px; color: #333; background-color: #DC143C ; color: white ; border-radius: 50%" ;>&times;</span>
+                        <h2>${place.name}</h2>
+                        <ul class='info-list'>
+                            <li><strong>Rating:</strong> ${place.rating || 'No ratings yet'}</li>
+                            <li><strong>Address:</strong> ${place.formatted_address}</li>
+                        </ul>
+                    </div>`;
+                    const infowindow = new google.maps.InfoWindow({ content: contentString });
+                    infowindow.open(this.map, this.formTempMarker);
+                } else {
+                    // Optionally, handle if no details were found
+                    const simpleContentString = `<div><strong>${name}</strong></div>`;
+                    const infowindow = new google.maps.InfoWindow({ content: simpleContentString });
+                    infowindow.open(this.map, this.formTempMarker);
+                }
+            });
+        },
+
+        clearFormTempMarker() {
+            if (this.formTempMarker) {
+                this.formTempMarker.setMap(null);
+                this.formTempMarker = null;
             }
         },
     },
@@ -313,6 +391,26 @@ export default {
                     this.reinitializeMap(); // Reinitialize the map whenever locations change
                 }
             },
+        },
+        selectedLocation: {
+            deep: true,
+            immediate: true,
+            handler(newLocation) {
+                console.log("Selected Location Changed:", newLocation);
+                if (newLocation && newLocation.placeId) {
+                    this.getPlaceDetails(newLocation.placeId);
+                }
+            },
+        },
+        tempLocation(newLocation) {
+            if (newLocation && newLocation.latitude && newLocation.longitude) {
+                // If there's valid location data, show the form marker
+                const latLng = new google.maps.LatLng(newLocation.latitude, newLocation.longitude);
+                this.showFormTempMarker(latLng, newLocation.name);
+            } else {
+                // If the temp location data is null or invalid, clear the existing form marker
+                this.clearFormTempMarker();
+            }
         },
     },
 }
@@ -335,15 +433,22 @@ export default {
     left: 0;
     width: 100%;
     background: #fafafa;
-    padding: 10px;
+    padding: 15px;
+    padding-top: 5px;
     border: 1px solid #ccc;
-    border-radius: 10px;
+    border-radius: 8px;
     display: none;
     text-align: left;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2); /* Soft shadow for depth */
-    font-family: 'Arial', sans-serif; /* Ensuring consistent typography */
-    font-size: 0.9rem; /* Slightly smaller font size for better reading */
-    color: #333; /* Darker text for better readability */
-    line-height: 1.4; /* Improved line spacing */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow */
+    /* Soft shadow for depth */
+    font-family: 'Arial', sans-serif;
+    /* Ensuring consistent typography */
+    font-size: 0.9rem;
+    /* Slightly smaller font size for better reading */
+    color: #333;
+    /* Darker text for better readability */
+    line-height: 1.4;
+    /* Improved line spacing */
 }
 </style>
