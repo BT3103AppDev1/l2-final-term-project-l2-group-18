@@ -470,9 +470,13 @@ export default {
         const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=${mode}&departure_time=now&key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8`;
 
         try {
+          console.log(directionsUrl)
           const result = await fetch(directionsUrl);
+          console.log(result)
           const data = await result.json();
+          console.log(data)
           if (data.routes.length > 0) {
+            console.log(data.routes)
             const route = data.routes[0];
             const leg = route.legs[0];
             return {
