@@ -1,14 +1,28 @@
 <template>
   <button class="close-button" @click="closeForm()">X</button>
+  <h1>Add New Location</h1>
   <form @submit.prevent="saveLocation">
     <label for="location">Select Location</label>
-    <PlacesSearchBar ref="placesSearchBar" @place-selected="handlePlaceSelection" />
+    <PlacesSearchBar
+      ref="placesSearchBar"
+      @place-selected="handlePlaceSelection"
+    />
 
     <!-- <input class="location" v-model="formData.location" type="text" placeholder="Enter Location Title" required /> -->
     <label for="description">Description</label>
-    <textarea class="description" v-model="formData.description" placeholder="Enter Description" required></textarea>
+    <textarea
+      class="description"
+      v-model="formData.description"
+      placeholder="Enter Description"
+      required
+    ></textarea>
     <label for="category">Category</label>
-    <select name="category" class="category" v-model="formData.category" required>
+    <select
+      name="category"
+      class="category"
+      v-model="formData.category"
+      required
+    >
       <option value="" disabled selected>Select Category</option>
       <option value="Food">Food</option>
       <option value="Bar">Bar</option>
@@ -111,14 +125,13 @@ export default {
 
         // Fetch existing locations to determine the new order
         const snapshot = await getDocs(locationRef);
-        const order = snapshot.size + 1;  // This is the new location's order index
+        const order = snapshot.size + 1; // This is the new location's order index
 
         await addDoc(locationRef, {
           ...this.formData, //spread operator to include all form data
           order: order, // Inserted Order field here
           day: this.dayNumber,
-          placeId: this.formData.placeId, // placeId for Places API 
-
+          placeId: this.formData.placeId, // placeId for Places API
         });
 
         window.alert("Location added successfully to the day!");
@@ -169,11 +182,18 @@ export default {
 </script>
 
 <style scoped>
+h1 {
+  text-align: left;
+  margin-top: 2rem;
+  padding-left: 3rem;
+}
+
 .form-container {
   padding: 4rem;
 }
 
 form {
+  margin-top: -3rem;
   padding: 4rem;
 }
 
