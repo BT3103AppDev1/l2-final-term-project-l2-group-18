@@ -12,7 +12,7 @@
         v-if="selectedCountry"
         :country="selectedCountry"
       />
-      <FixedCommunity />
+      <FixedCommunity v-if="!selectedCountry" />
     </div>
   </div>
 </template>
