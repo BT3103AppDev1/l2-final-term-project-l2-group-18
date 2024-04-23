@@ -8,11 +8,11 @@
         <p>See where others love to go!</p>
       </div>
       <CommunitySearch @submit="updateSelectedCountry" />
+      <FixedCommunity v-if="!selectedCountry"/>
       <CommunityList
         v-if="selectedCountry"
         :country="selectedCountry"
       />
-      <FixedCommunity v-if="!selectedCountry" />
     </div>
   </div>
 </template>

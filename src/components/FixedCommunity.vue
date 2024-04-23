@@ -7,8 +7,8 @@
 </template>
 
 <script>
-import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
-import { firebaseApp, auth } from "../firebaseConfig";
+import { getFirestore, collection, query, getDocs, doc, getDoc } from "firebase/firestore";
+import { firebaseApp } from "../firebaseConfig";
 import CommunityList from "./CommunityList.vue";
 
 export default {
@@ -26,29 +26,26 @@ export default {
   methods: {
     async fetchItineraries() {
       const db = getFirestore(firebaseApp);
-      const itineraries = [
-        { id: "9L4qniPLcYxXRyVRF90f", country: "Boston" },
-        { id: "xxiI5NW2RDhuBETAaVqR", country: "Germany" },
-        { id: "3UMHA5ocWf1XnaCncZxt", country: "Hawaii" },
-        { id: "LaXElUbPvmqQuoSLkb3g", country: "Japan" }
-      ];
-
-      for (const itinerary of itineraries) {
-        const itineraryRef = doc(db, "global_user_itineraries", itinerary.id);
-        try {
-          const itineraryDocSnap = await getDoc(itineraryRef);
-          const headerData = itineraryDocSnap.data();
-          const options = { year: "numeric", month: "short", day: "2-digit" };
-          const formattedItinerary = {
-            title: headerData.title,
-            destination: headerData.destination,
-            startDate: new Date(headerData.dateRange[0].seconds * 1000).toLocaleDateString("en-GB", options),
-            endDate: new Date(headerData.dateRange[1].seconds * 1000).toLocaleDateString("en-GB", options)
-          };
-          this.fetchedItineraries.push(formattedItinerary);
-        } catch (error) {
-          console.error(`Error fetching itinerary for ${itinerary.country}:`, error);
-        }
+      try {
+        const itinerariesQuery = query(collection(db, "global_user_itineraries"));
+        const querySnapshot = await getDocs(itinerariesQuery);
+        querySnapshot.forEach(async (doc) => {
+          try {
+            const headerData = doc.data();
+            const options = { year: "numeric", month: "short", day: "2-digit" };
+            const formattedItinerary = {
+              title: headerData.title,
+              destination: headerData.destination,
+              startDate: new Date(headerData.dateRange[0].seconds * 1000).toLocaleDateString("en-GB", options),
+              endDate: new Date(headerData.dateRange[1].seconds * 1000).toLocaleDateString("en-GB", options)
+            };
+            this.fetchedItineraries.push(formattedItinerary);
+          } catch (error) {
+            console.error(`Error formatting itinerary:`, error);
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching itineraries:", error);
       }
     }
   }
