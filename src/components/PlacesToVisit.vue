@@ -240,6 +240,7 @@ import ChangeLocationForm from "./ChangeLocationForm.vue";
 import PlacesSearchBar from "./PlacesSearchBar.vue";
 import { ref, onMounted } from "vue";
 import { firebaseApp, auth } from "../firebaseConfig";
+import axios from 'axios';
 import {
   getFirestore,
   collection,
@@ -463,25 +464,22 @@ export default {
     },
 
     async getTravelTime(origin, destination) {
-      // USED A PROXY here as will get CORS issue so need to modify vite.config.js
+      axios.defaults.baseURL = "https://fierce-sands-18810-300a8a84ddec.herokuapp.com";
 
-      // I set to consider current traffic conditions as well
       const fetchDirections = async (mode) => {
-        const directionsUrl = `/api/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=${mode}&departure_time=now&key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8`;
+        const directionsUrl = `/api/directions?originLat=${origin.latitude}&originLng=${origin.longitude}&destLat=${destination.latitude}&destLng=${destination.longitude}&mode=${mode}`;
+        console.log("URL", directionsUrl)
 
         try {
-          const result = await fetch(directionsUrl);
-          console.log("RESPONSE", result)
-          const data = await result.json();
-          console.log("RESULT", data)
+          const result = await axios.get(directionsUrl);
+          console.log("RESULT", result)
+          const data = result.data;
           if (data.routes.length > 0) {
-            console.log(data.routes)
             const route = data.routes[0];
             const leg = route.legs[0];
             return {
               distance: leg.distance.text,
               duration: leg.duration.text, // This includes traffic delays
-              // directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
             };
           }
         } catch (error) {
