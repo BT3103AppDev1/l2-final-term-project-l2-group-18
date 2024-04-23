@@ -171,17 +171,25 @@ export default {
                 fields: ['name', 'rating', "user_ratings_total", 'formatted_address', 'website', 'formatted_phone_number', "geometry"]
             }, (place, status) => {   // The second argument here: (place, status) is the callback function that handles the response
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    this.showInfoWindow(place);  // If successful, proceeds to display information in an info window. The showInfoWindow is a function defined below. 
                     const marker = this.markers.find(m => m.placeId === placeId);
                     marker.setAnimation(google.maps.Animation.BOUNCE);
                     setTimeout(() => {
                         marker.setAnimation(null);
                     }, 2100);
+                    if (marker) {
+                        // Center the map on the marker
+                        this.map.panTo(marker.getPosition());
+                    }
+                    setTimeout(() => {
+                        this.map.setZoom(15);  // Adjust zoom level as needed
+                    }, 400);  // Delay in milliseconds
+                    this.showInfoWindow(place, marker.day, marker.stop);  // If successful, proceeds to display information in an info window. The showInfoWindow is a function defined below. 
+
                 }
             });
         },
 
-        showInfoWindow(place) {
+        showInfoWindow(place, day, stop) {
             console.log(place);
             // Start building the content string with HTML elements to display place details
 
@@ -190,6 +198,8 @@ export default {
             let contentString = `
                 <div class='info-window'>
                     <span class='close-btn' style="position: absolute; top: 5px; right: 35px; cursor: pointer; font-size: 24px; color: #333;">&times;</span>
+                    <div class='info-window-header' style="font-size: 1.5rem; font-weight: bold; color: #333; margin-bottom: 10px; margin-top: 8px">
+                        <i class="fas fa-map-marker-alt" style="color: #FF6347; margin-left: 5px; margin-right: 5px;"></i> Day ${day}: Stop ${stop}</div>
                     <h2 style = "margin-top:2px; font-size: 22px"><i class="fas fa-landmark" style="color: green; margin-right: 10px; padding: 5px"></i>${place.name}</h2> 
                     <ul class='info-list' style = "list-style-type: none">
                         ${ratingsDisplay ? `<li><i class="fas fa-star" style="color: #007bff; margin-right: 10px; margin-left: -2px;"></i><strong>Ratings:</strong> ${ratingsDisplay}</li>` : ''}
@@ -277,7 +287,9 @@ export default {
                         scaledSize: new google.maps.Size(30, 30),
                         // anchor: new google.maps.Point(20, 40)
                     },
-                    placeId: location.placeId
+                    placeId: location.placeId,
+                    day: location.day,
+                    stop: location.order
 
                 });
 
@@ -357,12 +369,13 @@ export default {
     left: 0;
     width: 100%;
     background: #fafafa;
-    padding: 10px;
+    padding: 15px;
+    padding-top: 5px;
     border: 1px solid #ccc;
-    border-radius: 10px;
+    border-radius: 8px;
     display: none;
     text-align: left;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     /* Soft shadow for depth */
     font-family: 'Arial', sans-serif;
     /* Ensuring consistent typography */
@@ -373,4 +386,5 @@ export default {
     line-height: 1.4;
     /* Improved line spacing */
 }
+
 </style>
