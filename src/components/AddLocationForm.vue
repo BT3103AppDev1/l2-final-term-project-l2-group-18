@@ -163,9 +163,18 @@ export default {
       this.formData.placeId = place.place_id;
 
       console.log("formData after place selection:", this.formData);
+
+      // Extract relevant place data and dispatch to store
+      const locationData = {
+        name: place.name,
+        latitude: place.geometry.location.lat(),
+        longitude: place.geometry.location.lng(),
+        placeId: place.place_id,
+      };
+      this.$store.dispatch('locations/updateTempLocation', locationData);
     },
   },
-};
+}
 </script>
 
 <style scoped>

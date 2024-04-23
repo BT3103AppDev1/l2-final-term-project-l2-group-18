@@ -24,7 +24,7 @@ export default {
 
     computed: {
         // Map getters to get the locations from the store
-        ...mapGetters('locations', ['allLocations', 'selectedLocation']),
+        ...mapGetters('locations', ['allLocations', 'selectedLocation', 'tempLocation']),
     },
 
     async mounted() {
@@ -174,8 +174,7 @@ export default {
                 fields: ['name', 'rating', "user_ratings_total", 'formatted_address', 'website', 'formatted_phone_number', "geometry"]
             }, (place, status) => {   // The second argument here: (place, status) is the callback function that handles the response
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    // const marker = this.markers.find(m => m.placeId === placeId);
-                    const marker = this.markers[placeId];
+                    const marker = this.markers.find(m => m.placeId === placeId);
                     if (marker) {
                         // Pan the map to the center of the marker
                         this.map.panTo(marker.getPosition());
@@ -191,11 +190,6 @@ export default {
                     } else {
                         this.showInfoWindow(place);
                     }
-
-
-
-
-
                 }
             });
         },
@@ -276,21 +270,20 @@ export default {
             this.initMap();
         },
 
-        // clearMarkers() {
-        //     this.markers.forEach(marker => {
-        //         marker.setMap(null); // This detaches the marker from the map
-        //     });
-        //     this.markers = []; // Clear the array after all markers are removed from the map
-        // },
+        clearMarkers() {
+            this.markers.forEach(marker => {
+                marker.setMap(null); // This detaches the marker from the map
+            });
+            this.markers = []; // Clear the array after all markers are removed from the map
+        },
 
         createMarkers() {
             console.log("markers before clearing");
             console.log(this.markers)
             // First, clear existing markers 
-            // this.clearMarkers();
-            this.markers = {};
-            const bounds = new google.maps.LatLngBounds();
+            this.clearMarkers();
 
+            const bounds = new google.maps.LatLngBounds();
             this.allLocations.forEach(location => {
                 const position = { lat: location.latitude, lng: location.longitude };
                 const marker = new google.maps.Marker({
@@ -314,10 +307,9 @@ export default {
                 // });
 
                 marker.addListener('click', (event) => {
-                    // if (location.placeId) {
-                    //     this.getPlaceDetails(location.placeId); // Using the stored placeId
-                    // }
-                    this.$store.dispatch('locations/selectLocation', location);
+                    if (location.placeId) {
+                        this.getPlaceDetails(location.placeId); // Using the stored placeId
+                    }
 
                     marker.setAnimation(google.maps.Animation.BOUNCE);
                     setTimeout(() => {
@@ -327,10 +319,7 @@ export default {
 
 
                 // Save the marker to the array
-                // this.markers.push(marker);
-
-                // Save the marker using placeId as the key
-                this.markers[location.placeId] = marker;
+                this.markers.push(marker);
                 bounds.extend(position);
 
             });
@@ -366,6 +355,37 @@ export default {
                     this.getPlaceDetails(newLocation.placeId);
                 }
             },
+        },
+        tempLocation(newLocation) {
+            if (newLocation && newLocation.latitude && newLocation.longitude) {
+                const latLng = new google.maps.LatLng(newLocation.latitude, newLocation.longitude);
+                this.map.panTo(latLng);
+                this.map.setZoom(15); // Suitable zoom level to focus on the selected location
+
+                // Optionally place a temporary marker
+                if (this.tempMarker) {
+                    this.tempMarker.setMap(null); // Remove existing temporary marker
+                }
+                this.tempMarker = new google.maps.Marker({
+                    position: latLng,
+                    map: this.map,
+                    title: newLocation.name,
+                    animation: google.maps.Animation.DROP,
+                    icon: {
+                        url: "../src/assets/Location_Pin_HTLV.png",
+                        scaledSize: new google.maps.Size(30, 30),
+                    }
+                });
+
+                // Open info window if needed
+                this.tempMarker.addListener('click', () => {
+                    const contentString = `<div><strong>${newLocation.name}</strong></div>`;
+                    const infowindow = new google.maps.InfoWindow({
+                        content: contentString,
+                    });
+                    infowindow.open(this.map, this.tempMarker);
+                });
+            }
         },
     },
 }
