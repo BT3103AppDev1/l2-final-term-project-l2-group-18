@@ -188,6 +188,7 @@ export default {
         placeId: place.place_id,
       };
       this.$store.dispatch('locations/updateTempLocation', locationData);
+
     },
   },
 }

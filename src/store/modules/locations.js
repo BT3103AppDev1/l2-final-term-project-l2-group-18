@@ -21,6 +21,7 @@ const locationsModule = {
     },
 
     SET_TEMP_LOCATION(state, location) {
+      console.log("Setting temporary location:", location);
       state.tempLocation = location;
     },
   },

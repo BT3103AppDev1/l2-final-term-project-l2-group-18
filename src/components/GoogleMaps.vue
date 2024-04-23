@@ -171,7 +171,7 @@ export default {
         async getPlaceDetails(placeId) {  // placeId is a unique identifier in the Google Places database
             console.log("RUNNING getPLACEDETAILS")
             const service = new google.maps.places.PlacesService(this.map); // Initialize PlacesService
-
+            console.log("placeId: ", placeId)
             // Requests for detailed information
             service.getDetails({
                 placeId: placeId,
@@ -192,6 +192,8 @@ export default {
                         }, 2100);
                         this.showInfoWindow(place, marker.day, marker.stop);
                     } else {
+                        console.log("marker was not found")
+                        console.log(place)
                         this.showInfoWindow(place);
                     }
                 }
@@ -332,7 +334,8 @@ export default {
                 this.map.setZoom(12); // Default zoom
             }
         },
-        showFormTempMarker(latLng, name) {
+        showFormTempMarker(latLng, name, placeId) {
+            console.log("In showFormTempMarker")
             if (this.formTempMarker) {
                 this.formTempMarker.setMap(null); // Remove existing temporary marker if it exists
             }
@@ -350,27 +353,13 @@ export default {
             this.map.panTo(latLng);
             this.map.setZoom(15);
 
-            this.fetchPlaceInfo(latLng, true, (placeDetails) => {
-                if (placeDetails) {
-                    let contentString = `
-                    <div class='info-window'>
-                        <span class='close-btn' style="position: absolute; top: 5px; right: 40px; width : 25px ; height: 25px; text-align: center; display: inline-block; line-height: 25px; align-items: center;
-                        cursor: pointer; font-size: 15px; color: #333; background-color: #DC143C ; color: white ; border-radius: 50%" ;>&times;</span>
-                        <h2>${place.name}</h2>
-                        <ul class='info-list'>
-                            <li><strong>Rating:</strong> ${place.rating || 'No ratings yet'}</li>
-                            <li><strong>Address:</strong> ${place.formatted_address}</li>
-                        </ul>
-                    </div>`;
-                    const infowindow = new google.maps.InfoWindow({ content: contentString });
-                    infowindow.open(this.map, this.formTempMarker);
-                } else {
-                    // Optionally, handle if no details were found
-                    const simpleContentString = `<div><strong>${name}</strong></div>`;
-                    const infowindow = new google.maps.InfoWindow({ content: simpleContentString });
-                    infowindow.open(this.map, this.formTempMarker);
-                }
-            });
+            if (placeId) {
+                console.log("placeId is valid")
+                this.getPlaceDetails(placeId); // Use the placeId to fetch and display details
+            } else {
+                // Optionally handle the case where no placeId is provided
+                console.error("placeId is not valid")
+            }
         },
 
         clearFormTempMarker() {
@@ -403,10 +392,12 @@ export default {
             },
         },
         tempLocation(newLocation) {
+            console.log("temp location watcher, new location is: ", newLocation)
             if (newLocation && newLocation.latitude && newLocation.longitude) {
                 // If there's valid location data, show the form marker
+                console.log("valid location data")
                 const latLng = new google.maps.LatLng(newLocation.latitude, newLocation.longitude);
-                this.showFormTempMarker(latLng, newLocation.name);
+                this.showFormTempMarker(latLng, newLocation.name, newLocation.placeId);
             } else {
                 // If the temp location data is null or invalid, clear the existing form marker
                 this.clearFormTempMarker();
