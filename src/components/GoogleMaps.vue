@@ -174,7 +174,8 @@ export default {
                 fields: ['name', 'rating', "user_ratings_total", 'formatted_address', 'website', 'formatted_phone_number', "geometry"]
             }, (place, status) => {   // The second argument here: (place, status) is the callback function that handles the response
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    const marker = this.markers.find(m => m.placeId === placeId);
+                    // const marker = this.markers.find(m => m.placeId === placeId);
+                    const marker = this.markers[placeId];
                     if (marker) {
                         // Pan the map to the center of the marker
                         this.map.panTo(marker.getPosition());
@@ -188,12 +189,12 @@ export default {
                         }, 2100);
                         this.showInfoWindow(place, marker.day, marker.stop);
                     } else {
-                        this.showInfoWindow(place);  
+                        this.showInfoWindow(place);
                     }
 
 
 
-                    
+
 
                 }
             });
@@ -275,20 +276,21 @@ export default {
             this.initMap();
         },
 
-        clearMarkers() {
-            this.markers.forEach(marker => {
-                marker.setMap(null); // This detaches the marker from the map
-            });
-            this.markers = []; // Clear the array after all markers are removed from the map
-        },
+        // clearMarkers() {
+        //     this.markers.forEach(marker => {
+        //         marker.setMap(null); // This detaches the marker from the map
+        //     });
+        //     this.markers = []; // Clear the array after all markers are removed from the map
+        // },
 
         createMarkers() {
             console.log("markers before clearing");
             console.log(this.markers)
             // First, clear existing markers 
-            this.clearMarkers();
-
+            // this.clearMarkers();
+            this.markers = {};
             const bounds = new google.maps.LatLngBounds();
+
             this.allLocations.forEach(location => {
                 const position = { lat: location.latitude, lng: location.longitude };
                 const marker = new google.maps.Marker({
@@ -312,9 +314,10 @@ export default {
                 // });
 
                 marker.addListener('click', (event) => {
-                    if (location.placeId) {
-                        this.getPlaceDetails(location.placeId); // Using the stored placeId
-                    }
+                    // if (location.placeId) {
+                    //     this.getPlaceDetails(location.placeId); // Using the stored placeId
+                    // }
+                    this.$store.dispatch('locations/selectLocation', location);
 
                     marker.setAnimation(google.maps.Animation.BOUNCE);
                     setTimeout(() => {
@@ -324,7 +327,10 @@ export default {
 
 
                 // Save the marker to the array
-                this.markers.push(marker);
+                // this.markers.push(marker);
+
+                // Save the marker using placeId as the key
+                this.markers[location.placeId] = marker;
                 bounds.extend(position);
 
             });
@@ -388,7 +394,8 @@ export default {
     border-radius: 8px;
     display: none;
     text-align: left;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow */
     /* Soft shadow for depth */
     font-family: 'Arial', sans-serif;
     /* Ensuring consistent typography */
@@ -399,5 +406,4 @@ export default {
     line-height: 1.4;
     /* Improved line spacing */
 }
-
 </style>
