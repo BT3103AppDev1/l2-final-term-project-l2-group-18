@@ -17,7 +17,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to Google Maps Directions API
       '/api': {
-        target: 'https://maps.googleapis.com/maps/api/directions',
+        target: 'https://maps.googleapis.com/maps/api/directions/',
         changeOrigin: true, // Needed for virtual hosted sites
         rewrite: (path) => path.replace(/^\/api/, ''),
         secure: true // Set to true if you're on HTTPS

@@ -471,9 +471,9 @@ export default {
 
         try {
           const result = await fetch(directionsUrl);
-
+          console.log("RESPONSE", result)
           const data = await result.json();
-          console.log(data)
+          console.log("RESULT", data)
           if (data.routes.length > 0) {
             console.log(data.routes)
             const route = data.routes[0];
