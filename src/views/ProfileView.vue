@@ -86,20 +86,20 @@ export default {
 <style scoped>
 /* In your CSS */
 h1 {
-    font-family: 'Lora', serif; /* A more distinctive serif font */
-    font-weight: 700;
     font-size: 2.5em; /* Larger size */
-    color: #021552; /* A deep blue for elegance */
     text-align: center;
+    font-weight: 510;
+    text-align: center;
+    text-transform: capitalize;
 }
 
 .subtitle {
-    
     color: #666;
     font-size: 1em;
     text-align: center;
     margin-top: -20px; /* Closer to the title */
     margin-bottom: 50px;
+    text-transform: capitalize;
 }
 
 .profile-container {
@@ -108,10 +108,10 @@ h1 {
 }
 
 .profile-pic {
-    width: 250px;
-    height: 250px;
+    width: auto;
+    height: 300px;
     border-radius: 50%;
-    image-rendering: optimizeQuality;
+    object-fit: cover; /* Ensures the image covers the area without distortion */
 }
 
 .username, .email {

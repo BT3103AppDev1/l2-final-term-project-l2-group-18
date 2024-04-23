@@ -1,14 +1,29 @@
 <template>
   <button class="close-button" @click="closeForm()">X</button>
+  <h1>Edit Location Details</h1>
   <form @submit.prevent="saveLocation">
     <label for="location">Select Location</label>
-    <PlacesSearchBar ref="placesSearchBar" @place-selected="handlePlaceSelection" />
-
-    <!-- <input class="location" v-model="formData.location" type="text" placeholder="Enter Location Title" required /> -->
+    <input
+      class="location"
+      v-model="formData.location"
+      type="text"
+      placeholder="Select a Place"
+      :disabled="true"
+    />
     <label for="description">Description</label>
-    <textarea class="description" v-model="formData.description" placeholder="Enter Description" required></textarea>
+    <textarea
+      class="description"
+      v-model="formData.description"
+      placeholder="Enter Description"
+      required
+    ></textarea>
     <label for="category">Category</label>
-    <select name="category" class="category" v-model="formData.category" required>
+    <select
+      name="category"
+      class="category"
+      v-model="formData.category"
+      required
+    >
       <option value="" disabled selected>Select Category</option>
       <option value="Food">Food</option>
       <option value="Bar">Bar</option>
@@ -32,6 +47,7 @@ import {
   addDoc,
   setDoc,
   getDocs,
+  updateDoc,
   doc,
   query,
   where,
@@ -41,25 +57,21 @@ const db = getFirestore(firebaseApp);
 import PlacesSearchBar from "./PlacesSearchBar.vue";
 
 export default {
-  name: "AddLocationForm",
+  name: "ChangeLocationForm",
   components: {
     PlacesSearchBar,
   },
   props: {
-    dayNumber: Number,
+    item: Object,
     itineraryId: String,
   },
   data() {
     return {
       // Defining data properties for form inputs
       formData: {
-        location: "",
-        description: "",
-        category: "",
-        latitude: null,
-        longitude: null,
-        country: "",
-        placeId: "",
+        location: this.item.location,
+        description: this.item.description,
+        category: this.item.category,
       },
       userId: null, //To store user's ID
     };
@@ -82,98 +94,38 @@ export default {
     },
 
     async saveLocation() {
-      console.log("saveLocation called"); // Add this line to check if the method is called
-      if (!this.userId) {
-        alert("You must be logged in to save a location.");
-        return;
-      }
-      // Assumes itineraryId is passed as a prop or can be otherwise obtained
       const itineraryId = this.itineraryId;
-      console.log(this.itineraryId);
-      console.log(this.dayNumber);
+      console.log(itineraryId);
+      const dayId = this.item.dayid;
+      const locationId = this.item.locid;
       try {
-        // Construct the document path where the location data will be saved
-        const q = query(
-          collection(db, "global_user_itineraries", itineraryId, "days"),
-          where("day", "==", this.dayNumber)
-        );
-        const daySnapshot = await getDocs(q);
-        console.log(daySnapshot.docs);
-        const dayDocId = daySnapshot.docs[0].id;
         const locationRef = collection(
           db,
           "global_user_itineraries",
           itineraryId,
           "days",
-          dayDocId,
+          dayId,
           "locations"
         );
-
-        // Fetch existing locations to determine the new order
-        const snapshot = await getDocs(locationRef);
-        const order = snapshot.size + 1;  // This is the new location's order index
-
-        await addDoc(locationRef, {
-          ...this.formData, //spread operator to include all form data
-          order: order, // Inserted Order field here
-          day: this.dayNumber,
-          placeId: this.formData.placeId, // placeId for Places API 
-
+        const locationDoc = doc(locationRef, locationId);
+        updateDoc(locationDoc, {
+          description: this.formData.description,
+          category: this.formData.category,
+        }).then(() => {
+          window.alert("Location details updated successfully!");
+          this.$emit("saveLocation");
         });
-
-        window.alert("Location added successfully to the day!");
-
-        this.$emit("saveLocation");
-        // Reset form data
-        this.formData = { location: "", description: "", category: "" };
       } catch (error) {
-        console.error("Error adding location: ", error);
+        console.error("Error editing location: ", error);
       }
-    },
-
-    resetForm() {
-      this.formData = {
-        location: "",
-        description: "",
-        category: "",
-        latitude: null,
-        longitude: null,
-        country: "",
-      };
-      this.$refs.placesSearchBar.reset();
-    },
-
-    getCountryFromAddressComponents(addressComponents) {
-      const country = addressComponents.find((component) =>
-        component.types.includes("country")
-      );
-
-      return country ? country.long_name : "";
-    },
-
-    handlePlaceSelection(place) {
-      const country = this.getCountryFromAddressComponents(
-        place.address_components
-      );
-
-      this.formData.location = place.name; // Use the name property from the place object
-      this.formData.latitude = place.geometry.location.lat();
-      this.formData.longitude = place.geometry.location.lng();
-      this.formData.country = country;
-      this.formData.placeId = place.place_id;
-
-      console.log("formData after place selection:", this.formData);
     },
   },
 };
 </script>
 
 <style scoped>
-.form-container {
-  padding: 4rem;
-}
-
 form {
+  margin-top: -3rem;
   padding: 4rem;
 }
 
@@ -188,6 +140,12 @@ form {
   display: block;
   margin-left: 2rem;
   margin-top: 2rem;
+}
+
+h1 {
+  text-align: left;
+  margin-top: 2rem;
+  padding-left: 3rem;
 }
 
 label {

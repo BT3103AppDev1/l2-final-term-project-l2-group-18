@@ -38,7 +38,7 @@ import Explore from '@/components/Explore.vue'
 
   .recent-itineraries {
     font-size: 30px;
-    font-weight: 400;
+    font-weight: 510;
     text-align: center;
     text-transform: capitalize;
   }

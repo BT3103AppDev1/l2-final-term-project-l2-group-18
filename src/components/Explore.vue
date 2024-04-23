@@ -1,7 +1,7 @@
 <template>
     <div class="trips container">
         <h1 class="section-title">Explore the world</h1>
-        <p class="section-para">Trending Places</p>
+        <h2>Trending Places</h2>
         <div class="tours-container">
             <ExploreCard
                 v-for="tour in tours"
@@ -61,8 +61,8 @@ export default {
 }
 
 .section-title{
-    font-size: 30px;
-    font-weight: 400;
+    font-size: 40px;
+    font-weight: 800;
     text-align: center;
     text-transform: capitalize;
 }

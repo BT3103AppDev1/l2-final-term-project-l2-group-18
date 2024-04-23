@@ -2,10 +2,10 @@
   <NavBar /> 
   <div class = "content-container"> 
     <div class = "places">
-      <PlacesToVisit @place-selected="handlePlaceSelection" :itineraryId="itineraryId"/>
+      <PlacesToVisit @route-requested="handleRouteRequest" :itineraryId="itineraryId" @destination-updated="handleDestinationUpdate"/>
     </div>
     <div class = "maps">
-      <GoogleMaps :selectedPlace= "selectedPlace"/>
+      <GoogleMaps ref="googleMaps" :selectedPlace= "selectedPlace" :destination="destination"/>
     </div>
   </div>
 </template>
@@ -24,15 +24,24 @@ export default {
   },
   data() {
     return {
-      selectedPlace: null
+      selectedPlace: null,
+      destination: null,
     };
   },
   methods: {
-    handlePlaceSelection(place) {
-      this.selectedPlace = place;
+    // handlePlaceSelection(place) {
+    //   this.selectedPlace = place;
+    // }
+
+    handleRouteRequest(route) {
+        this.$refs.googleMaps.displayRoute(route.originLat, route.originLng, route.destLat, route.destLng);
+      },
+
+    handleDestinationUpdate(newDestination) {
+          this.destination = newDestination;
+      }
     }
   }
-};
 </script>
 
 <style scoped>
