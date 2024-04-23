@@ -13,15 +13,4 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  server: {
-    proxy: {
-      // Proxy API requests to Google Maps Directions API
-      '/api': {
-        target: 'https://maps.googleapis.com/maps/api/directions',
-        changeOrigin: true, // Needed for virtual hosted sites
-        rewrite: (path) => path.replace(/^\/api/, ''),
-        secure: false // Set to true if you're on HTTPS
-      }
-    }
-  }
 })
