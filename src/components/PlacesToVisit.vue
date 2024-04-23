@@ -491,16 +491,20 @@ export default {
       const driving = await fetchDirections("driving");
       const walking = await fetchDirections("walking");
 
-      return {
-        distance: driving.distance, // Assume distance is the same for both modes
-        durationDriving: driving.duration,
-        durationWalking: walking.duration,
-        directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
-        originLat: origin.latitude,
-        originLng: origin.longitude,
-        DestinationLat: destination.latitude,
-        DestinationLng: destination.longitude,
-      };
+      if (driving && walking) {
+        return {
+          distance: driving.distance, // Assume distance is the same for both modes
+          durationDriving: driving.duration,
+          durationWalking: walking.duration,
+          directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
+          originLat: origin.latitude,
+          originLng: origin.longitude,
+          DestinationLat: destination.latitude,
+          DestinationLng: destination.longitude,
+        };
+      } else {
+        return  { distance: "N/A", durationDriving: "N/A", durationWalking: "N/A"};
+      }
     },
 
     emitRoute(originLat, originLng, destLat, destLng) {
