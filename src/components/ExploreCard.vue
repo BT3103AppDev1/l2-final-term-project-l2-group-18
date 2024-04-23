@@ -16,7 +16,8 @@ export default {
     },
     methods: {
         viewCity() {
-            this.$emit('viewCity', this.name);
+            console.log(this.name);
+            this.$router.push({name: 'Community', params: {selectedCountryProp: this.name}} );
         }
     }
 }

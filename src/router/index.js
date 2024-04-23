@@ -51,9 +51,10 @@ const router = createRouter({
       props:true,
     },
     {
-      path: "/community",
+      path: "/community/:selectedCountryProp?",
       name: "Community",
       component: CommunityView,
+      props:true,
     },
     {
       path: "/about",
