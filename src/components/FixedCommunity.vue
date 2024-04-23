@@ -56,13 +56,11 @@ export default {
 .itinerary-container {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
-  padding-left: 100px;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
 }
 
-.itinerary-wrapper {
-  margin: 10px;
-}
 
 .zoom-effect {
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
