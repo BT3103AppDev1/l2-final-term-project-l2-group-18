@@ -12,6 +12,12 @@
         :size="iconSize"
         @click="toggleDropdownEditTitle"
       />
+      <font-awesome-icon
+        icon="trash"
+        class="delete-icon"
+        :size="iconSize"
+        @click="confirmDeleteItinerary"
+      />
       <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop :style="{ width: edittingDateRange ? '350px' : (edittingTitle ? '300px' : '180px') }">
         <div v-if="!edittingTitle && !edittingDateRange">
           <div @click="editTitle" class="edit_buttons">
@@ -246,6 +252,7 @@ import {
   doc,
   query,
   where,
+  writeBatch
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { faL } from "@fortawesome/free-solid-svg-icons";
@@ -307,6 +314,125 @@ export default {
       const auth = getAuth();
       return auth.currentUser ? auth.currentUser.uid : null;
     },
+
+    confirmDeleteItinerary() {
+    if (confirm("Are you sure you want to delete this itinerary? \n This action cannot be undone.")) {
+      this.deleteItinerary();
+      }
+    },
+
+    async deleteItinerary() {
+      try {
+        console.log("ID", this.itineraryId)
+        await this.deleteItineraryFromFirestore(this.itineraryId);
+        this.$router.push({ name: 'MyItineraries' }); // Redirect to itineraries page
+        alert("Itinerary deleted successfully.");
+      } catch (error) {
+        console.error("Error deleting itinerary:", error);
+        alert("Error! Failed to delete this itinerary.");
+      }
+    },
+
+    async deleteItineraryFromFirestore(itineraryId) {
+      const db = getFirestore(firebaseApp);
+      const batch = writeBatch(db);
+
+      try {
+        // *********    Delete from global_user_itineraries first       ***********
+        const itineraryRef = doc(db, "global_user_itineraries", itineraryId);
+        const itineraryData = (await getDoc(itineraryRef)).data();
+        const destination = itineraryData.destination;
+
+        // Get all days associated with this itinerary
+        const daysRef = collection(itineraryRef, "days");
+        const daysSnapshot = await getDocs(daysRef);
+
+        // Iterate over each day and delete all locations within it
+        for (const dayDoc of daysSnapshot.docs) {
+          console.log("Each Day Document:", dayDoc.id);
+
+          // Reference to the locations subcollection for each day
+          const locationsRef = collection(dayDoc.ref, "locations");
+          const locationsSnapshot = await getDocs(locationsRef);
+
+          // Add each location document to the batch for deletion
+          locationsSnapshot.forEach(locDoc => {
+            console.log("Each day location:", locDoc.id);
+            batch.delete(locDoc.ref); // Schedule each location for deletion
+          });
+
+          // Also schedule the day document for deletion
+          batch.delete(dayDoc.ref);
+        }
+
+        // Finally, schedule the deletion of the itinerary document itself
+        batch.delete(itineraryRef);
+        console.log("Itinerary and all related data deleted successfully for global_user itineraries");
+
+        // *********    Delete from users collection now ***********
+        const usersRef = collection(db, "users");
+        const usersSnapshot = await getDocs(usersRef);
+        for (const userDoc of usersSnapshot.docs) {   // Loop through each user id document
+          const userItinerariesRef = collection(userDoc.ref, "itineraries");
+          const userItinerariesSnapshot = await getDocs(userItinerariesRef);
+
+          for (const userItineraryDoc of userItinerariesSnapshot.docs) {
+            if (userItineraryDoc.id === itineraryId) {
+              batch.delete(userItineraryDoc.ref); // Delete this reference if it matches
+            }
+          }
+        }
+        console.log("Itinerary and all related data deleted successfully for all users who have access originally")
+
+        // *********    Delete from community collection now ***********
+        // Check if the destination country document exists
+        console.log(destination)
+        const countryRef = doc(db, "global_community_itineraries", destination);
+        const countryDoc = await getDoc(countryRef);
+        console.log(countryDoc)
+
+        if (countryDoc.exists()) {
+          const communityItinerariesRef = collection(countryRef, "Itineraries");
+          const specificItineraryRef = doc(communityItinerariesRef, itineraryId);
+          const exists = (await getDoc(specificItineraryRef)).exists();
+
+          if (exists) {
+            const daysRef = collection(specificItineraryRef, "days");
+            const daysSnapshot = await getDocs(daysRef);
+
+            for (const dayDoc of daysSnapshot.docs) {
+              const locationsRef = collection(dayDoc.ref, "locations");
+              const locationsSnapshot = await getDocs(locationsRef);
+              locationsSnapshot.forEach(locationDoc => {
+                batch.delete(locationDoc.ref);
+              });
+              batch.delete(dayDoc.ref);
+            }
+
+            const userVotesRef = collection(specificItineraryRef, "userVotes");
+            const votesSnapshot = await getDocs(userVotesRef);
+            votesSnapshot.forEach(voteDoc => {
+              batch.delete(voteDoc.ref);
+            });
+
+            // Delete the specific itinerary document
+            batch.delete(specificItineraryRef);
+
+            // Check if other itineraries still exist under this country
+            const remainingItineraries = await getDocs(communityItinerariesRef);
+            if (remainingItineraries.empty) {
+              // If no other itineraries, delete the country document
+              batch.delete(countryRef);
+            }
+          }
+        }
+        console.log("Itinerary and all related data deleted successfully for community");
+        // Commit the batch
+        await batch.commit();
+      } catch (error) {
+        console.error("Error during itinerary deletion: ", error)
+      }
+    },  
 
     filteredItineraryData(dayNumber) {
       // Filter for specific day
@@ -1578,6 +1704,16 @@ h3 {
 
 .vue-datepicker-ui .datepicker-date {
   font-size: 10px !important; /* As an example of using !important */
+}
+
+.delete-icon {
+  cursor: pointer;
+  margin-left: 10px; /* Space from the edit icon */
+  color: #0b7407; /* Use a color that signifies a delete action, like a red tone */
+}
+
+.delete-icon:hover {
+  color: #FF4500; /* Darker tone on hover */
 }
 
 
