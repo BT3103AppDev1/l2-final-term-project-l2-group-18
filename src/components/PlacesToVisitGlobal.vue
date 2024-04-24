@@ -8,13 +8,6 @@
     <div class="edit-title-button-container">
       <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop :style="{ width: edittingDateRange ? '350px' : (edittingTitle ? '300px' : '180px') }">
         <div v-if="!edittingTitle && !edittingDateRange">
-          <div @click="editTitle" class="edit_buttons">
-            <font-awesome-icon icon="file" class="edit_icons" /> Edit Title
-          </div>
-          <div @click="editDateRange" class="edit_buttons">
-            <font-awesome-icon icon="calendar" class="edit_icons" /> Edit Date
-            Range
-          </div>
         </div>
         <div v-else-if="edittingTitle">
           <div id="edit_text">Enter New Title:</div>
@@ -26,9 +19,6 @@
               @keyup.enter="changeTitle(new_title)"
               id="new_title_input"
             />
-            <button @click="changeTitle(new_title)" id="confirm_button">
-              Confirm
-            </button>
           </div>
         </div>
         <div v-else-if="edittingDateRange">
@@ -40,9 +30,6 @@
                 placeholder="Pick a Date"
                 range
               />
-            <button @click="changeDateRange(new_dateRange)" id="confirm_button">
-              Confirm
-            </button>
           </div>
         </div>
       </div>
@@ -52,14 +39,38 @@
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
+      <div class="share-button-container">
+        <div v-if="showDropdown" class="dropdown-menu" @click.stop>
+          <div v-if="!sharingToUser">
+            <div @click="enableShareToUser" class="share_buttons_options_to_choose">
+              <font-awesome-icon icon="users" class="share_icons_logos_used_from_lib" id="user-share-icon"/> Share with
+              other Users
+            </div>
+            <div @click="shareToCommunity" class="share_buttons_options_to_choose">
+              <font-awesome-icon icon="globe" class="share_icons_logos_used_from_lib" id="community-share-icon"/> Share with
+              Community
+            </div>
+          </div>
+          <div v-else>
+            <div id="share_users_text">Share with:</div>
+            <div class="input_group">
+              <input
+                type="text"
+                v-model="username"
+                placeholder="Enter username"
+                @keyup.enter="shareToSpecificUser"
+                id="username_input"
+              />
+              <button @click="shareToSpecificUser" id="shareWithUsers_button">
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="days-container" v-for="(day, index) in days" :key="index">
       <div class="days-title-container">
-        <font-awesome-icon
-          icon="calendar"
-          class="fa-regular calendar-icon"
-          :size="iconSize"
-        />
         <h2>Day {{ day }}</h2>
       </div>
 
@@ -70,13 +81,6 @@
             open: showChangeLocationForm,
           }"
         >
-          <ChangeLocationForm
-            @closeForm="showChangeLocationForm = false"
-            @saveLocation="handleChangeDetailsForm"
-            v-if="showChangeLocationForm"
-            :item="this.selectedLocation"
-            :itineraryId="this.itineraryId"
-          />
         </div>
         <div
           class="location-details"
@@ -96,13 +100,20 @@
           </div>
           <div class="location-header">
             <h3>{{ item.location }}</h3>
+            <div>
+              <span
+                class="location-category"
+                :style="{ backgroundColor: getCategoryColor(item.category) }"
+                >{{ item.category }}</span
+              >
+            </div>
           </div>
           <span class="location-description">{{ item.description }}</span>
 
           <div
             v-if="travelTimes[day] && travelTimes[day][index]"
             class="travel-time"
-            @click="
+            @click.stop="
               emitRoute(
                 travelTimes[day][index].originLat,
                 travelTimes[day][index].originLng,
@@ -157,6 +168,7 @@ import ChangeLocationForm from "./ChangeLocationForm.vue";
 import PlacesSearchBar from "./PlacesSearchBar.vue";
 import { ref, onMounted } from "vue";
 import { firebaseApp, auth } from "../firebaseConfig";
+import axios from 'axios';
 import {
   getFirestore,
   collection,
@@ -169,6 +181,7 @@ import {
   doc,
   query,
   where,
+  onSnapshot,
   writeBatch
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -179,9 +192,10 @@ const db = getFirestore(firebaseApp);
 
 export default {
   mounted() {
+    this.fetchData(); // Restored
     document.body.style.backgroundColor = "#e7dcdc";
     document.addEventListener("click", this.handleOutsideClick);
-    this.fetchData();
+    this.setupRealTimeListener();
   },
 
   beforeDestroy() {
@@ -196,7 +210,7 @@ export default {
       showChangeLocationForm: false,
       selectedLocation: {},
       iconSize: "xl",
-      smallIconSize: "s",
+      smallIconSize: "sm",
       days: [],
       itineraryData: [],
       sourceDayArray: [],
@@ -253,12 +267,14 @@ export default {
     async deleteItineraryFromFirestore(itineraryId) {
       const db = getFirestore(firebaseApp);
       const batch = writeBatch(db);
+      let destination = "";
+      let in_community = false;
 
       try {
         // *********    Delete from global_user_itineraries first       ***********
         const itineraryRef = doc(db, "global_user_itineraries", itineraryId);
         const itineraryData = (await getDoc(itineraryRef)).data();
-        const destination = itineraryData.destination;
+        destination = itineraryData.destination;
 
         // Get all days associated with this itinerary
         const daysRef = collection(itineraryRef, "days");
@@ -314,6 +330,7 @@ export default {
           const exists = (await getDoc(specificItineraryRef)).exists();
 
           if (exists) {
+            in_community = true;
             const daysRef = collection(specificItineraryRef, "days");
             const daysSnapshot = await getDocs(daysRef);
 
@@ -335,7 +352,7 @@ export default {
             // Delete the specific itinerary document
             batch.delete(specificItineraryRef);
 
-            // Check if other itineraries still exist under this country
+            
             const remainingItineraries = await getDocs(communityItinerariesRef);
             if (remainingItineraries.empty) {
               // If no other itineraries, delete the country document
@@ -348,6 +365,26 @@ export default {
         await batch.commit();
       } catch (error) {
         console.error("Error during itinerary deletion: ", error)
+      } finally {
+
+        if (in_community === true) {
+          const countryRef = doc(db, "global_community_itineraries", destination);
+          const countryDoc = await getDoc(countryRef);
+
+          // Check if other itineraries still exist under the country for the community
+
+          if (countryDoc.exists()) {
+            const communityItinerariesRef = collection(countryRef, "Itineraries");
+            const remainingItineraries = await getDocs(communityItinerariesRef);
+              if (remainingItineraries.empty) {
+                // If no other itineraries, delete the country document
+                console.log("FINALLY EMPTY")
+                deleteDoc(countryRef)
+              } else {
+                console.log("STILL NOT EMPTY")
+              }
+          }
+        }
       }
     },  
 
@@ -379,22 +416,20 @@ export default {
     },
 
     async getTravelTime(origin, destination) {
-      // USED A PROXY here as will get CORS issue so need to modify vite.config.js
+      axios.defaults.baseURL = "https://fierce-sands-18810-300a8a84ddec.herokuapp.com";
 
-      // I set to consider current traffic conditions as well
       const fetchDirections = async (mode) => {
-        const directionsUrl = `/api/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=${mode}&departure_time=now&key=AIzaSyDIFDYXIzGzLEUHwn_y72B2g7qiB2yR1g8`;
+        const directionsUrl = `/api/directions?originLat=${origin.latitude}&originLng=${origin.longitude}&destLat=${destination.latitude}&destLng=${destination.longitude}&mode=${mode}`;
 
         try {
-          const result = await fetch(directionsUrl);
-          const data = await result.json();
+          const result = await axios.get(directionsUrl);
+          const data = result.data;
           if (data.routes.length > 0) {
             const route = data.routes[0];
             const leg = route.legs[0];
             return {
               distance: leg.distance.text,
               duration: leg.duration.text, // This includes traffic delays
-              // directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
             };
           }
         } catch (error) {
@@ -407,22 +442,27 @@ export default {
       const driving = await fetchDirections("driving");
       const walking = await fetchDirections("walking");
 
-      return {
-        distance: driving.distance, // Assume distance is the same for both modes
-        durationDriving: driving.duration,
-        durationWalking: walking.duration,
-        directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
-        originLat: origin.latitude,
-        originLng: origin.longitude,
-        DestinationLat: destination.latitude,
-        DestinationLng: destination.longitude,
-      };
+      if (driving && walking) {
+        return {
+          distance: driving.distance, // Assume distance is the same for both modes
+          durationDriving: driving.duration,
+          durationWalking: walking.duration,
+          directionsLink: `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving`,
+          originLat: origin.latitude,
+          originLng: origin.longitude,
+          DestinationLat: destination.latitude,
+          DestinationLng: destination.longitude,
+        };
+      } else {
+        return  { distance: "N/A", durationDriving: "N/A", durationWalking: "N/A"};
+      }
     },
 
     emitRoute(originLat, originLng, destLat, destLng) {
       this.$emit("route-requested", { originLat, originLng, destLat, destLng });
     },
 
+    // Deprecated
     async fetchData() {
       // Reset travelTimes
       this.travelTimes = {};
@@ -522,6 +562,54 @@ export default {
       } catch (error) {
         console.error("Error fetching itinerary data: ", error);
       }
+    },
+
+    setupRealTimeListener() {
+      const itineraryId = this.itineraryId;
+      const db = getFirestore(firebaseApp);
+
+      // Listening to changes in the itinerary header
+      const itineraryDocRef = doc(db, "global_user_itineraries", itineraryId);
+      onSnapshot(itineraryDocRef, (doc) => {
+        const data = doc.data();
+        const options = { year: "numeric", month: "short", day: "2-digit" };
+        this.title = data.title;
+        this.destination = data.destination;
+        this.$emit('destination-updated', this.destination);
+        this.imageURL = data.imageURL;
+        this.startDate = new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB", options);
+        this.endDate = new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB", options);
+      });
+
+      // Listening to changes in the days and locations
+      const daysRef = collection(db, "global_user_itineraries", itineraryId, "days");
+      onSnapshot(daysRef, (snapshot) => {
+        let newDays = [];
+        snapshot.forEach((dayDoc) => {
+          const dayNumber = dayDoc.data().day;
+          newDays.push(dayNumber);
+
+          // Listen to changes in locations under each day
+          const locationsRef = collection(db, "global_user_itineraries", itineraryId, "days", dayDoc.id, "locations");
+          onSnapshot(locationsRef, (locSnapshot) => {
+            let locations = this.itineraryData.filter(loc => loc.dayid !== dayDoc.id); // Clear previous day's locations
+            locSnapshot.forEach((locDoc) => {
+              const locData = locDoc.data();
+              locations.push({
+                ...locData,
+                dayid: dayDoc.id,
+                locid: locDoc.id,
+                latitude: locData.latitude,
+                longitude: locData.longitude,
+                order: locData.order
+              });
+            });
+            this.itineraryData = locations;
+            this.fetchTravelTimesForDay(dayNumber); // Double check if functioning
+          });
+        });
+        this.days = newDays.sort((a, b) => a - b);
+      });
     },
 
     dragStart(event, index, day) {
@@ -1317,14 +1405,14 @@ h3 {
   /* Slide sidebar into view */
 }
 
-.share-icon {
+.share_icon_overall {
   cursor: pointer;
   margin-left: 10px;
   color: #646464;
   margin-right: 1rem;
 }
 
-.share-icon:hover {
+.share_icon_overall:hover {
   color: #0d6efd;
 }
 
@@ -1340,7 +1428,7 @@ h3 {
 }
 
 .dropdown-menu div {
-  padding: 5px;
+  padding: 4px;
   cursor: pointer;
   font-size: 14px;
   color: #333;
@@ -1353,13 +1441,13 @@ h3 {
   border-bottom: none;
 }
 
-.share_buttons:hover {
+.share_buttons_options_to_choose:hover {
   background-color: #0d6efd;
   color: white;
   border-radius: 5px;
 }
 
-.share_icons {
+.share_icons_logos_used_from_lib {
   cursor: pointer;
   margin-right: 5px;
 }
@@ -1533,7 +1621,7 @@ h3 {
   width: 330px;
   z-index: 100;
   position: absolute;
-  transform: translateX(-90%);
+  transform: translateX(-75%);
   margin-top: 0.3rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -1569,6 +1657,7 @@ h3 {
   width: 100%; /* Ensure the group takes full width */
   padding-bottom: 2px; /* Spacing from the label above */
   margin-bottom: 0px;
+  margin-right: 0px;
 }
 
 #new_title_input {
