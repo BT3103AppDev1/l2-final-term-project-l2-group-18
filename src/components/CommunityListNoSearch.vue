@@ -112,27 +112,26 @@ export default {
             const userRef = doc(db, "users", userId);
             console.log(userRef);
             const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-              const userData = userSnap.data();
-              return {
-                id: docSnap.id,
-                destination: data.destination,
-                imageURL: data.imageURL,
-                title: data.title,
-                votes: data.votes,
-                userId: userId,
-                username: userData.username,
-                photoURL: userData.photoURL,
-              };
+            const userData = userSnap.data();
+            console.log(userData);
+            const formattedItinerary = {
+              id: document.id,
+              title: data.title,
+              destination: data.destination,
+              startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB"),
+              endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
+              votes: data.votes,
+              imageURL: data.imageURL,
+              photoURL: userData.photoURL,
+              username: userData.username
+            };
+            if (!itinerariesNew.some(itinerary => itinerary.id === formattedItinerary.id)) {
+              itinerariesNew.push(formattedItinerary);
             }
-          }
-          return null;
-        });
-
-        const itinerariesWithUsers = await Promise.all(itinerariesWithUsersPromises);
-        this.itineraries = itinerariesWithUsers.filter(itinerary => itinerary !== null);  // Filter out nulls
-        console.log("itineraries", this.itineraries);
-        console.log("Fetch success");
+          });
+        }
+        this.itineraries = itinerariesNew;
+        console.log("All itineraries fetched:", this.itineraries);
       } catch (error) {
         console.error("Error fetching itineraries:", error);
       }
