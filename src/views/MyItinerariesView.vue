@@ -2,7 +2,7 @@
     <NavBar />
       <div class="my-itineraries-page">
         <h2>Your Itineraries</h2>
-        <ItineraryList type="personal"/>
+        <ItineraryList />
         <SearchLocation />
   
       </div>

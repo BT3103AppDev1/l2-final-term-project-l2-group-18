@@ -17,14 +17,13 @@
 <script>
 import ItineraryCard from './ItineraryCard.vue';
 import {mapGetters, mapActions } from "vuex";
-import { doc, getDoc, getDocs, addDoc, getFirestore, collection, QuerySnapshot } from "firebase/firestore";
+import { doc, getDoc, getDocs, addDoc, getFirestore, collection, QuerySnapshot, onSnapshot } from "firebase/firestore";
 
 export default {
     components: {
         ItineraryCard
     },
     props: {
-        type: String, //Personal or Community
         limit: {
             type: Number,
             default: Infinity
@@ -39,18 +38,12 @@ export default {
     data() {
         return {
             itineraries: [
-                
+
             ]
         }
     },
     methods: {
-        fetchItineraries() {
-            if (this.type == "personal") {
-                this.fetchPersonalItineraries();
-            } else {
-                this.fetchCommunityItineraries();
-            }
-        },
+        // Deprecated
         async fetchPersonalItineraries() {
             const userId = this.userUID;
             try {
@@ -83,12 +76,37 @@ export default {
                 console.error("Error fetching itineraries:", error);
             }
         },
-        fetchCommunityItineraries() {
 
-        }
+        setupPersonalItinerariesListener() {
+            const userId = this.userUID;
+            const itinerariesRef = collection(getFirestore(), "users", userId, "itineraries");
+            onSnapshot(itinerariesRef, async (snapshot) => {
+                const itineraryPromises = snapshot.docs.map((document) =>
+                    doc(getFirestore(), "global_user_itineraries", document.id)
+                );
+                const itineraryDocs = await Promise.all(itineraryPromises.map(ref => getDoc(ref)));
+                this.itineraries = itineraryDocs.map(docSnap => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const options = { year: 'numeric', month: 'short', day: '2-digit' };
+                        return {
+                            id: docSnap.id,
+                            startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString('en-GB', options),
+                            endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString('en-GB', options),
+                            destination: data.destination,
+                            imageURL: data.imageURL,
+                            title: data.title
+                        };
+                    } else {
+                        console.log("No document!");
+                        return null;
+                    }
+                }).filter(itinerary => itinerary !== null);
+            });
+        },
     },
     created() {
-        this.fetchItineraries();
+        this.setupPersonalItinerariesListener();
     }
 }
 </script>

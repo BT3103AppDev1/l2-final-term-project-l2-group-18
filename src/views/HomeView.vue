@@ -2,7 +2,6 @@
   <NavBar />
     <div class="home-page">
       <Explore />
-      <ItineraryList type="community" limit="4"/>
       <h1 class="recent-itineraries">Your Recent Itineraries</h1>
       <ItineraryList type="personal" limit="4"/>
       <SearchLocation />
