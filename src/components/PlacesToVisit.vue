@@ -73,12 +73,12 @@
         />
         <div v-if="showDropdown" class="dropdown-menu" @click.stop>
           <div v-if="!sharingToUser">
-            <div @click="enableShareToUser" class="share_buttons">
-              <font-awesome-icon icon="users" class="share_icons" id="user-share-icon"/> Share with
+            <div @click="enableShareToUser" class="share_buttons_options_to_choose">
+              <font-awesome-icon icon="users" class="share_icons_logos_used_from_lib" id="user-share-icon"/> Share with
               other Users
             </div>
-            <div @click="shareToCommunity" class="share_buttons">
-              <font-awesome-icon icon="globe" class="share_icons" id="community-share-icon"/> Share with
+            <div @click="shareToCommunity" class="share_buttons_options_to_choose">
+              <font-awesome-icon icon="globe" class="share_icons_logos_used_from_lib" id="community-share-icon"/> Share with
               Community
             </div>
           </div>
@@ -1490,13 +1490,13 @@ h3 {
   border-bottom: none;
 }
 
-.share_buttons:hover {
+.share_buttons_options_to_choose:hover {
   background-color: #0d6efd;
   color: white;
   border-radius: 5px;
 }
 
-.share_icons {
+.share_icons_logos_used_from_lib {
   cursor: pointer;
   margin-right: 5px;
 }
