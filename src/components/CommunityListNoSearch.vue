@@ -1,7 +1,7 @@
 <template>
   <div class="trips container">
     <div class="cards">
-      <!-- <CommunityCard
+    <CommunityCard
         v-for="itinerary in itineraries"
         :key="itinerary.id"
         :itineraryId="itinerary.id"
@@ -12,10 +12,7 @@
         :name="itinerary.username"
         :votes="itinerary.votes"
         @vote="handleVote"
-    /> -->
-      <CommunityCard :key="itinerary.id" :itineraryId="itinerary.id" :country="itinerary.destination"
-        :title="itinerary.title" :itineraryPic="itinerary.imageURL" :profilePic="itinerary.photoURL"
-        :name="itinerary.username" :votes="itinerary.votes" @vote="handleVote" />
+    />
     </div>
   </div>
 </template>
@@ -45,11 +42,9 @@ export default {
     CommunityCard,
   },
   props: {
-    // type: String, //Personal or Community
-    // country: String,
-    // itineraryId: String,
-    itinerary: Object,
-
+    type: String, //Personal or Community
+    country: String,
+    itineraryId: String,
   },
   data() {
     return {
@@ -77,7 +72,7 @@ export default {
         await runTransaction(db, async (transaction) => {
           const userVoteRef = doc(itineraryRef, "userVotes", userId);
           const userVoteDoc = await transaction.get(userVoteRef);
-
+          
           if (userVoteDoc.data().voted == false) {
             transaction.set(userVoteRef, { voted: true });
             transaction.update(itineraryRef, {
@@ -170,4 +165,5 @@ export default {
   justify-content: center;
   gap: 20px;
 }
+
 </style>

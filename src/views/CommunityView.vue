@@ -21,7 +21,6 @@
 import NavBar from "../components/NavBar.vue";
 import CommunitySearch from "../components/CommunitySearch.vue";
 import CommunityList from "../components/CommunityList.vue";
-import FixedCommunity from "../components/FixedCommunity.vue";
 import CommunityListNoSearch from "@/components/CommunityListNoSearch.vue";
 
 export default {
@@ -31,7 +30,6 @@ export default {
     NavBar,
     CommunitySearch,
     CommunityList,
-    FixedCommunity,
     CommunityListNoSearch
   },
     data() {
