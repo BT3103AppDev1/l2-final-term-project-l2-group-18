@@ -5,6 +5,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  sendEmailVerification
 } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc, getFirestore } from "firebase/firestore";
 
@@ -60,8 +61,17 @@ export default {
           email,
           password
         );
-
         console.log("Account created successfully", userCredentials.user.username);
+
+        // Send an email verification to the newly created user
+        await sendEmailVerification(userCredentials.user)
+        .then(() => {
+          console.log("Verification email sent.");
+        })
+        .catch((verificationError) => {
+          console.error("Failed to send verification email:", verificationError);
+        });
+
         await setDoc(doc(getFirestore(), "users", userCredentials.user.uid), {
           username,
           email,
@@ -109,6 +119,19 @@ export default {
           email,
           password
         );
+
+      //   const user = userCredential.user;
+      //   if (user.emailVerified) {
+      //     // Proceed with the login
+      //     this.$router.push('/home');
+      //   } else {
+      //     // Handle the case where the email is not verified
+      //     this.loginError = "Please verify your email address to proceed.";
+      //     // Optionally, provide an option to resend the verification email
+      //   }
+      // } catch (error) {
+      //   this.loginError = error.message;
+      // }
 
         commit("SET_LOGGED_IN", true);
 
