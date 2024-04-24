@@ -52,13 +52,13 @@ export default {
       selectedItinerary: null,
     };
   },
-  watch: {
-    country(newCountry, oldCountry) {
-      if (newCountry !== oldCountry) {
-        this.fetchItineraries(newCountry);
-      }
-    },
-  },
+  // watch: {
+  //   country(newCountry, oldCountry) {
+  //     if (newCountry !== oldCountry) {
+  //       this.fetchItineraries(newCountry);
+  //     }
+  //   },
+  // },
   methods: {
     getCurrentUserId() {
       const auth = getAuth();
@@ -95,52 +95,49 @@ export default {
     showItinerary(itinerary) {
       this.$emit('show-itinerary', itinerary);
     },
-    async fetchItineraries(country) {
+    async fetchItineraries() {
       const db = getFirestore();
-      this.itineraries = [];
       try {
-        const itinerariesRef = collection(db, "global_community_itineraries", country, "Itineraries");
-        const communityItinerariesSnapshot = await getDocs(itinerariesRef);
-
-        const uniqueItineraryIds = new Set(); 
-        const itinerariesWithUsersPromises = communityItinerariesSnapshot.docs.map(async (docSnap) => {
-          const data = docSnap.data();
-          if (docSnap.exists() && !uniqueItineraryIds.has(docSnap.itineraryId)) {
-            uniqueItineraryIds.add(docSnap.id);
+        const countriesRef = collection(db, "global_community_itineraries");
+        const countriesSnapshot = await getDocs(countriesRef);
+        const itinerariesNew = [];
+        for (const countryDoc of countriesSnapshot.docs) {
+          const itinerariesRef = collection(countryDoc.ref, "Itineraries");
+          const itinerariesSnapshot = await getDocs(itinerariesRef);
+          itinerariesSnapshot.forEach(async document => {
+            const data = document.data();
             const userId = data.userId;
+            console.log(userId);
             const userRef = doc(db, "users", userId);
+            console.log(userRef);
             const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-              const userData = userSnap.data();
-              return {
-                id: docSnap.id,
-                destination: data.destination,
-                imageURL: data.imageURL,
-                title: data.title,
-                votes: data.votes,
-                userId: data.userId,
-                username: userData.username,
-                photoURL: userData.photoURL,
-              };
+            const userData = userSnap.data();
+            console.log(userData);
+            const formattedItinerary = {
+              id: document.id,
+              title: data.title,
+              destination: data.destination,
+              startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB"),
+              endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
+              votes: data.votes,
+              imageURL: data.imageURL,
+              photoURL: userData.photoURL,
+            };
+            if (!itinerariesNew.some(itinerary => itinerary.id === formattedItinerary.id)) {
+              itinerariesNew.push(formattedItinerary);
             }
-          }
-          return null;
-        });
-
-        const itinerariesWithUsers = await Promise.all(itinerariesWithUsersPromises);
-        this.itineraries = itinerariesWithUsers.filter(itinerary => itinerary !== null);  // Filter out nulls
-        console.log("itineraries", this.itineraries);
-        console.log("Fetch success");
+          });
+        }
+        this.itineraries = itinerariesNew;
+        console.log("All itineraries fetched:", this.itineraries);
       } catch (error) {
         console.error("Error fetching itineraries:", error);
       }
-    }
+    },
 
   },
-  created() {
-    if (this.country) {
-      this.fetchItineraries(this.country);
-    }
+  mounted() {
+    this.fetchItineraries();
   },
   showItinerary(itinerary) {
     this.$emit('show-itinerary', itinerary);

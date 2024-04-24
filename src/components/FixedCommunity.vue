@@ -1,7 +1,7 @@
 <template>
   <div class="itinerary-container">
-    <div v-for="(itinerary, index) in fetchedItineraries" :key="index" class="itinerary-wrapper">
-      <CommunityListNoSearch :type="'Community'" :country="itinerary.destination" :itineraryId="itinerary.id"/>
+    <div v-for="(country) in fetchedCountries" :key="index" class="itinerary-wrapper">
+      <CommunityListNoSearch :type="'Community'" :country="country.id"/>
     </div>
   </div>
 </template>
@@ -25,40 +25,37 @@ export default {
   },
   data() {
     return {
-      fetchedItineraries: []
+      fetchedCountries: []
     };
   },
   async mounted() {
-    await this.fetchItineraries();
+    await this.fetchCountries();
   },
   methods: {
-    async fetchItineraries() {
+    async fetchCountries() {
       const db = getFirestore(firebaseApp);
       try {
         const countriesRef = collection(db, "global_community_itineraries");
         const countriesSnapshot = await getDocs(countriesRef);
+        const countryList = []; // Array to hold country data for display
+
         for (const countryDoc of countriesSnapshot.docs) {
-          const itinerariesRef = collection(countryDoc.ref, "Itineraries");
-          const itinerariesSnapshot = await getDocs(itinerariesRef);
-          itinerariesSnapshot.forEach(doc => {
-            const data = doc.data();
-            const formattedItinerary = {
-              id: doc.id,
-              title: data.title,
-              destination: data.destination,
-              startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB"),
-              endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
-              votes: data.votes,
-              imageURL: data.imageURL
-            };
-            if (!this.fetchedItineraries.some(itinerary => itinerary.id === formattedItinerary.id)) {
-              this.fetchedItineraries.push(formattedItinerary);
-            }
-          });
+          const data = countryDoc.data();
+          const countryData = {
+            id: countryDoc.id,
+            name: data.name, // Assuming each country document has a 'name' field
+            imageURL: data.imageURL, // Assuming there's an image URL for each country
+            itineraryCount: data.itineraryCount // Assuming a count of itineraries is stored
+          };
+
+          console.log("Adding", countryData);
+          countryList.push(countryData);
         }
-        console.log("All itineraries fetched:", this.fetchedItineraries);
+
+        this.fetchedCountries = countryList; // Update the component's data property
+        this.fetchedCountries.forEach(country => console.log(country));
       } catch (error) {
-        console.error("Error fetching itineraries:", error);
+        console.error("Error fetching countries:", error);
       }
     }
   }
