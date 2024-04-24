@@ -52,13 +52,13 @@ export default {
       selectedItinerary: null,
     };
   },
-  // watch: {
-  //   country(newCountry, oldCountry) {
-  //     if (newCountry !== oldCountry) {
-  //       this.fetchItineraries(newCountry);
-  //     }
-  //   },
-  // },
+  watch: {
+    country(newCountry, oldCountry) {
+      if (newCountry !== oldCountry) {
+        this.fetchItineraries(newCountry);
+      }
+    },
+  },
   methods: {
     getCurrentUserId() {
       const auth = getAuth();
