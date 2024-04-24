@@ -1,22 +1,23 @@
 <template>
-  <button class="close-button" @click="closeForm()">X</button>
-  <h1>Add New Location</h1>
+  <div class = page-background>
+  <button class="close-button" @click="closeForm()" aria-label="Close Form">X</button>
+  <h1><i class="fa fa-map-marker-alt"></i>Add New Location</h1>
   <form @submit.prevent="saveLocation">
-    <label for="location">Select Location</label>
+    <label for="location"><i class="fas fa-compass"></i>Select Location</label>
     <PlacesSearchBar
       ref="placesSearchBar"
       @place-selected="handlePlaceSelection"
     />
 
     <!-- <input class="location" v-model="formData.location" type="text" placeholder="Enter Location Title" required /> -->
-    <label for="description">Description</label>
+    <label for="description"><i class="fas fa-align-left"></i>Description</label>
     <textarea
       class="description"
       v-model="formData.description"
       placeholder="Enter Description"
       required
     ></textarea>
-    <label for="category">Category</label>
+    <label for="category"><i class="fas fa-layer-group"></i>Category</label>
     <select
       name="category"
       class="category"
@@ -34,8 +35,9 @@
       <option value="Religious Site">Religious Site</option>
       <option value="Others">Others</option>
     </select>
-    <button type="submit" class="save-button">Save</button>
+    <button type="submit" class="save-button"><i class="fa fa-save"></i>Save</button>
   </form>
+</div>
 </template>
 
 <script>
@@ -135,8 +137,7 @@ export default {
           placeId: this.formData.placeId, // placeId for Places API
         });
 
-        window.alert("Location added successfully to the day!");
-
+        console.log("Location added successfully!")
         this.$emit("saveLocation");
         this.$store.dispatch('locations/clearTempLocation'); // Clear temp marker when location is saved
         // Reset form data
@@ -196,9 +197,9 @@ export default {
 
 <style scoped>
 h1 {
-  text-align: left;
+  text-align: center;
   margin-top: 2rem;
-  padding-left: 3rem;
+  padding-left: 0;
 }
 
 .form-container {
@@ -208,11 +209,13 @@ h1 {
 form {
   margin-top: -3rem;
   padding: 4rem;
+  
+  
 }
 
 .close-button {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   background-color: #808080;
   color: #fff;
@@ -229,6 +232,8 @@ label {
   font-weight: bold;
   font-size: 20px;
   margin-bottom: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 
 input {
@@ -279,7 +284,7 @@ option {
   color: black;
 }
 
-.save-button {
+/* .save-button {
   width: 120px;
   padding: 0.5rem;
   background-color: #ff5b5b;
@@ -288,5 +293,54 @@ option {
   border-radius: 4px;
   cursor: pointer;
   display: block;
+  margin-left: 1rem;
+} */
+
+.save-button {
+  display: flex;
+  align-items: left;
+  justify-content: center;
+  background-color: #ff5b5b;
+  cursor: pointer;
+  border-radius: 8px;
+  color: #fff;
+  width: auto; /* Allow button to fit content */
+  padding: 0.5rem 1rem; /* Increase padding for visual balance */
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  margin-left: auto; /* Center the button horizontally */
+  margin-right: auto;
+  font-size: 0.8rem;
 }
+
+.save-button i {
+  margin-right: 8px; /* Space between icon and text */
+  padding-top: 1px;
+}
+
+.page-background {
+  background-color: #f7f1ffdb; 
+  min-height: 100vh; /* Ensures it covers the full height of the viewport */
+  padding: 20px;
+}
+
+.fa-map-marker-alt { /* This class name depends on the icon you choose */
+  margin-right: 20px; /* Space between icon and text */
+  color: #ff5b5b; /* Icon color to match the save button or any color you prefer */
+}
+
+.close-button:hover, .save-button:hover {
+  opacity: 0.8; /* Slight transparency on hover */
+}
+
+.close-button:focus, .save-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ff5b5b; /* Adding an outline when focused */
+}
+
+label i {
+  margin-right: 10px;
+  color: #114c5d; /* Adjust color as needed */
+}
+
 </style>
