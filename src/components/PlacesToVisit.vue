@@ -179,7 +179,7 @@
           <div
             v-if="travelTimes[day] && travelTimes[day][index]"
             class="travel-time"
-            @click="
+            @click.stop="
               emitRoute(
                 travelTimes[day][index].originLat,
                 travelTimes[day][index].originLng,
