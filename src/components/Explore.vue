@@ -53,12 +53,6 @@ export default {
 </script>
 
 <style>
-.explore-section{
-    position: relative;
-    width: 100%;
-    padding: 80px 10vw;
-    color: #fff;
-}
 
 .section-title{
     font-size: 40px;
@@ -86,7 +80,8 @@ export default {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    grid-gap: 20px;
+    grid-row-gap: 4%;
+    grid-column-gap: 2%;
     margin-top: 10px;
 }
 

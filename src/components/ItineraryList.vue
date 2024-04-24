@@ -121,7 +121,7 @@ export default {
 .cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: left;
+  justify-content: center;
   gap: 20px;
 }
 </style>
