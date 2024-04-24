@@ -99,7 +99,7 @@ export default {
       const db = getFirestore();
       this.itineraries = []; // Clear the previous itineraries.
       try {
-        const itinerariesRef = collection(db, "global_community_itineraries", selectedCountry, "Itineraries");
+        const itinerariesRef = collection(db, "global_community_itineraries", selectedCountry, "Itineraries" );
         const communityItinerariesSnapshot = await getDocs(itinerariesRef);
 
         // Use 'Promise.all' to wait for all async operations within 'map' to complete.

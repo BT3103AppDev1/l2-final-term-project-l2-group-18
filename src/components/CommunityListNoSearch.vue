@@ -1,7 +1,7 @@
 <template>
   <div class="trips container">
     <div class="cards">
-    <CommunityCard
+      <!-- <CommunityCard
         v-for="itinerary in itineraries"
         :key="itinerary.id"
         :itineraryId="itinerary.id"
@@ -12,7 +12,10 @@
         :name="itinerary.username"
         :votes="itinerary.votes"
         @vote="handleVote"
-    />
+    /> -->
+      <CommunityCard :key="itinerary.id" :itineraryId="itinerary.id" :country="itinerary.destination"
+        :title="itinerary.title" :itineraryPic="itinerary.imageURL" :profilePic="itinerary.photoURL"
+        :name="itinerary.username" :votes="itinerary.votes" @vote="handleVote" />
     </div>
   </div>
 </template>
@@ -42,9 +45,11 @@ export default {
     CommunityCard,
   },
   props: {
-    type: String, //Personal or Community
-    country: String,
-    itineraryId: String,
+    // type: String, //Personal or Community
+    // country: String,
+    // itineraryId: String,
+    itinerary: Object,
+
   },
   data() {
     return {
@@ -72,7 +77,7 @@ export default {
         await runTransaction(db, async (transaction) => {
           const userVoteRef = doc(itineraryRef, "userVotes", userId);
           const userVoteDoc = await transaction.get(userVoteRef);
-          
+
           if (userVoteDoc.data().voted == false) {
             transaction.set(userVoteRef, { voted: true });
             transaction.update(itineraryRef, {
@@ -95,49 +100,55 @@ export default {
     showItinerary(itinerary) {
       this.$emit('show-itinerary', itinerary);
     },
-    async fetchItineraries() {
+    async fetchItineraries(country) {
+      console.log("in fetchItineraries")
       const db = getFirestore();
       try {
-        const countriesRef = collection(db, "global_community_itineraries");
-        const countriesSnapshot = await getDocs(countriesRef);
-        const itinerariesNew = [];
-        for (const countryDoc of countriesSnapshot.docs) {
-          const itinerariesRef = collection(countryDoc.ref, "Itineraries");
-          const itinerariesSnapshot = await getDocs(itinerariesRef);
-          itinerariesSnapshot.forEach(async document => {
-            const data = document.data();
+        const itinerariesRef = collection(db, "global_community_itineraries", country, "Itineraries");
+        const communityItinerariesSnapshot = await getDocs(itinerariesRef);
+
+        const uniqueItineraryIds = new Set();
+        const itinerariesWithUsersPromises = communityItinerariesSnapshot.docs.map(async (docSnap) => {
+          const data = docSnap.data();
+          if (docSnap.exists() && !uniqueItineraryIds.has(docSnap.id)) {
+            uniqueItineraryIds.add(docSnap.id);
             const userId = data.userId;
             console.log(userId);
             const userRef = doc(db, "users", userId);
             console.log(userRef);
             const userSnap = await getDoc(userRef);
-            const userData = userSnap.data();
-            console.log(userData);
-            const formattedItinerary = {
-              id: document.id,
-              title: data.title,
-              destination: data.destination,
-              startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB"),
-              endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
-              votes: data.votes,
-              imageURL: data.imageURL,
-              photoURL: userData.photoURL,
-            };
-            if (!itinerariesNew.some(itinerary => itinerary.id === formattedItinerary.id)) {
-              itinerariesNew.push(formattedItinerary);
+            if (userSnap.exists()) {
+              const userData = userSnap.data();
+              return {
+                id: docSnap.id,
+                destination: data.destination,
+                imageURL: data.imageURL,
+                title: data.title,
+                votes: data.votes,
+                userId: userId,
+                username: userData.username,
+                photoURL: userData.photoURL,
+              };
             }
-          });
-        }
-        this.itineraries = itinerariesNew;
-        console.log("All itineraries fetched:", this.itineraries);
+          }
+          return null;
+        });
+
+        const itinerariesWithUsers = await Promise.all(itinerariesWithUsersPromises);
+        this.itineraries = itinerariesWithUsers.filter(itinerary => itinerary !== null);  // Filter out nulls
+        console.log("itineraries", this.itineraries);
+        console.log("Fetch success");
       } catch (error) {
         console.error("Error fetching itineraries:", error);
       }
     },
 
   },
-  mounted() {
-    this.fetchItineraries();
+  created() {
+    if (this.country) {
+      console.log("in created() for the country:", this.country)
+      this.fetchItineraries(this.country);
+    }
   },
   showItinerary(itinerary) {
     this.$emit('show-itinerary', itinerary);
@@ -159,6 +170,4 @@ export default {
   justify-content: center;
   gap: 20px;
 }
-
 </style>
-
