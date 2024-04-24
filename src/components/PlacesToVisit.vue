@@ -339,12 +339,14 @@ export default {
     async deleteItineraryFromFirestore(itineraryId) {
       const db = getFirestore(firebaseApp);
       const batch = writeBatch(db);
+      let destination = "";
+      let in_community = false;
 
       try {
         // *********    Delete from global_user_itineraries first       ***********
         const itineraryRef = doc(db, "global_user_itineraries", itineraryId);
         const itineraryData = (await getDoc(itineraryRef)).data();
-        const destination = itineraryData.destination;
+        destination = itineraryData.destination;
 
         // Get all days associated with this itinerary
         const daysRef = collection(itineraryRef, "days");
@@ -400,6 +402,7 @@ export default {
           const exists = (await getDoc(specificItineraryRef)).exists();
 
           if (exists) {
+            in_community = true;
             const daysRef = collection(specificItineraryRef, "days");
             const daysSnapshot = await getDocs(daysRef);
 
@@ -421,7 +424,7 @@ export default {
             // Delete the specific itinerary document
             batch.delete(specificItineraryRef);
 
-            // Check if other itineraries still exist under this country
+            
             const remainingItineraries = await getDocs(communityItinerariesRef);
             if (remainingItineraries.empty) {
               // If no other itineraries, delete the country document
@@ -434,6 +437,26 @@ export default {
         await batch.commit();
       } catch (error) {
         console.error("Error during itinerary deletion: ", error)
+      } finally {
+
+        if (in_community === true) {
+          const countryRef = doc(db, "global_community_itineraries", destination);
+          const countryDoc = await getDoc(countryRef);
+
+          // Check if other itineraries still exist under the country for the community
+
+          if (countryDoc.exists()) {
+            const communityItinerariesRef = collection(countryRef, "Itineraries");
+            const remainingItineraries = await getDocs(communityItinerariesRef);
+              if (remainingItineraries.empty) {
+                // If no other itineraries, delete the country document
+                console.log("FINALLY EMPTY")
+                deleteDoc(countryRef)
+              } else {
+                console.log("STILL NOT EMPTY")
+              }
+          }
+        }
       }
     },  
 
