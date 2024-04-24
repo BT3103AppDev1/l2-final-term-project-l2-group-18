@@ -84,7 +84,7 @@ export default {
           }
         });
         console.log('Transaction successfully committed!');
-        this.fetchItineraries(this.country);
+        this.fetchItineraries();
       } catch (error) {
         console.error('Transaction failed: ', error);
         if (error.message === 'You have already voted!') {

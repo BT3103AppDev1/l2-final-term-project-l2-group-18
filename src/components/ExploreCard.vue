@@ -54,12 +54,21 @@ export default {
 .tour-name {
     font-weight: 300;
     color:white;
+    margin:0;
+    padding:0;
 }
 
 .tour-action {
-    margin-left: 20px;
     font-size: 14px;
     position: relative;
     color:white;
+}
+
+.tour-body {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.404);
+    color: white;
+    text-align: left;
 }
 </style>
