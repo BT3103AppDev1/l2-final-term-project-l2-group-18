@@ -10,6 +10,8 @@ import AboutView from "../views/AboutView.vue";
 import ProfileView from "../views/ProfileView.vue";
 import MyItinerariesView from "@/views/MyItinerariesView.vue";
 import GlobalItinerariesView from "@/views/GlobalItinerariesView.vue";
+import store from '../store/store.js';  // Adjust the path as necessary
+
 
 const router = createRouter({
   history: createWebHistory(),
@@ -23,6 +25,7 @@ const router = createRouter({
       path: "/home",
       name: "Home",
       component: HomeView,
+      meta: { requiresAuth: true }  // Protected route
     },
     {
       path: "/signup",
@@ -43,36 +46,54 @@ const router = createRouter({
       path: "/my-itineraries",
       name: "MyItineraries",
       component: MyItinerariesView,
+      meta: { requiresAuth: true }  // Protected route
     },
     {
       path: "/itineraries/:itineraryId",
       name: "Itineraries",
       component: ItinerariesView,
       props:true,
+      meta: { requiresAuth: true }  // Protected route
     },
     {
       path: "/community/:selectedCountryProp?",
       name: "Community",
       component: CommunityView,
       props:true,
+      meta: { requiresAuth: true }  // Protected route
     },
     {
       path: "/about",
       name: "About",
       component: AboutView,
+      meta: { requiresAuth: true }  // Protected route
     },    
     {
       path: "/profile",
       name: "Profile",
       component: ProfileView,
+      meta: { requiresAuth: true }  // Protected route
     },
     {
       path: "/global-itineraries/:itineraryId",
       name: "GlobalItineraries",
       component: GlobalItinerariesView,
       props: true,
+      meta: { requiresAuth: true }  // Protected route
     },
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const isAuthenticated = store.state.user.loggedIn;  // Access the loggedIn state from Vuex
+  console.log("")
+
+  if (requiresAuth && !isAuthenticated) {
+    next({ name: 'Login' });  // Redirect to the login page
+  } else {
+    next();  // Proceed as normal if authenticated or route does not require auth
+  }
 });
 
 export default router;
