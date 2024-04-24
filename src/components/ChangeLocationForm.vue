@@ -214,4 +214,16 @@ option {
   cursor: pointer;
   display: block;
 }
+
+.location {
+  width: -webkit-fill-available;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-bottom: 2rem;
+  background-color: #e5e5e5;
+}
 </style>
