@@ -6,18 +6,6 @@
     </div>
 
     <div class="edit-title-button-container">
-      <font-awesome-icon
-        icon="edit"
-        class="edit-icon"
-        :size="iconSize"
-        @click="toggleDropdownEditTitle"
-      />
-      <font-awesome-icon
-        icon="trash"
-        class="delete-icon"
-        :size="iconSize"
-        @click="confirmDeleteItinerary"
-      />
       <div v-if="showDropdownEditTitle" class="dropdown-edit-menu" @click.stop :style="{ width: edittingDateRange ? '350px' : (edittingTitle ? '300px' : '180px') }">
         <div v-if="!edittingTitle && !edittingDateRange">
           <div @click="editTitle" class="edit_buttons">
