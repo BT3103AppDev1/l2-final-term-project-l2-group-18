@@ -67,7 +67,7 @@
       <div class="share-button-container">
         <font-awesome-icon
           icon="fa-share-alt"
-          class="share-icon"
+          class="share_icon_overall"
           :size="iconSize"
           @click="toggleDropdown"
         />
@@ -1454,14 +1454,14 @@ h3 {
   /* Slide sidebar into view */
 }
 
-.share-icon {
+.share_icon_overall {
   cursor: pointer;
   margin-left: 10px;
   color: #646464;
   margin-right: 1rem;
 }
 
-.share-icon:hover {
+.share_icon_overall:hover {
   color: #0d6efd;
 }
 
