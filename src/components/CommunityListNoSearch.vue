@@ -95,18 +95,17 @@ export default {
     showItinerary(itinerary) {
       this.$emit('show-itinerary', itinerary);
     },
-    async fetchItineraries(country) {
-      console.log("in fetchItineraries")
+    async fetchItineraries() {
       const db = getFirestore();
       try {
-        const itinerariesRef = collection(db, "global_community_itineraries", country, "Itineraries");
-        const communityItinerariesSnapshot = await getDocs(itinerariesRef);
-
-        const uniqueItineraryIds = new Set();
-        const itinerariesWithUsersPromises = communityItinerariesSnapshot.docs.map(async (docSnap) => {
-          const data = docSnap.data();
-          if (docSnap.exists() && !uniqueItineraryIds.has(docSnap.id)) {
-            uniqueItineraryIds.add(docSnap.id);
+        const countriesRef = collection(db, "global_community_itineraries");
+        const countriesSnapshot = await getDocs(countriesRef);
+        const itinerariesNew = [];
+        for (const countryDoc of countriesSnapshot.docs) {
+          const itinerariesRef = collection(countryDoc.ref, "Itineraries");
+          const itinerariesSnapshot = await getDocs(itinerariesRef);
+          itinerariesSnapshot.forEach(async document => {
+            const data = document.data();
             const userId = data.userId;
             console.log(userId);
             const userRef = doc(db, "users", userId);
@@ -124,7 +123,7 @@ export default {
               imageURL: data.imageURL,
               photoURL: userData.photoURL,
               username: userData.username
-            };
+};
             if (!itinerariesNew.some(itinerary => itinerary.id === formattedItinerary.id)) {
               itinerariesNew.push(formattedItinerary);
             }
@@ -138,11 +137,8 @@ export default {
     },
 
   },
-  created() {
-    if (this.country) {
-      console.log("in created() for the country:", this.country)
-      this.fetchItineraries(this.country);
-    }
+  mounted() {
+    this.fetchItineraries();
   },
   showItinerary(itinerary) {
     this.$emit('show-itinerary', itinerary);
