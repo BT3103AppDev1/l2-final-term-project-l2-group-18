@@ -118,47 +118,50 @@ export default {
                 geocoder.geocode({ address: this.destination }, (results, status) => {
                     if (status === 'OK' && results.length > 0) {
                         const location = results[0].geometry.location;
-                        const addressType = results[0].types[0]; // Get the most specific type of the location
-                        const viewport = result.geometry.viewport;
+                        const viewport = results[0].geometry.viewport;
+                        this.map.setCenter(location);
 
-                        console.log("OK", location)
-
-                        // Use the viewport to set the bounds
-                        this.map.fitBounds(viewport);
-
-                        // Adjust zoom manually if needed
-                        if (result.types.includes('country')) {
-                            this.map.setZoom(Math.min(this.map.getZoom(), 8)); // Prevent too close zoom on large countries
+                        // Only use fitBounds if the location is not a country to avoid too much zooming out
+                        if (!results[0].types.includes('country')) {
+                            this.map.fitBounds(viewport);
+                        } else {
+                            // If it is a country or a very large area, set a fixed zoom level
+                            this.map.setZoom(12);
                         }
+
                     } else {
                         console.error('Geocode was not successful:', status);
                     }
                 });
             }
 
-            this.createMarkers(); // Initial marker creation
+            google.maps.event.addListenerOnce(this.map, 'tilesloaded', () => {
+                console.log("Tiles are fully loaded.");
 
-            // Set up a click listener on the map
-            this.map.addListener("click", (e) => {
+                // Now safe to perform additional map operations:
+                this.createMarkers();  // Call to create markers only after map is ready
+                // Set up a click listener on the map
+                this.map.addListener("click", (e) => {
 
-                // Add a temporary marker
-                if (this.tempMarker) {
-                    this.tempMarker.setMap(null); // Remove previous marker
-                }
-
-                this.tempMarker = new google.maps.Marker({
-                    position: e.latLng,
-                    map: this.map,
-                    animation: google.maps.Animation.DROP,
-                    icon: {
-                        url: "/Location_Pin_HTLV.png",
-                        scaledSize: new google.maps.Size(30, 30),
+                    // Add a temporary marker
+                    if (this.tempMarker) {
+                        this.tempMarker.setMap(null); // Remove previous marker
                     }
-                })
 
-                console.log("TEST", this.tempMarker)
+                    this.tempMarker = new google.maps.Marker({
+                        position: e.latLng,
+                        map: this.map,
+                        animation: google.maps.Animation.DROP,
+                        icon: {
+                            url: "/Location_Pin_HTLV.png",
+                            scaledSize: new google.maps.Size(30, 30),
+                        }
+                    })
 
-                this.fetchPlaceInfo(e.latLng, true);
+                    console.log("TEST", this.tempMarker)
+
+                    this.fetchPlaceInfo(e.latLng, true);
+                });
             });
         },
 
@@ -357,9 +360,15 @@ export default {
             // Adjust the map to show all the markers
             if (this.markers.length > 0) {
                 this.map.fitBounds(bounds); // Automatically adjusts both zoom and center of the map
+
+                // Check if the zoom level is too low after fitting bounds, and adjust if necessary
+                const listener = google.maps.event.addListener(this.map, "idle", () => {
+                    if (this.map.getZoom() > 14) this.map.setZoom(14);
+                    google.maps.event.removeListener(listener);
+                });
             } 
             if (this.markers.length === 1) {
-                this.map.setZoom = 5; // Automatically adjusts both zoom and center of the map
+                this.map.setZoom(12); 
             } 
         },
         showFormTempMarker(latLng, name, placeId) {

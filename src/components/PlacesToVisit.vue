@@ -170,7 +170,7 @@
                 icon="trash"
                 class="trash-icon"
                 :size="smallIconSize"
-                @click="deleteLocation(item.dayid, item.locid)"
+                @click.stop="deleteLocation(item.dayid, item.locid)"
               />
             </div>
           </div>
@@ -282,7 +282,7 @@ export default {
       showChangeLocationForm: false,
       selectedLocation: {},
       iconSize: "xl",
-      smallIconSize: "s",
+      smallIconSize: "sm",
       days: [],
       itineraryData: [],
       sourceDayArray: [],
