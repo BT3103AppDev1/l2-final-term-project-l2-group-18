@@ -1,7 +1,7 @@
 <template>
   <div class="trips container">
     <div class="cards">
-      <CommunityCard
+    <CommunityCard
         v-for="itinerary in itineraries"
         :key="itinerary.id"
         :itineraryId="itinerary.id"
@@ -12,65 +12,79 @@
         :name="itinerary.username"
         :votes="itinerary.votes"
         @vote="handleVote"
-      />
+    />
     </div>
   </div>
 </template>
 
 <script>
 import CommunityCard from "./CommunityCard.vue";
+import { mapGetters, mapActions } from "vuex";
+import { updateDoc, increment } from 'firebase/firestore';
 import {
   runTransaction,
   doc,
   getDoc,
   getDocs,
+  addDoc,
   getFirestore,
   collection,
-  increment
+  QuerySnapshot,
+  setDoc,
 } from "firebase/firestore";
+import { handleError } from "vue";
 import { getAuth } from 'firebase/auth';
+import { useRouter } from 'vue-router';
+import PlacesToVisitGlobal from "./PlacesToVisitGlobal.vue";
 
 export default {
   components: {
     CommunityCard,
   },
   props: {
-    type: String, // Personal or Community
+    type: String, //Personal or Community
     country: String,
     itineraryId: String,
   },
   data() {
     return {
       itineraries: [],
+      selectedItinerary: null,
     };
   },
+  watch: {
+    country(newCountry, oldCountry) {
+      if (newCountry !== oldCountry) {
+        this.fetchItineraries(newCountry);
+      }
+    },
+  },
   methods: {
-    async getCurrentUserId() {
+    getCurrentUserId() {
       const auth = getAuth();
       return auth.currentUser ? auth.currentUser.uid : null;
     },
     async handleVote({ itineraryId, isUpvote }) {
-      const userId = await this.getCurrentUserId();
+      const userId = this.getCurrentUserId();
       const db = getFirestore();
       const itineraryRef = doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId);
-
       try {
         await runTransaction(db, async (transaction) => {
           const userVoteRef = doc(itineraryRef, "userVotes", userId);
           const userVoteDoc = await transaction.get(userVoteRef);
-
-          if (!userVoteDoc.exists() || !userVoteDoc.data().voted) {
+          
+          if (userVoteDoc.data().voted == false) {
             transaction.set(userVoteRef, { voted: true });
             transaction.update(itineraryRef, {
               votes: increment(isUpvote ? 1 : -1)
             });
+            alert('Vote successful!');
           } else {
             throw new Error('You have already voted!');
           }
         });
-
         console.log('Transaction successfully committed!');
-        await this.fetchItineraries(this.country);
+        this.fetchItineraries(this.country);
       } catch (error) {
         console.error('Transaction failed: ', error);
         if (error.message === 'You have already voted!') {
@@ -78,20 +92,27 @@ export default {
         }
       }
     },
+    showItinerary(itinerary) {
+      this.$emit('show-itinerary', itinerary);
+    },
     async fetchItineraries(country) {
       const db = getFirestore();
       this.itineraries = [];
-        const itinerariesRef = doc(db, "global_community_itineraries", country, "Itineraries", itineraryId);
-        try {
-        const docSnap = await getDoc(itinerariesRef);
-        if (docSnap.exists()) {
-            const data = docSnap.data();
+      try {
+        const itinerariesRef = collection(db, "global_community_itineraries", country, "Itineraries");
+        const communityItinerariesSnapshot = await getDocs(itinerariesRef);
+
+        const uniqueItineraryIds = new Set(); 
+        const itinerariesWithUsersPromises = communityItinerariesSnapshot.docs.map(async (docSnap) => {
+          const data = docSnap.data();
+          if (docSnap.exists() && !uniqueItineraryIds.has(docSnap.itineraryId)) {
+            uniqueItineraryIds.add(docSnap.id);
             const userId = data.userId;
             const userRef = doc(db, "users", userId);
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
-            const userData = userSnap.data();
-            const itinerary = {
+              const userData = userSnap.data();
+              return {
                 id: docSnap.id,
                 destination: data.destination,
                 imageURL: data.imageURL,
@@ -100,20 +121,29 @@ export default {
                 userId: data.userId,
                 username: userData.username,
                 photoURL: userData.photoURL,
-            };
+              };
             }
-        } else {
-            console.error("Document does not exist");
-        }
-        } catch (error) {
-        console.error("Error fetching itinerary:", error);
-        }
+          }
+          return null;
+        });
+
+        const itinerariesWithUsers = await Promise.all(itinerariesWithUsersPromises);
+        this.itineraries = itinerariesWithUsers.filter(itinerary => itinerary !== null);  // Filter out nulls
+        console.log("itineraries", this.itineraries);
+        console.log("Fetch success");
+      } catch (error) {
+        console.error("Error fetching itineraries:", error);
       }
-    },
-  async created() {
-    if (this.country) {
-      await this.fetchItineraries(country);
     }
+
+  },
+  created() {
+    if (this.country) {
+      this.fetchItineraries(this.country);
+    }
+  },
+  showItinerary(itinerary) {
+    this.$emit('show-itinerary', itinerary);
   },
 };
 </script>
@@ -132,4 +162,6 @@ export default {
   justify-content: center;
   gap: 20px;
 }
+
 </style>
+

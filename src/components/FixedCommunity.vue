@@ -1,7 +1,7 @@
 <template>
   <div class="itinerary-container">
     <div v-for="(itinerary, index) in fetchedItineraries" :key="index" class="itinerary-wrapper">
-      <CommunityList :type="'Community'" :country="itinerary.destination" class="zoom-effect" />
+      <CommunityListNoSearch :type="'Community'" :country="itinerary.destination" :itineraryId="itinerary.id"/>
     </div>
   </div>
 </template>
@@ -9,11 +9,19 @@
 <script>
 import { getFirestore, collection, query, getDocs, doc, getDoc } from "firebase/firestore";
 import { firebaseApp } from "../firebaseConfig";
-import CommunityList from "./CommunityList.vue";
+import CommunityListNoSearch from "./CommunityListNoSearch.vue";
 
 export default {
   components: {
-    CommunityList
+    CommunityListNoSearch
+  },
+  props: {
+    itinerary: Object,
+    destination: String,
+    startDate: String,
+    endDate: String,
+    votes: Number,
+    imageURL: String
   },
   data() {
     return {
@@ -37,13 +45,15 @@ export default {
             const formattedItinerary = {
               id: doc.id,
               title: data.title,
-              destination: countryDoc.id, // Assuming the country ID is the document key
+              destination: data.destination,
               startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB"),
               endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
-              votes: data.votes, // Assuming votes are stored at the itinerary level
+              votes: data.votes,
               imageURL: data.imageURL
             };
-            this.fetchedItineraries.push(formattedItinerary);
+            if (!this.fetchedItineraries.some(itinerary => itinerary.id === formattedItinerary.id)) {
+              this.fetchedItineraries.push(formattedItinerary);
+            }
           });
         }
         console.log("All itineraries fetched:", this.fetchedItineraries);
@@ -63,14 +73,5 @@ export default {
   justify-content: center;
   gap: 20px;
   padding: 20px;
-}
-
-.zoom-effect {
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-}
-
-.zoom-effect:hover {
-  transform: scale(1.05);
-  opacity: 0.8;
 }
 </style>

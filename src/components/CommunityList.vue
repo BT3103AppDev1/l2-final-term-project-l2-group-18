@@ -12,7 +12,6 @@
         :name="itinerary.username"
         :votes="itinerary.votes"
         @vote="handleVote"
-        class="zoom-effect"
     />
     </div>
   </div>
@@ -68,7 +67,6 @@ export default {
       const userId = this.getCurrentUserId();
       const db = getFirestore();
       const itineraryRef = doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId);
-
       try {
         await runTransaction(db, async (transaction) => {
           const userVoteRef = doc(itineraryRef, "userVotes", userId);
@@ -79,11 +77,11 @@ export default {
             transaction.update(itineraryRef, {
               votes: increment(isUpvote ? 1 : -1)
             });
+            alert('Vote successful!');
           } else {
             throw new Error('You have already voted!');
           }
         });
-
         console.log('Transaction successfully committed!');
         this.fetchItineraries(this.country);
       } catch (error) {
@@ -93,40 +91,51 @@ export default {
         }
       }
     },
+    showItinerary(itinerary) {
+      // Method to navigate to the itinerary when explicitly requested
+      this.$emit('show-itinerary', itinerary);
+    },
     async fetchItineraries(selectedCountry) {
       const db = getFirestore();
+      this.itineraries = []; // Clear the previous itineraries.
       try {
         const itinerariesRef = collection(db, "global_community_itineraries", selectedCountry, "Itineraries");
-        const communityItineraries = await getDocs(itinerariesRef);
-        const itinerariesWithUsers = communityItineraries.docs.map(async (docSnap) => {
+        const communityItinerariesSnapshot = await getDocs(itinerariesRef);
+
+        // Use 'Promise.all' to wait for all async operations within 'map' to complete.
+        const itinerariesWithUsersPromises = communityItinerariesSnapshot.docs.map(async (docSnap) => {
           const data = docSnap.data();
           if (docSnap.exists()) {
             const userId = data.userId;
             const userRef = doc(db, "users", userId);
             const userSnap = await getDoc(userRef);
-            const userData = userSnap.data();
-            console.log(userData);
-            return {
-              id: docSnap.id,
-              destination: data.destination,
-              imageURL: data.imageURL,
-              title: data.title,
-              votes: data.votes,
-              userId: data.userId,
-              username: userData.username,
-              photoURL: userData.photoURL,
-            };
-          } else {
-            console.log("No document!");
-            return null;
+            if (userSnap.exists()) {
+              const userData = userSnap.data();
+              console.log("userData", userData);
+              return {
+                id: docSnap.id,
+                destination: data.destination,
+                imageURL: data.imageURL,
+                title: data.title,
+                votes: data.votes,
+                userId: data.userId,
+                username: userData.username,
+                photoURL: userData.photoURL,
+              };
+            }
           }
+          return null; // Return null for documents that don't exist or have no user data.
         });
-        this.itineraries = await Promise.all(itinerariesWithUsers).then(results => results.filter(itinerary => itinerary !== null));
+
+        // Filter out any nulls after all promises resolve.
+        const itinerariesWithUsers = await Promise.all(itinerariesWithUsersPromises);
+        this.itineraries = itinerariesWithUsers.filter(itinerary => itinerary !== null);
         console.log("Fetch success");
       } catch (error) {
         console.error("Error fetching itineraries:", error);
       }
-    },
+    }
+
   },
   created() {
     if (this.country) {
@@ -154,12 +163,4 @@ export default {
   gap: 20px;
 }
 
-.zoom-effect {
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-}
-
-.zoom-effect:hover {
-  transform: scale(1.05);
-  opacity: 0.8;
-}
 </style>
