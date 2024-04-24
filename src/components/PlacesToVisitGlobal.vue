@@ -7,19 +7,6 @@
   <div class="places-container">
     <div class="header-container">
       <h1>Places to Visit</h1>
-        <div v-if="showDropdown" class="dropdown-menu" @click.stop>
-          <div v-if="!sharingToUser">
-            <div @click="enableShareToUser" class="share_buttons"> <font-awesome-icon icon="users" class="share_icons" /> Share with other Users</div>
-            <div @click="shareToCommunity" class="share_buttons"> <font-awesome-icon icon="globe" class="share_icons" /> Share with Community</div>
-          </div>
-          <div v-else>
-            <div id="share_users_text">Share with:</div>
-            <div class="input_group">
-              <input type="text" v-model="username" placeholder="Enter username" @keyup.enter="shareToSpecificUser" id="username_input">
-              <button @click="shareToSpecificUser" id="shareWithUsers_button">Share</button>
-            </div>
-          </div>
-        </div>
     </div>
     <div class="days-container" v-for="(day, index) in days" :key="index">
       <div class="days-title-container">

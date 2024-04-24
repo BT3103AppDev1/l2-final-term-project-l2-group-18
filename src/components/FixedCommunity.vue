@@ -27,28 +27,32 @@ export default {
     async fetchItineraries() {
       const db = getFirestore(firebaseApp);
       try {
-        const itinerariesQuery = query(collection(db, "global_user_itineraries"));
-        const querySnapshot = await getDocs(itinerariesQuery);
-        querySnapshot.forEach(async (doc) => {
-          try {
-            const headerData = doc.data();
-            const options = { year: "numeric", month: "short", day: "2-digit" };
+        const countriesRef = collection(db, "global_community_itineraries");
+        const countriesSnapshot = await getDocs(countriesRef);
+        for (const countryDoc of countriesSnapshot.docs) {
+          const itinerariesRef = collection(countryDoc.ref, "Itineraries");
+          const itinerariesSnapshot = await getDocs(itinerariesRef);
+          itinerariesSnapshot.forEach(doc => {
+            const data = doc.data();
             const formattedItinerary = {
-              title: headerData.title,
-              destination: headerData.destination,
-              startDate: new Date(headerData.dateRange[0].seconds * 1000).toLocaleDateString("en-GB", options),
-              endDate: new Date(headerData.dateRange[1].seconds * 1000).toLocaleDateString("en-GB", options)
+              id: doc.id,
+              title: data.title,
+              destination: countryDoc.id, // Assuming the country ID is the document key
+              startDate: new Date(data.dateRange[0].seconds * 1000).toLocaleDateString("en-GB"),
+              endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
+              votes: data.votes, // Assuming votes are stored at the itinerary level
+              imageURL: data.imageURL
             };
             this.fetchedItineraries.push(formattedItinerary);
-          } catch (error) {
-            console.error(`Error formatting itinerary:`, error);
-          }
-        });
+          });
+        }
+        console.log("All itineraries fetched:", this.fetchedItineraries);
       } catch (error) {
         console.error("Error fetching itineraries:", error);
       }
     }
   }
+
 };
 </script>
 
@@ -60,7 +64,6 @@ export default {
   gap: 20px;
   padding: 20px;
 }
-
 
 .zoom-effect {
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
