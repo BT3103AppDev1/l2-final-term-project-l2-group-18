@@ -8,11 +8,11 @@
         <p>See where others love to go!</p>
       </div>
       <CommunitySearch @submit="updateSelectedCountry" />
+      <CommunityListNoSearch v-if="!selectedCountry"/>
       <CommunityList
         v-if="selectedCountry"
         :country="selectedCountry"
       />
-      <FixedCommunity v-if="!selectedCountry" />
     </div>
   </div>
 </template>
@@ -21,7 +21,7 @@
 import NavBar from "../components/NavBar.vue";
 import CommunitySearch from "../components/CommunitySearch.vue";
 import CommunityList from "../components/CommunityList.vue";
-import FixedCommunity from "../components/FixedCommunity.vue";
+import CommunityListNoSearch from "@/components/CommunityListNoSearch.vue";
 
 export default {
   name: "CommunityView",
@@ -30,7 +30,7 @@ export default {
     NavBar,
     CommunitySearch,
     CommunityList,
-    FixedCommunity
+    CommunityListNoSearch
   },
     data() {
     return {

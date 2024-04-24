@@ -82,6 +82,8 @@ export default {
   display: flex;
   flex-direction: column;
   position: relative;
+  min-width: 300px;
+  max-width: 300px;
 }
 
 .itinerary-pic {
@@ -92,6 +94,7 @@ export default {
 
 .card-content {
   padding: 15px;
+  min-height: 100px;
 }
 
 .title {
