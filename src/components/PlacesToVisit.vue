@@ -66,7 +66,7 @@
       <h1>Places to Visit</h1>
       <div class="share-button-container">
         <font-awesome-icon
-          icon="share-from-square"
+          icon="fa-share-alt"
           class="share-icon"
           :size="iconSize"
           @click="toggleDropdown"
@@ -1670,7 +1670,7 @@ h3 {
   width: 330px;
   z-index: 100;
   position: absolute;
-  transform: translateX(-90%);
+  transform: translateX(-75%);
   margin-top: 0.3rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -1706,6 +1706,7 @@ h3 {
   width: 100%; /* Ensure the group takes full width */
   padding-bottom: 2px; /* Spacing from the label above */
   margin-bottom: 0px;
+  margin-right: 0px;
 }
 
 #new_title_input {

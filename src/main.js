@@ -21,6 +21,8 @@ import {
   faUsers,
   faGlobe,
   faStar,
+  faShareAlt,
+  faPaperPlane
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -38,7 +40,9 @@ library.add(
   faStar,
   faFile,
   faTrash,
-  faPencil
+  faPencil,
+  faShareAlt,
+  faPaperPlane
 );
 
 const app = createApp(App);

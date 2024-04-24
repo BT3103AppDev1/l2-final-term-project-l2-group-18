@@ -253,11 +253,15 @@ export default {
                 </div>`;
 
             const infoWindowElement = document.getElementById('custom-info-window');
-            infoWindowElement.innerHTML = contentString;
-            infoWindowElement.style.display = 'block'; // Show the info window
+            if (infoWindowElement) {
+                infoWindowElement.innerHTML = contentString;
+                infoWindowElement.style.display = 'block'; // Show the info window
 
-            let closeButton = infoWindowElement.querySelector('.close-btn');
-            closeButton.onclick = () => { this.hideInfoWindow(); };
+                let closeButton = infoWindowElement.querySelector('.close-btn');
+                closeButton.onclick = () => { this.hideInfoWindow(); };
+            } else {
+                console.warn("Info Window Element not available yet (mounting issue probably)")
+            }
         },
 
         displayRoute(originLat, originLng, destLat, destLng) {
