@@ -86,7 +86,7 @@
           class="location-details"
           v-for="(item, index) in filteredItineraryData(day)"
           :key="item.locid"
-          draggable="true"
+          draggable="false"
           @dragstart="dragStart($event, index, day)"
           @dragover="dragOver($event, index)"
           @drop="drop($event, index, day)"
