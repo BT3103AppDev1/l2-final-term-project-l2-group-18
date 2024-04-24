@@ -1477,7 +1477,7 @@ h3 {
 }
 
 .dropdown-menu div {
-  padding: 5px;
+  padding: 4px;
   cursor: pointer;
   font-size: 14px;
   color: #333;
