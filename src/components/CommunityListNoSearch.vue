@@ -70,8 +70,8 @@ export default {
       const userRef = doc(db, "global_user_itineraries", itineraryId);
       const userSnap = await getDoc(userRef);
       const itineraryData = userSnap.data();
-      const destination = itineraryData.destination;
-      const itineraryRef = doc(db, "global_community_itineraries", destination, "Itineraries", itineraryId);
+      const location = itineraryData.destination;
+      const itineraryRef = doc(db, "global_community_itineraries", location, "Itineraries", itineraryId);
       try {
         await runTransaction(db, async (transaction) => {
           const userVoteRef = doc(itineraryRef, "userVotes", userId);
@@ -86,10 +86,10 @@ export default {
             throw new Error('You have already voted!');
           }
         });
+        alrt('Vote successful!');
         console.log('Transaction successfully committed!');
         this.fetchItineraries();
       } catch (error) {
-        console.error('Transaction failed: ', error);
         alert(error.message);
       }
     },
@@ -108,12 +108,9 @@ export default {
           itinerariesSnapshot.forEach(async document => {
             const data = document.data();
             const userId = data.userId;
-            console.log(userId);
             const userRef = doc(db, "users", userId);
-            console.log(userRef);
             const userSnap = await getDoc(userRef);
             const userData = userSnap.data();
-            console.log(userData);
             const formattedItinerary = {
               id: document.id,
               title: data.title,
