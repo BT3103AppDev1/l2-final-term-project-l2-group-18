@@ -1,7 +1,7 @@
 <template>
     <NavBar />
       <div class="my-itineraries-page">
-        <h2>Your Itineraries</h2>
+        <h1 id="header_title">Your Itineraries</h1>
         <ItineraryList />
         <SearchLocation />
   
@@ -44,6 +44,13 @@
       font-size: 16px;
       margin: 20px;
     }
+    
+  #header_title{
+      font-size: 40px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: capitalize;
+  }
     
   </style>
     
