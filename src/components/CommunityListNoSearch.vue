@@ -67,18 +67,21 @@ export default {
     async handleVote({ itineraryId, isUpvote }) {
       const userId = this.getCurrentUserId();
       const db = getFirestore();
-      const itineraryRef = doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId);
+      const userRef = doc(db, "global_user_itineraries", itineraryId);
+      const userSnap = await getDoc(userRef);
+      const itineraryData = userSnap.data();
+      const destination = itineraryData.destination;
+      const itineraryRef = doc(db, "global_community_itineraries", destination, "Itineraries", itineraryId);
       try {
         await runTransaction(db, async (transaction) => {
           const userVoteRef = doc(itineraryRef, "userVotes", userId);
           const userVoteDoc = await transaction.get(userVoteRef);
           
-          if (userVoteDoc.data().voted == false) {
-            transaction.set(userVoteRef, { voted: true });
+          if (!userVoteDoc.exists() || userVoteDoc.data().voted === false) {
+            transaction.set(userVoteRef, { voted: true }, { merge: true });
             transaction.update(itineraryRef, {
               votes: increment(isUpvote ? 1 : -1)
             });
-            alert('Vote successful!');
           } else {
             throw new Error('You have already voted!');
           }
@@ -87,9 +90,7 @@ export default {
         this.fetchItineraries();
       } catch (error) {
         console.error('Transaction failed: ', error);
-        if (error.message === 'You have already voted!') {
-          alert(error.message);
-        }
+        alert(error.message);
       }
     },
     showItinerary(itinerary) {
