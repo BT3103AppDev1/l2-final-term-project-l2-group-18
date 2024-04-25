@@ -59,6 +59,15 @@ export default {
     font-weight: 800;
     text-align: center;
     text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden; /* Ensures text stays in a single line */
+    animation: pulse 5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .section-para{
