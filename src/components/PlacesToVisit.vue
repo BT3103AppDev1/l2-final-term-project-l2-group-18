@@ -1794,5 +1794,8 @@ h3 {
   color: #FF4500; /* Darker tone on hover */
 }
 
+.location-description {
+    white-space: pre-wrap;
+}
 
 </style>
