@@ -280,6 +280,8 @@ export default {
                 });
             }
 
+            this.hideInfoWindow();
+
             directionsService.route({
                 origin: { lat: originLat, lng: originLng },
                 destination: { lat: destLat, lng: destLng },
