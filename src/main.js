@@ -10,6 +10,7 @@ import { faShareFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import "@fortawesome/fontawesome-free/css/all.css";
+
 import {
   faUserCircle,
   faHome,
