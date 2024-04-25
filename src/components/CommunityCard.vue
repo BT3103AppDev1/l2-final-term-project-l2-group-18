@@ -9,11 +9,11 @@
       </div>
     </div>
     <div class="voting">
-      <button @click="vote(true)" class="vote-button upvote">
+      <button @click="vote(true, $event)" class="vote-button upvote">
         <i class="fas fa-arrow-up" style="color: green;"></i>
       </button>
       <div class="vote-count">{{ votes }}</div>
-      <button @click="vote(false)" class="vote-button downvote">
+      <button @click="vote(false, $event)" class="vote-button downvote">
         <i class="fas fa-arrow-down" style="color: red;"></i>
       </button>
     </div>
@@ -54,7 +54,8 @@ export default {
     };
   },
   methods: {
-    vote(isUpvote) {
+    vote(isUpvote, event) {
+      event.stopPropagation();
       if (this.hasVoted) return;
 
       this.$emit('vote', {
@@ -62,6 +63,7 @@ export default {
         userId: this.userId,
         isUpvote: isUpvote
       });
+      this.hasVoted = true;
     },
     navigateToItinerary() {
       this.$router.push({ name: 'GlobalItineraries', params: { itineraryId: this.itineraryId } });
