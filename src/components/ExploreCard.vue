@@ -3,7 +3,7 @@
         <img :src="imageURL" class="tour-img" :alt="name" />
         <div class="tour-body">
             <h3 class="tour-name">{{ name }}</h3>
-            <p class="tour-action">View city</p>
+            <p class="tour-action">View Destination</p>
         </div>
     </div>
 </template>
