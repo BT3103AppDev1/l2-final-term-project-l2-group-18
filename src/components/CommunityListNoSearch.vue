@@ -1,18 +1,18 @@
 <template>
   <div class="trips container">
     <div class="cards">
-    <CommunityCard
-        v-for="itinerary in itineraries"
-        :key="itinerary.id"
-        :itineraryId="itinerary.id"
-        :country="itinerary.destination"
-        :title="itinerary.title"
-        :itineraryPic="itinerary.imageURL"
-        :profilePic="itinerary.photoURL"
-        :name="itinerary.username"
-        :votes="itinerary.votes"
-        @vote="handleVote"
-    />
+      <CommunityCard
+          v-for="itinerary in itineraries"
+          :key="itinerary.id"
+          :itineraryId="itinerary.id"
+          :country="itinerary.destination"
+          :title="itinerary.title"
+          :itineraryPic="itinerary.imageURL"
+          :profilePic="itinerary.photoURL"
+          :name="itinerary.username"
+          :votes="itinerary.votes"
+          @vote="handleVote"
+      />
     </div>
   </div>
 </template>
@@ -86,7 +86,7 @@ export default {
             throw new Error('You have already voted!');
           }
         });
-        alrt('Vote successful!');
+        alert('Vote successful!');
         console.log('Transaction successfully committed!');
         this.fetchItineraries();
       } catch (error) {
@@ -105,13 +105,13 @@ export default {
         for (const countryDoc of countriesSnapshot.docs) {
           const itinerariesRef = collection(countryDoc.ref, "Itineraries");
           const itinerariesSnapshot = await getDocs(itinerariesRef);
-          itinerariesSnapshot.forEach(async document => {
+          const fetchedItineraries = await Promise.all(itinerariesSnapshot.docs.map(async document => {
             const data = document.data();
             const userId = data.userId;
             const userRef = doc(db, "users", userId);
             const userSnap = await getDoc(userRef);
-            const userData = userSnap.data();
-            const formattedItinerary = {
+            const userData = userSnap.exists() ? userSnap.data() : {};
+            return {
               id: document.id,
               title: data.title,
               destination: data.destination,
@@ -119,13 +119,11 @@ export default {
               endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
               votes: data.votes,
               imageURL: data.imageURL,
-              photoURL: userData.photoURL,
-              username: userData.username
-};
-            if (!itinerariesNew.some(itinerary => itinerary.id === formattedItinerary.id)) {
-              itinerariesNew.push(formattedItinerary);
-            }
-          });
+              photoURL: userData.photoURL || '',
+              username: userData.username || 'Unknown'
+            };
+          }));
+          itinerariesNew.push(...fetchedItineraries);
         }
         this.itineraries = itinerariesNew;
         console.log("All itineraries fetched:", this.itineraries);
