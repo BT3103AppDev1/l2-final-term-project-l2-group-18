@@ -130,7 +130,8 @@ export default {
             }
           });
         }
-        this.itineraries = itinerariesNew;
+        const sortedItineraries = itinerariesNew.sort((a, b) => b.votes - a.votes);
+        this.itineraries = sortedItineraries;
         console.log("All itineraries fetched:", this.itineraries);
       } catch (error) {
         console.error("Error fetching itineraries:", error);
