@@ -65,30 +65,34 @@ export default {
     },
     async handleVote({ itineraryId, isUpvote }) {
       const userId = this.getCurrentUserId();
+      const voteChange = isUpvote ? 1 : -1;
       const db = getFirestore();
-      const itineraryRef = doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId);
+      const userVoteRef = doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId, "userVotes", userId);
+
       try {
         await runTransaction(db, async (transaction) => {
-          const userVoteRef = doc(itineraryRef, "userVotes", userId);
           const userVoteDoc = await transaction.get(userVoteRef);
-          
-          if (userVoteDoc.data().voted == false) {
-            transaction.set(userVoteRef, { voted: true });
-            transaction.update(itineraryRef, {
-              votes: increment(isUpvote ? 1 : -1)
+          const currentVote = userVoteDoc.data()?.vote || 0;
+
+          if (currentVote === voteChange) {
+            // User is retracting their vote
+            transaction.update(userVoteRef, { vote: 0 });
+            transaction.update(doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId), {
+              votes: increment(-voteChange)
             });
-            alert('Vote successful!');
           } else {
-            throw new Error('You have already voted!');
+            // User is casting a new vote or changing their vote
+            transaction.update(userVoteRef, { vote: voteChange });
+            transaction.update(doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId), {
+              votes: increment(voteChange - currentVote)
+            });
           }
         });
         console.log('Transaction successfully committed!');
         this.fetchItineraries(this.country);
       } catch (error) {
         console.error('Transaction failed: ', error);
-        if (error.message === 'You have already voted!') {
-          alert(error.message);
-        }
+        alert(error.message);
       }
     },
     showItinerary(itinerary) {

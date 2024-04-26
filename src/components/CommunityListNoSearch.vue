@@ -64,35 +64,44 @@ export default {
       const auth = getAuth();
       return auth.currentUser ? auth.currentUser.uid : null;
     },
-    async handleVote({ itineraryId, isUpvote }) {
-      const userId = this.getCurrentUserId();
-      const db = getFirestore();
-      const userRef = doc(db, "global_user_itineraries", itineraryId);
-      const userSnap = await getDoc(userRef);
-      const itineraryData = userSnap.data();
-      const location = itineraryData.destination;
-      const itineraryRef = doc(db, "global_community_itineraries", location, "Itineraries", itineraryId);
-      try {
-        await runTransaction(db, async (transaction) => {
-          const userVoteRef = doc(itineraryRef, "userVotes", userId);
-          const userVoteDoc = await transaction.get(userVoteRef);
-          
-          if (!userVoteDoc.exists() || userVoteDoc.data().voted === false) {
-            transaction.set(userVoteRef, { voted: true }, { merge: true });
-            transaction.update(itineraryRef, {
-              votes: increment(isUpvote ? 1 : -1)
-            });
-          } else {
-            throw new Error('You have already voted!');
-          }
-        });
-        alert('Vote successful!');
-        console.log('Transaction successfully committed!');
-        this.fetchItineraries();
-      } catch (error) {
-        alert(error.message);
+async handleVote({ itineraryId, isUpvote }) {
+  const userId = this.getCurrentUserId();
+  const db = getFirestore();
+  const userRef = doc(db, "global_user_itineraries", itineraryId);
+  const userSnap = await getDoc(userRef);
+  const itineraryData = userSnap.data();
+  const location = itineraryData.destination;
+  const itineraryRef = doc(db, "global_community_itineraries", location, "Itineraries", itineraryId);
+  
+  try {
+    await runTransaction(db, async (transaction) => {
+      const userVoteRef = doc(itineraryRef, "userVotes", userId);
+      const userVoteDoc = await transaction.get(userVoteRef);
+      
+      const voteChange = isUpvote ? 1 : -1;
+      if (!userVoteDoc.exists()) {
+        transaction.set(userVoteRef, { vote: voteChange });
+        transaction.update(itineraryRef, { votes: increment(voteChange) });
+      } else {
+        const currentVote = userVoteDoc.data().vote || 0;
+        if (currentVote !== voteChange) {
+          const voteDifference = voteChange - currentVote;
+          transaction.update(userVoteRef, { vote: voteChange });
+          transaction.update(itineraryRef, { votes: increment(voteDifference) });
+        } else if (currentVote !== 0) {
+          transaction.update(userVoteRef, { vote: 0 });
+          transaction.update(itineraryRef, { votes: increment(-currentVote) });
+        }
       }
-    },
+    });
+    alert('Vote successful!');
+    console.log('Transaction successfully committed!');
+    this.fetchItineraries();
+  } catch (error) {
+    alert(error.message);
+    console.error('Transaction failed: ', error);
+  }
+},
     showItinerary(itinerary) {
       this.$emit('show-itinerary', itinerary);
     },
