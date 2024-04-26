@@ -1269,6 +1269,9 @@ export default {
           console.log("Title updated successfully!");
           window.alert("Title updated successfully!");
           this.fetchData();
+          this.edittingTitle = false;
+          this.showDropdownEditTitle = false;
+          this.new_title = "";
         });
       } catch (error) {
         console.error("Error updating title:", error);
@@ -1287,6 +1290,7 @@ export default {
           console.log("Date Range updated successfully!");
           window.alert("Date Range updated successfully!");
           this.fetchData();
+          this.showDropdownEditTitle = false;
         });
       } catch (error) {
         console.error("Error updating Date Range:", error);
