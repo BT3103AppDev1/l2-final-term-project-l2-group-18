@@ -1020,7 +1020,7 @@ h3 {
 }
 
 .download-button {
-  color: #4a90e2;
+  color: #265c99;
   font-size: 1.4rem;
   cursor: pointer;
   transition: color 0.3s ease;
