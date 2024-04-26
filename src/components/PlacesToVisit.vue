@@ -1140,7 +1140,7 @@ export default {
           const userId = userDoc.id;
           const userVoteRef = doc(communityItineraryRef, "userVotes", userId);
           await setDoc(userVoteRef, {
-            voted: false,
+            vote: 0,
           });
         }
         const userDaysRef = collection(userItineraryRef, "days");

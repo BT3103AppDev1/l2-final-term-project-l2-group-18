@@ -50,20 +50,26 @@ export default {
   },
   data() {
     return {
-      hasVoted: false,
+      voteValue: 0,
     };
   },
   methods: {
     vote(isUpvote, event) {
       event.stopPropagation();
-      if (this.hasVoted) return;
+      // const voteChange = isUpvote ? 1 : -1;
+      // if (this.voteValue += voteChange) {
+      //   // User is retracting their vote
+      //   this.voteValue = 0;
+      // } else {
+      //   // User is casting a new vote or changing their vote
+      //   this.voteValue = voteChange;
+      // }
 
       this.$emit('vote', {
         itineraryId: this.itineraryId,
-        userId: this.userId,
-        isUpvote: isUpvote
+        //userId: this.userId,
+        isUpvote: isUpvote // True or False
       });
-      this.hasVoted = true;
     },
     navigateToItinerary() {
       this.$router.push({ name: 'GlobalItineraries', params: { itineraryId: this.itineraryId } });
