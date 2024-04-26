@@ -1,18 +1,9 @@
 <template>
   <div class="trips container">
     <div class="cards">
-    <CommunityCard
-        v-for="itinerary in itineraries"
-        :key="itinerary.id"
-        :itineraryId="itinerary.id"
-        :country="itinerary.destination"
-        :title="itinerary.title"
-        :itineraryPic="itinerary.imageURL"
-        :profilePic="itinerary.photoURL"
-        :name="itinerary.username"
-        :votes="itinerary.votes"
-        @vote="handleVote"
-    />
+      <CommunityCard v-for="itinerary in itineraries" :key="itinerary.id" :itineraryId="itinerary.id"
+        :country="itinerary.destination" :title="itinerary.title" :itineraryPic="itinerary.imageURL"
+        :profilePic="itinerary.photoURL" :name="itinerary.username" :votes="itinerary.votes" @vote="handleVote" />
     </div>
   </div>
 </template>
@@ -65,29 +56,43 @@ export default {
     },
     async handleVote({ itineraryId, isUpvote }) {
       const userId = this.getCurrentUserId();
-      const voteChange = isUpvote ? 1 : -1;
       const db = getFirestore();
-      const userVoteRef = doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId, "userVotes", userId);
+      const itineraryRef = doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId);
 
       try {
         await runTransaction(db, async (transaction) => {
+          const userVoteRef = doc(itineraryRef, "userVotes", userId);
           const userVoteDoc = await transaction.get(userVoteRef);
-          const currentVote = userVoteDoc.data()?.vote || 0;
 
-          if (currentVote === voteChange) {
-            // User is retracting their vote
-            transaction.update(userVoteRef, { vote: 0 });
-            transaction.update(doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId), {
-              votes: increment(-voteChange)
-            });
+          const voteStatus = doc(itineraryRef, "userVotes", userId); // either 0, 1, -1
+          const voteSnap = await getDoc(voteStatus);
+          const voteData = voteSnap.data()
+          const vote = voteData.vote;
+
+          // Determine the current user's vote state
+          const voteChange = isUpvote ? 1 : -1;
+          let currentVote = userVoteDoc.exists() ? userVoteDoc.data().vote : 0;
+          let newVote = 0;
+
+          if (currentVote === voteChange) { // voteChange is either 1 or -1
+            // User is trying to vote the same way again
+            throw new Error('You cannot vote more than once.');
+          } else if (currentVote === 0) {
+            // This is the user's first time voting
+            newVote = voteChange;
           } else {
-            // User is casting a new vote or changing their vote
-            transaction.update(userVoteRef, { vote: voteChange });
-            transaction.update(doc(db, "global_community_itineraries", this.country, "Itineraries", itineraryId), {
-              votes: increment(voteChange - currentVote)
-            });
+            // User is changing their vote or retracting it
+            newVote = (currentVote === -voteChange) ? 0 : voteChange;
           }
+
+          // Set the new vote value
+          transaction.set(userVoteRef, { vote: newVote });
+
+          // Update the itinerary's total vote count
+          let voteIncrement = newVote - currentVote;
+          transaction.update(itineraryRef, { votes: increment(voteIncrement) });
         });
+
         console.log('Transaction successfully committed!');
         this.fetchItineraries(this.country);
       } catch (error) {
@@ -103,7 +108,7 @@ export default {
       const db = getFirestore();
       this.itineraries = []; // Clear the previous itineraries.
       try {
-        const itinerariesRef = collection(db, "global_community_itineraries", selectedCountry, "Itineraries" );
+        const itinerariesRef = collection(db, "global_community_itineraries", selectedCountry, "Itineraries");
         const communityItinerariesSnapshot = await getDocs(itinerariesRef);
 
         // Use 'Promise.all' to wait for all async operations within 'map' to complete.
@@ -166,5 +171,4 @@ export default {
   justify-content: center;
   gap: 20px;
 }
-
 </style>

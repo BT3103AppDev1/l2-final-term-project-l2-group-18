@@ -56,18 +56,19 @@ export default {
   methods: {
     vote(isUpvote, event) {
       event.stopPropagation();
-      const voteChange = isUpvote ? 1 : -1;
-      if (this.voteValue += voteChange) {
-        // User is retracting their vote
-        this.voteValue = 0;
-      } else {
-        // User is casting a new vote or changing their vote
-        this.voteValue = voteChange;
-      }
+      // const voteChange = isUpvote ? 1 : -1;
+      // if (this.voteValue += voteChange) {
+      //   // User is retracting their vote
+      //   this.voteValue = 0;
+      // } else {
+      //   // User is casting a new vote or changing their vote
+      //   this.voteValue = voteChange;
+      // }
 
       this.$emit('vote', {
         itineraryId: this.itineraryId,
-        isUpvote: this.voteValue === 1
+        //userId: this.userId,
+        isUpvote: isUpvote // True or False
       });
     },
     navigateToItinerary() {
