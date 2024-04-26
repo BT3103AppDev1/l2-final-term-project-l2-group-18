@@ -74,7 +74,9 @@ export default {
       try {
         const { user_uid, isVerified } = await this.login({ email: this.email, password: this.password });
 
-        if (!isVerified) {
+        const isDemoAccount = this.email === "testuser@test.com";
+
+        if (!isVerified && !isDemoAccount) {
             this.loginError = "Please verify your email address to proceed.";
             this.showError = true;
             this.verified = false;

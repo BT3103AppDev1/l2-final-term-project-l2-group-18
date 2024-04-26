@@ -123,6 +123,7 @@ export default {
           // Handle the case where the email is not verified
           this.loginError = "Please verify your email address to proceed.";
           console.log("ERROR LOG", this.loginError)
+          console.log("ITS HERE")
           return { user_uid: user.uid, isVerified: false };
         }
       } catch (error) {
