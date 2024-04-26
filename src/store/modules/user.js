@@ -131,6 +131,28 @@ export default {
         throw error
       }
     },
+
+    async resendVerificationEmail({ commit }, { email, password }) {
+      const auth = getAuth();
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        await sendEmailVerification(user)
+          .then(() => {
+            console.log("Verification email sent again.");
+            this.loginError = "A new verification email has been sent. Please check your inbox.";
+            this.showError = true;
+          })
+          .catch((error) => {
+            console.error("Error resending verification email:", error);
+            this.loginError = "Error resending verification email. Please try again later.";
+            this.showError = true;
+          });
+      }
+    },
+    
     async fetchUserData({ commit }, userId) {
       commit("SET_UID", userId);
       const db = getFirestore();

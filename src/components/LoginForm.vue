@@ -24,7 +24,10 @@
         required
       />
 
-      <p v-if="showError" id="error"> {{ loginError }}</p>
+      <p v-if="showError" id="error"> 
+        {{ loginError }}
+        <a v-if="!verified && showError" @click ="sendEmail" class="resend-link">Resend Verification Email</a>
+      </p>
 
       <a href="/forgot-password" class="forgot-password">
       Forgot password?
@@ -51,14 +54,15 @@ export default {
       email: "",
       password: "",
       loginError: "",
-      showError: false, 
+      showError: false,
+      verified: true, 
     };
   },
   computed: {
     ...mapGetters('user', ['userState', 'userData', 'userUID'])
   },
   methods: {
-    ...mapActions('user', ['login', 'signInWithGoogle', 'fetchUserData']),
+    ...mapActions('user', ['login', 'signInWithGoogle', 'fetchUserData', 'resendVerificationEmail']),
     async submitLogin() {
       this.showError = false; // Reset error visibility at the start of the login attempt
       this.loginError = ""; // Clear previous error messages
@@ -71,9 +75,11 @@ export default {
         const { user_uid, isVerified } = await this.login({ email: this.email, password: this.password });
 
         if (!isVerified) {
-            console.log("IM HERE")
             this.loginError = "Please verify your email address to proceed.";
             this.showError = true;
+            this.verified = false;
+            console.log("TEST1", this.verified)
+            console.log("TEST", this.showError)
             return;
         }
 
@@ -85,6 +91,7 @@ export default {
       } catch (error) {
         this.loginError = "Email or Password is incorrect";
         this.showError = true;
+        this.verified = true;
         console.error("Login Error:", error);
       }
     },
@@ -98,8 +105,16 @@ export default {
         console.log(this.userData.data());
       } catch (error) {
         this.loginError = error;
+        this.verified = true;
         console.error("Google Sign In Error", error);
       }
+    },
+
+    async sendEmail() {
+      await this.resendVerificationEmail({email: this.email, password: this.password});
+      this.loginError = "Verification Email has been resent!";
+      this.verified = true;
+      this.showError = true;
     },
   },
 };
@@ -228,10 +243,19 @@ input {
 
 #error {
   color: rgba(255, 0, 0, 0.582);
-  text-align: left;
+  text-align: center;
   width: 85%;
   margin-bottom: 1rem;
   margin-top:-0.3rem;
+}
+
+.resend-link {
+  color: #007BFF;
+  cursor: pointer;
+}
+
+.resend-link:hover {
+  text-decoration: underline;
 }
 
 </style>
