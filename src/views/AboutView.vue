@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="container">
-      <p>We believe that travel is for everyone. It helps us learn about ourselves and the world around us. With HTLV, planning your next adventure is just a few clicks away. Whether you want to create unforgettable itineraries or join our vibrant community, we're here to help you every step of the way.</p>
+      <p>To serve the growing demand for optimized itinerary planning and enhanced collaboration among travelers, we introduce the HTLV web app, abbreviated as Hasta La Vista. Our overarching vision is to provide a comprehensive solution that revolutionizes the way people explore the world, igniting a sense of adventure and discovery in every traveler's soul.</p>
       <div class="button-container">
         <router-link to="/my-itineraries" class="cta-button">Start Planning</router-link>
         <router-link to="/community" class="cta-button">Popular itineraries</router-link>
