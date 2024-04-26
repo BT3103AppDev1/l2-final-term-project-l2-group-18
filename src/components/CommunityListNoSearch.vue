@@ -72,10 +72,12 @@ export default {
           const userVoteDoc = await transaction.get(userVoteRef);
 
           const voteStatus = doc(itineraryRef, "userVotes", userId); // either 0, 1, -1
+          
           const voteSnap = await getDoc(voteStatus);
           const voteData = voteSnap.data()
-          const vote = voteData.vote;
-          console.log("user current vote:", vote)
+
+          // const vote = voteData.vote;
+
 
           // Determine the current user's vote state
           const voteChange = isUpvote ? 1 : -1;
