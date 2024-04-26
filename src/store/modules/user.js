@@ -115,7 +115,9 @@ export default {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        if (user.emailVerified) {
+        const isDemoAccount = email === "testuser@test.com";
+
+        if (user.emailVerified || isDemoAccount) {
           commit("SET_LOGGED_IN", true);
           const user_uid = userCredential.user.uid;
           return { user_uid: user_uid, isVerified: true };
