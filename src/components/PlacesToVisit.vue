@@ -7,6 +7,12 @@
 
     <div class="edit-title-button-container">
       <font-awesome-icon
+        icon="download"
+        class="download-button"
+        :size="iconSize"
+        @click="downloadItinerary"
+      />
+      <font-awesome-icon
         icon="edit"
         class="edit-icon"
         :size="iconSize"
@@ -259,6 +265,8 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { faL } from "@fortawesome/free-solid-svg-icons";
 import draggable from "vuedraggable";
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 const db = getFirestore(firebaseApp);
 
@@ -323,6 +331,47 @@ export default {
       this.deleteItinerary();
       }
     },
+  downloadItinerary() {
+    const doc = new jsPDF();
+
+    const tableColumn = ["Day", "Stop Number", "Location", "Category", "Description"];
+    const tableRows = [];
+
+    // Organize data by day and order for easy access
+    const days = this.itineraryData.reduce((acc, item) => {
+      if (!acc[item.day]) acc[item.day] = [];
+      acc[item.day].push(item);
+      return acc;
+    }, {});
+
+    // Sort days and create rows for the table
+    Object.keys(days).sort().forEach(day => {
+      days[day].sort((a, b) => a.order - b.order).forEach((item, index) => {
+        const itineraryData = [
+          `Day ${item.day}`,
+          `Stop ${index + 1}`,
+          item.location,
+          item.category,
+          item.description
+        ];
+        tableRows.push(itineraryData);
+      });
+    });
+
+    // Start the table with column headers and rows
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+      theme: "striped",
+      didDrawPage: function (data) {
+        doc.text("Itinerary Details", 14, 15);
+      }
+    });
+
+    // Save the PDF
+    doc.save("itinerary-details.pdf");
+  },
 
     async deleteItinerary() {
       try {
@@ -1091,7 +1140,7 @@ export default {
           const userId = userDoc.id;
           const userVoteRef = doc(communityItineraryRef, "userVotes", userId);
           await setDoc(userVoteRef, {
-            voted: false,
+            vote: 0,
           });
         }
         const userDaysRef = collection(userItineraryRef, "days");
@@ -1798,4 +1847,15 @@ h3 {
     white-space: pre-wrap;
 }
 
+.download-button {
+  color: #265c99;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  margin-right: 15px;
+}
+
+.download-button:hover {
+  color: #357abd;
+}
 </style>

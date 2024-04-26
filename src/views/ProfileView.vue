@@ -86,12 +86,14 @@ export default {
 <style scoped>
 /* In your CSS */
 h1 {
-    font-size: 2.5em; /* Larger size */
+    font-size: 40px;
+    font-weight: 800;
     text-align: center;
     font-weight: 510;
     text-align: center;
     text-transform: capitalize;
 }
+
 
 .subtitle {
     color: #666;

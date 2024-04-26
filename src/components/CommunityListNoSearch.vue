@@ -1,18 +1,9 @@
 <template>
   <div class="trips container">
     <div class="cards">
-    <CommunityCard
-        v-for="itinerary in itineraries"
-        :key="itinerary.id"
-        :itineraryId="itinerary.id"
-        :country="itinerary.destination"
-        :title="itinerary.title"
-        :itineraryPic="itinerary.imageURL"
-        :profilePic="itinerary.photoURL"
-        :name="itinerary.username"
-        :votes="itinerary.votes"
-        @vote="handleVote"
-    />
+      <CommunityCard v-for="itinerary in itineraries" :key="itinerary.id" :itineraryId="itinerary.id"
+        :country="itinerary.destination" :title="itinerary.title" :itineraryPic="itinerary.imageURL"
+        :profilePic="itinerary.photoURL" :name="itinerary.username" :votes="itinerary.votes" @vote="handleVote" />
     </div>
   </div>
 </template>
@@ -45,6 +36,8 @@ export default {
     type: String, //Personal or Community
     country: String,
     itineraryId: String,
+    // vote: Integer,
+
   },
   data() {
     return {
@@ -70,24 +63,58 @@ export default {
       const userRef = doc(db, "global_user_itineraries", itineraryId);
       const userSnap = await getDoc(userRef);
       const itineraryData = userSnap.data();
-      const destination = itineraryData.destination;
-      const itineraryRef = doc(db, "global_community_itineraries", destination, "Itineraries", itineraryId);
+      const location = itineraryData.destination;
+      const itineraryRef = doc(db, "global_community_itineraries", location, "Itineraries", itineraryId);
+
       try {
         await runTransaction(db, async (transaction) => {
           const userVoteRef = doc(itineraryRef, "userVotes", userId);
           const userVoteDoc = await transaction.get(userVoteRef);
-          
-          if (!userVoteDoc.exists() || userVoteDoc.data().voted === false) {
-            transaction.set(userVoteRef, { voted: true }, { merge: true });
-            transaction.update(itineraryRef, {
-              votes: increment(isUpvote ? 1 : -1)
-            });
-          } else {
-            throw new Error('You have already voted!');
+
+          const voteStatus = doc(itineraryRef, "userVotes", userId); // either 0, 1, -1
+          const voteSnap = await getDoc(voteStatus);
+          const voteData = voteSnap.data()
+          const vote = voteData.vote;
+          console.log("user current vote:", vote)
+
+          // Determine the current user's vote state
+          const voteChange = isUpvote ? 1 : -1;
+          console.log("vote change: ", voteChange)
+          let currentVote = userVoteDoc.exists() ? userVoteDoc.data().vote : 0;
+          console.log("Document exists:", userVoteDoc.exists());
+          console.log("Document data:", userVoteDoc.data());
+          if (userVoteDoc.exists()) {
+            console.log("Vote value:", userVoteDoc.data().vote);
           }
+          console.log("current vote:", currentVote)
+          let newVote = 0;
+
+          if (currentVote === voteChange) { // voteChange is either 1 or -1
+            // User is trying to vote the same way again
+            throw new Error('You cannot vote more than once.');
+          } else if (currentVote === 0) {
+            // This is the user's first time voting
+            console.log("inside else if (currentVote === 0)")
+            newVote = voteChange;
+          } else {
+            console.log("inside else")
+
+            // User is changing their vote or retracting it
+            newVote = (currentVote === -voteChange) ? 0 : voteChange;
+            console.log(newVote)
+
+          }
+
+          // Set the new vote value
+          transaction.set(userVoteRef, { vote: newVote });
+
+          // Update the itinerary's total vote count
+          let voteIncrement = newVote - currentVote;
+          transaction.update(itineraryRef, { votes: increment(voteIncrement) });
         });
+
         console.log('Transaction successfully committed!');
-        this.fetchItineraries();
+        this.fetchItineraries(this.country);
       } catch (error) {
         console.error('Transaction failed: ', error);
         alert(error.message);
@@ -105,16 +132,13 @@ export default {
         for (const countryDoc of countriesSnapshot.docs) {
           const itinerariesRef = collection(countryDoc.ref, "Itineraries");
           const itinerariesSnapshot = await getDocs(itinerariesRef);
-          itinerariesSnapshot.forEach(async document => {
+          const fetchedItineraries = await Promise.all(itinerariesSnapshot.docs.map(async document => {
             const data = document.data();
             const userId = data.userId;
-            console.log(userId);
             const userRef = doc(db, "users", userId);
-            console.log(userRef);
             const userSnap = await getDoc(userRef);
-            const userData = userSnap.data();
-            console.log(userData);
-            const formattedItinerary = {
+            const userData = userSnap.exists() ? userSnap.data() : {};
+            return {
               id: document.id,
               title: data.title,
               destination: data.destination,
@@ -122,13 +146,11 @@ export default {
               endDate: new Date(data.dateRange[1].seconds * 1000).toLocaleDateString("en-GB"),
               votes: data.votes,
               imageURL: data.imageURL,
-              photoURL: userData.photoURL,
-              username: userData.username
-};
-            if (!itinerariesNew.some(itinerary => itinerary.id === formattedItinerary.id)) {
-              itinerariesNew.push(formattedItinerary);
-            }
-          });
+              photoURL: userData.photoURL || '',
+              username: userData.username || 'Unknown'
+            };
+          }));
+          itinerariesNew.push(...fetchedItineraries);
         }
         const sortedItineraries = itinerariesNew.sort((a, b) => b.votes - a.votes);
         this.itineraries = sortedItineraries;
@@ -162,5 +184,4 @@ export default {
   justify-content: center;
   gap: 20px;
 }
-
 </style>

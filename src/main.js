@@ -10,6 +10,7 @@ import { faShareFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import "@fortawesome/fontawesome-free/css/all.css";
+
 import {
   faUserCircle,
   faHome,
@@ -22,7 +23,8 @@ import {
   faGlobe,
   faStar,
   faShareAlt,
-  faPaperPlane
+  faPaperPlane,
+  faDownload
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -42,7 +44,8 @@ library.add(
   faTrash,
   faPencil,
   faShareAlt,
-  faPaperPlane
+  faPaperPlane,
+  faDownload
 );
 
 const app = createApp(App);

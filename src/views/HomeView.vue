@@ -1,11 +1,15 @@
 <template>
+  <div class="home-view">
   <NavBar />
-    <div class="home-page">
-      <Explore />
-      <h1 class="recent-itineraries">Your Recent Itineraries</h1>
-      <ItineraryList type="personal" limit="4"/>
-      <SearchLocation />
-
+  <video id="backgroundVideo" autoplay muted loop>
+        <source src="../assets/clouds2.mp4" type="video/mp4">
+  </video>
+  <div class="home-page">
+    <Explore />
+    <h1 class="recent-itineraries">Your Recent Itineraries</h1>
+    <ItineraryList class= "ur_itineraries" type="personal" limit="4"/>
+    <SearchLocation />
+  </div>
     </div>
 </template>
   
@@ -23,16 +27,28 @@ import Explore from '@/components/Explore.vue'
       Explore,
     },
     mounted() {
-      document.body.style.backgroundColor = "#e7dcdc";
+      const backgroundVideo = document.getElementById('backgroundVideo');
+      if (backgroundVideo) {
+        backgroundVideo.style.position = 'fixed';
+        backgroundVideo.style.top = '0';
+        backgroundVideo.style.left = '0';
+        backgroundVideo.style.width = '100%';
+        backgroundVideo.style.height = '100vh';
+        backgroundVideo.style.objectFit = 'cover';
+        backgroundVideo.style.zIndex = -10;
+        backgroundVideo.style.opacity = '0.9';
+        backgroundVideo.playbackRate = 0.7;
+  }
     }
   };
 </script>
   
 <style scoped>
   .home-page {
+    position: relative;
     text-align: center;
     margin: 50px auto;
-    width: 75%;
+    width: 95%;
   }
 
   .recent-itineraries {
@@ -40,6 +56,8 @@ import Explore from '@/components/Explore.vue'
     font-weight: 510;
     text-align: center;
     text-transform: capitalize;
+    margin-top: 50px;
+    
   }
   
   .button {
@@ -51,6 +69,10 @@ import Explore from '@/components/Explore.vue'
     cursor: pointer;
     font-size: 16px;
     margin: 20px;
+  }
+
+  .ur_itineraries {
+    margin-bottom: 50px;
   }
   
 </style>

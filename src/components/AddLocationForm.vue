@@ -15,7 +15,6 @@
       class="description"
       v-model="formData.description"
       placeholder="Enter Description"
-      required
     ></textarea>
     <label for="category"><i class="fas fa-layer-group"></i>Category</label>
     <select

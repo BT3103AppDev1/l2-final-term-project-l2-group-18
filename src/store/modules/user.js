@@ -78,8 +78,6 @@ export default {
           photoURL: "https://firebasestorage.googleapis.com/v0/b/htlv-e4a45.appspot.com/o/profile_pics%2Fdefault%2Favatar_default.jpg?alt=media&token=eca40c65-a599-45bc-95a8-69b280097f15"
         });
 
-        commit("SET_LOGGED_IN", true);
-
         const user_uid = userCredentials.user.uid;
         return user_uid;
 
@@ -114,34 +112,48 @@ export default {
     async login({ commit }, { email, password }) {
       const auth = getAuth();
       try {
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-      //   const user = userCredential.user;
-      //   if (user.emailVerified) {
-      //     // Proceed with the login
-      //     this.$router.push('/home');
-      //   } else {
-      //     // Handle the case where the email is not verified
-      //     this.loginError = "Please verify your email address to proceed.";
-      //     // Optionally, provide an option to resend the verification email
-      //   }
-      // } catch (error) {
-      //   this.loginError = error.message;
-      // }
-
-        commit("SET_LOGGED_IN", true);
-
-        const user_uid = userCredential.user.uid;
-        return user_uid;
-
+        if (user.emailVerified) {
+          commit("SET_LOGGED_IN", true);
+          const user_uid = userCredential.user.uid;
+          return { user_uid: user_uid, isVerified: true };
+        } else {
+          // Handle the case where the email is not verified
+          this.loginError = "Please verify your email address to proceed.";
+          console.log("ERROR LOG", this.loginError)
+          console.log("ITS HERE")
+          return { user_uid: user.uid, isVerified: false };
+        }
       } catch (error) {
-          throw error; // rethrow to catch in the component
+        this.loginError = error.message;
+        console.error("Login Error", error)
+        throw error
       }
     },
+
+    async resendVerificationEmail({ commit }, { email, password }) {
+      const auth = getAuth();
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        await sendEmailVerification(user)
+          .then(() => {
+            console.log("Verification email sent again.");
+            this.loginError = "A new verification email has been sent. Please check your inbox.";
+            this.showError = true;
+          })
+          .catch((error) => {
+            console.error("Error resending verification email:", error);
+            this.loginError = "Error resending verification email. Please try again later.";
+            this.showError = true;
+          });
+      }
+    },
+    
     async fetchUserData({ commit }, userId) {
       commit("SET_UID", userId);
       const db = getFirestore();
