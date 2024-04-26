@@ -1,35 +1,43 @@
 <template>
     <div class="signup-form">
-      <h2>Create an account with HTLV!</h2>
+        <h2>Create an account with HTLV!</h2>
 
-      <form @submit.prevent="submitCreateAccount">
-        <button @click="submitSignInWithGoogle" class="google-sign-in-button">
-            <img src = "../assets/google_logo.png" id = "google_logo">Sign up with Google</button>
-      </form>
-
-      <form @submit.prevent="submitCreateAccount">
-        <div class="or_block">
-            <hr class="line" />
-            <h4>or</h4>
-            <hr class="line" />
+        <div v-if="emailSent" class="success-message">
+            Verification Email sent. 
+            <div>Please verify your email before logging in. </div>
+            <div>You will be redirected back to the login page in <strong>{{ countdown }}</strong> seconds.</div>
         </div>
 
-        <input v-model="username" type="text" placeholder="Username" required />
-        <input v-model="email" type = "email" placeholder = "email@example.com" required/>
-        <input v-model="password" type="password" placeholder="Password" required />
-        <input v-model="retypePassword" type = "password" placeholder="Retype Password" required/>
-        <div v-if="createAccountError" class="error-message" v-html="createAccountError">
-        </div>
-        <button type="submit" class="create-account-button">Create Account</button>
-      </form>
+        <div v-else class = "other_stuff">
+            <form @submit.prevent="submitCreateAccount">
+                <button @click="submitSignInWithGoogle" class="google-sign-in-button">
+                    <img src = "../assets/google_logo.png" id = "google_logo">Sign up with Google</button>
+            </form>
 
-      <div class = "account-message">
-        Already have an account? 
-        <a href="/login" class = "login">Login</a>
-      </div>
+            <form @submit.prevent="submitCreateAccount">
+                <div class="or_block">
+                    <hr class="line" />
+                    <h4>or</h4>
+                    <hr class="line" />
+                </div>
+
+                <input v-model="username" type="text" placeholder="Username" required />
+                <input v-model="email" type = "email" placeholder = "email@example.com" required/>
+                <input v-model="password" type="password" placeholder="Password" required />
+                <input v-model="retypePassword" type = "password" placeholder="Retype Password" required/>
+                <div v-if="createAccountError" class="error-message" v-html="createAccountError">
+                </div>
+                <button type="submit" class="create-account-button">Create Account</button>
+            </form>
+
+            <div class = "account-message">
+                Already have an account? 
+                <a href="/login" class = "login">Login</a>
+            </div>
+       </div>
     </div>
 </template>
-  
+
 <script>
 import {mapGetters, mapActions } from "vuex";
 export default {
@@ -41,6 +49,8 @@ export default {
         password: '',
         retypePassword: '',
         createAccountError:'',
+        emailSent: false,
+        countdown: 10,
         };
     },
     computed: {
@@ -70,16 +80,30 @@ export default {
 
             try {
                 const user_uid = await this.createAccount({ email: this.email, password: this.password, username: this.username });
-                await this.fetchUserData(user_uid);
+                // await this.fetchUserData(user_uid);
 
-                console.log(this.userUID);
-                console.log(this.userData.data());
-                this.$router.push('/home');
+                // console.log(this.userUID);
+                // console.log(this.userData.data());
+                this.emailSent = true;
+                this.startCountdown();
+                // this.$router.push('/login');
             } catch (error) {
                 this.createAccountError = error.message;
                 console.error("Account creation error:", error);
             }
         },
+
+        startCountdown() {
+            const interval = setInterval(() => {
+                if (this.countdown > 0) {
+                    this.countdown -= 1;
+                } else {
+                    clearInterval(interval);
+                    this.$router.push('/login');
+                }
+            }, 1000);
+        },
+
         async submitSignInWithGoogle() {
             try {
                 const user_uid = await this.signInWithGoogle();
@@ -103,7 +127,7 @@ export default {
   
 <style scoped>
     .signup-form {
-    width: 400px;
+    width: 490px;
     margin: 0 auto;
     display: grid;
     align-content: center;
@@ -214,5 +238,13 @@ export default {
     text-align: left;
     width:80%;
     }
+
+    .success-message {
+    color: green;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 400;
+}
 
 </style>

@@ -24,7 +24,7 @@
         required
       />
 
-      <p v-if="showError" id="error">⚠️Email or Password is incorrect</p>
+      <p v-if="showError" id="error"> {{ loginError }}</p>
 
       <a href="/forgot-password" class="forgot-password">
       Forgot password?
@@ -38,11 +38,6 @@
       <a href="/signup" class="sign-up">Sign up</a>
     </div>
 
-
-    <!-- <div class="additional-links">
-      <a href="/help">Need help?</a>
-      <a href="/usage">Usage</a>
-    </div> -->
   </div>
 </template>
 
@@ -65,19 +60,30 @@ export default {
   methods: {
     ...mapActions('user', ['login', 'signInWithGoogle', 'fetchUserData']),
     async submitLogin() {
+      this.showError = false; // Reset error visibility at the start of the login attempt
+      this.loginError = ""; // Clear previous error messages
+
       if (!this.email || !this.password) {
         this.loginError = "Email and password are required.";
         return;
       }
       try {
-        const user_uid = await this.login({ email: this.email, password: this.password });
-        console.log("Logged in successfully");
+        const { user_uid, isVerified } = await this.login({ email: this.email, password: this.password });
+
+        if (!isVerified) {
+            console.log("IM HERE")
+            this.loginError = "Please verify your email address to proceed.";
+            this.showError = true;
+            return;
+        }
+
+        console.log("Logged in successfully with UID:", user_uid);
         await this.fetchUserData(user_uid);
         this.$router.push("/home");
-        console.log(this.userUID);
-        console.log(this.userData.data());
+        // console.log(this.userUID);
+        // console.log(this.userData.data());
       } catch (error) {
-        this.loginError = error.message;
+        this.loginError = "Email or Password is incorrect";
         this.showError = true;
         console.error("Login Error:", error);
       }

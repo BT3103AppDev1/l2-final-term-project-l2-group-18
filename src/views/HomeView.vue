@@ -37,6 +37,7 @@ import Explore from '@/components/Explore.vue'
         backgroundVideo.style.objectFit = 'cover';
         backgroundVideo.style.zIndex = -10;
         backgroundVideo.style.opacity = '0.9';
+        backgroundVideo.playbackRate = 0.7;
   }
     }
   };
